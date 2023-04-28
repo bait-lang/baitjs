@@ -4988,6 +4988,31 @@ function os__resource_abs_path(path) {
 	return os__join_path(from_js_string(__dirname), new array({ data: [path], length: 1 }))
 }
 
+function os__Result({ code = 0, stdout = from_js_string(""), stderr = from_js_string("") }) {
+	this.code = code
+	this.stdout = stdout
+	this.stderr = stderr
+}
+os__Result.prototype = {
+	toString() {
+		return `os__Result{
+    code: ${this.code.toString()}
+    stdout: ${this.stdout.toString()}
+    stderr: ${this.stderr.toString()}
+}`}
+}
+function os__exec(cmd) {
+	let res = new os__Result({})
+	try {
+		const stdout = js_child_process.execSync(cmd.str, {stdio: ["pipe", "pipe", "pipe"]}).toString()
+		res.stdout = from_js_string(stdout)
+	} catch (e) {
+		res.code = e.status
+		res.stderr = from_js_string(e.stderr.toString())
+	}
+	return res
+}
+
 function os__system(cmd) {
 	try {
 		js_child_process.execSync(cmd.str, { stdio: "inherit" })
@@ -4998,10 +5023,7 @@ function os__system(cmd) {
 }
 
 
-function show_help() {
-	println(from_js_string("usage: bait [options] <command|file>\nExample:\n   bait my_file.bt\n   bait -o lib.js src/\n\nCommands:\n   help   Prints this message.\n\nOptions:\n   -o, --out <file>   Output file name (default: \"out.js\").\n").str)
-}
-
+const TOOLS = new array({ data: [from_js_string("help")], length: 1 })
 function print_ast(path) {
 	const text = os__read_file(path)
 	const tokens = bait__tokenizer__tokenize(text, path)
@@ -5228,20 +5250,32 @@ function parse_args(args) {
 	return pref
 }
 
+function launch_tool(name, args) {
+	const tool_base_path = os__resource_abs_path(os__join_path(from_js_string("cli"), new array({ data: [from_js_string("tools"), name], length: 2 })))
+	const tool_source = string_add(tool_base_path, from_js_string(".bt"))
+	const tool_exe = string_add(tool_base_path, from_js_string(".js"))
+	const tool_args = array_string_join(args, from_js_string(" "))
+	const baitexe = os__resource_abs_path(from_js_string("bait.js"))
+	const comp_res = os__exec(from_js_string(`node ${baitexe.str} ${tool_source.str} -o ${tool_exe.str}`))
+	if (comp_res.code != 0) {
+		eprintln(from_js_string(`Failed to compile tool "${name.str}" with error: ${comp_res.stderr.str}`).str)
+		exit(1)
+	}
+	exit(os__system(from_js_string(`node ${tool_exe.str} ${tool_args.str}`)))
+}
+
 function main() {
 	const args = array_slice(os__ARGS, 2, os__ARGS.length)
 	if (args.length == 0) {
-		show_help()
-		exit(0)
+		launch_tool(from_js_string("help"), new array({ data: [], length: 0 }))
+		return
 	}
 	const pref = parse_args(args)
+	if (array_string_contains(TOOLS, pref.command)) {
+		launch_tool(pref.command, pref.args)
+		return
+	}
 	switch (pref.command.str) {
-		case from_js_string("help").str:
-			{
-				show_help()
-				exit(0)
-				break
-			}
 		case from_js_string("ast").str:
 			{
 				print_ast(array_get(pref.args, 0))
@@ -5269,7 +5303,7 @@ function main() {
 		ensure_dir_exists(os__dir(pref.out_name))
 		exit(transpile(pref))
 	}
-	eprintln(from_js_string(`error: unknown command: "${pref.command.str}"`).str)
+	eprintln(from_js_string(`error: unknown file or command: "${pref.command.str}"`).str)
 	exit(1)
 }
 
