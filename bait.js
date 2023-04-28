@@ -5002,10 +5002,6 @@ function show_help() {
 	println(from_js_string("usage: bait [options] <command|file>\nExample:\n   bait my_file.bt\n   bait -o lib.js src/\n\nCommands:\n   help   Prints this message.\n\nOptions:\n   -o, --out <file>   Output file name (default: \"out.js\").\n").str)
 }
 
-function foo() {
-	const x = 1
-}
-
 function print_ast(path) {
 	const text = os__read_file(path)
 	const tokens = bait__tokenizer__tokenize(text, path)
