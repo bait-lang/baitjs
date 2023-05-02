@@ -5084,7 +5084,7 @@ function os__system(cmd) {
 
 
 const VERSION = from_js_string("0.0.2-dev")
-const TOOLS = new array({ data: [from_js_string("help")], length: 1 })
+const TOOLS = new array({ data: [from_js_string("help"), from_js_string("test-all"), from_js_string("build-examples")], length: 3 })
 function print_ast(path) {
 	const text = os__read_file(path)
 	const tokens = bait__tokenizer__tokenize(text, path)
