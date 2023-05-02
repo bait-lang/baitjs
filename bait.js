@@ -362,11 +362,13 @@ function array_string_to_js_arr(arr) {
 }
 
 
-function bait__prefs__Pref({ command = from_js_string(""), out_name = from_js_string(""), args = new array({ data: [], length: 0 }), is_test = false }) {
+function bait__prefs__Pref({ command = from_js_string(""), out_name = from_js_string(""), args = new array({ data: [], length: 0 }), is_test = false, baitexe = from_js_string(""), baitroot = from_js_string("") }) {
 	this.command = command
 	this.out_name = out_name
 	this.args = args
 	this.is_test = is_test
+	this.baitexe = baitexe
+	this.baitroot = baitroot
 }
 bait__prefs__Pref.prototype = {
 	toString() {
@@ -375,6 +377,8 @@ bait__prefs__Pref.prototype = {
     out_name: ${this.out_name.toString()}
     args: ${this.args.toString()}
     is_test: ${this.is_test.toString()}
+    baitexe: ${this.baitexe.toString()}
+    baitroot: ${this.baitroot.toString()}
 }`}
 }
 
@@ -1390,6 +1394,17 @@ bait__ast__CharLiteral.prototype = {
     pos: ${this.pos.toString()}
 }`}
 }
+function bait__ast__CompTimeVar({ name = from_js_string(""), pos = new bait__token__Pos({}) }) {
+	this.name = name
+	this.pos = pos
+}
+bait__ast__CompTimeVar.prototype = {
+	toString() {
+		return `bait__ast__CompTimeVar{
+    name: ${this.name.toString()}
+    pos: ${this.pos.toString()}
+}`}
+}
 function bait__ast__EnumVal({ name = from_js_string(""), val = from_js_string(""), typ = 0, pos = new bait__token__Pos({}) }) {
 	this.name = name
 	this.val = val
@@ -2357,6 +2372,11 @@ function bait__parser__Parser_expr(p, precedence) {
 				node = bait__parser__Parser_char_literal(p)
 				break
 			}
+		case bait__token__TokenKind.dollar:
+			{
+				node = bait__parser__Parser_comp_time_var(p)
+				break
+			}
 		case bait__token__TokenKind.lbr:
 			{
 				node = bait__parser__Parser_array_init(p)
@@ -2526,6 +2546,13 @@ function bait__parser__Parser_char_literal(p) {
 	const pos = p.tok.pos
 	bait__parser__Parser_next(p)
 	return new bait__ast__CharLiteral({ val: p.prev_tok.val, pos: pos })
+}
+
+function bait__parser__Parser_comp_time_var(p) {
+	const pos = p.tok.pos
+	bait__parser__Parser_next(p)
+	const name = bait__parser__Parser_check_name(p)
+	return new bait__ast__CompTimeVar({ name: name, pos: pos })
 }
 
 function bait__parser__Parser_dot_expr(p, left) {
@@ -3477,6 +3504,8 @@ function bait__checker__Checker_expr(c, expr) {
 		return bait__checker__Checker_cast_expr(c, expr)
 	} else if (expr instanceof bait__ast__CharLiteral) {
 		return bait__ast__TypeIdx.u8
+	} else if (expr instanceof bait__ast__CompTimeVar) {
+		return bait__checker__Checker_comp_time_var(c, expr)
 	} else if (expr instanceof bait__ast__EnumVal) {
 		return bait__checker__Checker_enum_val(c, expr)
 	} else if (expr instanceof bait__ast__Ident) {
@@ -3639,6 +3668,14 @@ function bait__checker__Checker_method_call(c, node) {
 function bait__checker__Checker_cast_expr(c, node) {
 	bait__checker__Checker_expr(c, node.expr)
 	return node.target
+}
+
+const bait__checker__SUPPORTED_COMPTIME_VARS = new array({ data: [from_js_string("BAITEXE"), from_js_string("BAITROOT")], length: 2 })
+function bait__checker__Checker_comp_time_var(c, node) {
+	if (!array_string_contains(bait__checker__SUPPORTED_COMPTIME_VARS, node.name)) {
+		bait__checker__Checker_error(c, from_js_string(`unsupported comptime var "${node.name.str}"`), node.pos)
+	}
+	return bait__ast__TypeIdx.string
 }
 
 function bait__checker__Checker_enum_val(c, node) {
@@ -4097,6 +4134,8 @@ function bait__gen__js__Gen_expr(g, expr) {
 		bait__gen__js__Gen_cast_expr(g, expr)
 	} else if (expr instanceof bait__ast__CharLiteral) {
 		bait__gen__js__Gen_char_literal(g, expr)
+	} else if (expr instanceof bait__ast__CompTimeVar) {
+		bait__gen__js__Gen_comp_time_var(g, expr)
 	} else if (expr instanceof bait__ast__EnumVal) {
 		bait__gen__js__Gen_enum_val(g, expr)
 	} else if (expr instanceof bait__ast__Ident) {
@@ -4222,6 +4261,21 @@ function bait__gen__js__Gen_char_literal(g, node) {
 	bait__gen__js__Gen_write(g, from_js_string("\""))
 	bait__gen__js__Gen_write(g, node.val)
 	bait__gen__js__Gen_write(g, from_js_string("\""))
+}
+
+function bait__gen__js__Gen_comp_time_var(g, node) {
+	switch (node.name.str) {
+		case from_js_string("BAITEXE").str:
+			{
+				bait__gen__js__Gen_write(g, from_js_string(`from_js_string("${g.pref.baitexe.str}")`))
+				break
+			}
+		case from_js_string("BAITROOT").str:
+			{
+				bait__gen__js__Gen_write(g, from_js_string(`from_js_string("${g.pref.baitroot.str}")`))
+				break
+			}
+	}
 }
 
 function bait__gen__js__Gen_enum_val(g, node) {
@@ -4513,7 +4567,8 @@ function bait__gen__js__Gen_expr_to_string(g, expr, typ) {
 
 
 const bait__gen__js__JS_RESERVED = new array({ data: [from_js_string("case"), from_js_string("default"), from_js_string("new"), from_js_string("var"), from_js_string("with")], length: 5 })
-function bait__gen__js__Gen({ table = new bait__ast__Table({}), path = from_js_string(""), type_defs_out = from_js_string(""), global_out = from_js_string(""), out = from_js_string(""), indent = 0, empty_line = false, import_names = new array({ data: [], length: 0 }), tmp_counter = 0, is_for_loop_head = false, is_lhs_assign = false, is_array_map_set = false }) {
+function bait__gen__js__Gen({ pref = new bait__prefs__Pref({}), table = new bait__ast__Table({}), path = from_js_string(""), type_defs_out = from_js_string(""), global_out = from_js_string(""), out = from_js_string(""), indent = 0, empty_line = false, import_names = new array({ data: [], length: 0 }), tmp_counter = 0, is_for_loop_head = false, is_lhs_assign = false, is_array_map_set = false }) {
+	this.pref = pref
 	this.table = table
 	this.path = path
 	this.type_defs_out = type_defs_out
@@ -4530,6 +4585,7 @@ function bait__gen__js__Gen({ table = new bait__ast__Table({}), path = from_js_s
 bait__gen__js__Gen.prototype = {
 	toString() {
 		return `bait__gen__js__Gen{
+    pref: ${this.pref.toString()}
     table: ${this.table.toString()}
     path: ${this.path.toString()}
     type_defs_out: ${this.type_defs_out.toString()}
@@ -4545,7 +4601,7 @@ bait__gen__js__Gen.prototype = {
 }`}
 }
 function bait__gen__js__gen(files, table, pref) {
-	let g = new bait__gen__js__Gen({ table: table, indent: -1, empty_line: true, tmp_counter: -1 })
+	let g = new bait__gen__js__Gen({ pref: pref, table: table, indent: -1, empty_line: true, tmp_counter: -1 })
 	for (let _t17 = 0; _t17 < files.length; _t17++) {
 		const file = array_get(files, _t17)
 		g.path = file.path
@@ -4980,6 +5036,10 @@ function os__join_path(base, dirs) {
 	return from_js_string(js_path.join(base.str, ...js_dirs))
 }
 
+function os__executable() {
+	return from_js_string(__filename)
+}
+
 function os__abs_path(path) {
 	return from_js_string(js_path.resolve(os__getwd().str, path.str))
 }
@@ -5220,7 +5280,8 @@ function get_user_files(upath) {
 }
 
 function parse_args(args) {
-	let pref = new bait__prefs__Pref({})
+	const baitexe = os__executable()
+	let pref = new bait__prefs__Pref({ baitexe: baitexe, baitroot: os__dir(baitexe) })
 	for (let i = 0; i < args.length; i += 1) {
 		const arg = array_get(args, i)
 		switch (arg.str) {
