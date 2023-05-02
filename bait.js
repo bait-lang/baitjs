@@ -5023,6 +5023,7 @@ function os__system(cmd) {
 }
 
 
+const VERSION = from_js_string("0.0.2-dev")
 const TOOLS = new array({ data: [from_js_string("help")], length: 1 })
 function print_ast(path) {
 	const text = os__read_file(path)
@@ -5283,6 +5284,11 @@ function main() {
 				exit(transpile(pref))
 				break
 			}
+		case from_js_string("test").str:
+			{
+				exit(run_tests(pref))
+				break
+			}
 		case from_js_string("ast").str:
 			{
 				print_ast(array_get(pref.args, 0))
@@ -5294,14 +5300,15 @@ function main() {
 				exit(transpile(new bait__prefs__Pref({ command: from_js_string("cli/bait.bt"), out_name: from_js_string("bait.js") })))
 				break
 			}
-		case from_js_string("test").str:
-			{
-				exit(run_tests(pref))
-				break
-			}
 		case from_js_string("up").str:
 			{
 				update()
+				exit(0)
+				break
+			}
+		case from_js_string("version").str:
+			{
+				println(from_js_string(`Bait ${VERSION.str}`).str)
 				exit(0)
 				break
 			}
