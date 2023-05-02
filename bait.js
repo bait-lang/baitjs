@@ -5270,12 +5270,19 @@ function main() {
 		launch_tool(from_js_string("help"), new array({ data: [], length: 0 }))
 		return
 	}
-	const pref = parse_args(args)
+	let pref = parse_args(args)
 	if (array_string_contains(TOOLS, pref.command)) {
 		launch_tool(pref.command, pref.args)
 		return
 	}
 	switch (pref.command.str) {
+		case from_js_string("build").str:
+			{
+				pref.command = array_get(pref.args, 0)
+				ensure_dir_exists(os__dir(pref.out_name))
+				exit(transpile(pref))
+				break
+			}
 		case from_js_string("ast").str:
 			{
 				print_ast(array_get(pref.args, 0))
