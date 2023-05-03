@@ -5084,15 +5084,7 @@ function os__system(cmd) {
 
 
 const VERSION = from_js_string("0.0.2-dev")
-const TOOLS = new array({ data: [from_js_string("up"), from_js_string("self"), from_js_string("help"), from_js_string("test-all"), from_js_string("build-examples"), from_js_string("build-tools")], length: 6 })
-function print_ast(path) {
-	const text = os__read_file(path)
-	const tokens = bait__tokenizer__tokenize(text, path)
-	const ast = bait__parser__parse(tokens, path, bait__ast__new_table())
-	println(ast.toString())
-	exit(0)
-}
-
+const TOOLS = new array({ data: [from_js_string("ast"), from_js_string("up"), from_js_string("self"), from_js_string("help"), from_js_string("test-all"), from_js_string("build-examples"), from_js_string("build-tools")], length: 7 })
 function ensure_dir_exists(dir) {
 	if (!os__exists(dir)) {
 		os__mkdir(dir)
@@ -5338,12 +5330,6 @@ function main() {
 		case from_js_string("test").str:
 			{
 				exit(run_tests(pref))
-				break
-			}
-		case from_js_string("ast").str:
-			{
-				print_ast(array_get(pref.args, 0))
-				return
 				break
 			}
 		case from_js_string("version").str:
