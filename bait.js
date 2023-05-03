@@ -5084,7 +5084,7 @@ function os__system(cmd) {
 
 
 const VERSION = from_js_string("0.0.2-dev")
-const TOOLS = new array({ data: [from_js_string("help"), from_js_string("test-all"), from_js_string("build-examples"), from_js_string("build-tools")], length: 4 })
+const TOOLS = new array({ data: [from_js_string("up"), from_js_string("self"), from_js_string("help"), from_js_string("test-all"), from_js_string("build-examples"), from_js_string("build-tools")], length: 6 })
 function print_ast(path) {
 	const text = os__read_file(path)
 	const tokens = bait__tokenizer__tokenize(text, path)
@@ -5229,16 +5229,6 @@ function run_tests(pref) {
 	return 0
 }
 
-function update() {
-	os__system(from_js_string("git pull"))
-	const res = transpile(new bait__prefs__Pref({ command: from_js_string("cli/bait.bt"), out_name: from_js_string("bait.js") }))
-	if (res != 0) {
-		os__system(from_js_string("./make.sh"))
-	}
-	println(from_js_string("Updated successfully.").str)
-	exit(0)
-}
-
 function bait_files_from_dir(dir) {
 	const all_files = os__ls(dir)
 	let files = new array({ data: [], length: 0 })
@@ -5317,7 +5307,7 @@ function launch_tool(name, args) {
 	const tool_source = string_add(tool_base_path, from_js_string(".bt"))
 	const tool_exe = string_add(tool_base_path, from_js_string(".js"))
 	const tool_args = array_string_join(args, from_js_string(" "))
-	const baitexe = os__resource_abs_path(from_js_string("bait.js"))
+	const baitexe = os__executable()
 	const comp_res = os__exec(from_js_string(`node ${baitexe.str} ${tool_source.str} -o ${tool_exe.str}`))
 	if (comp_res.code != 0) {
 		eprintln(from_js_string(`Failed to compile tool "${name.str}" with error: ${comp_res.stderr.str}`).str)
@@ -5353,24 +5343,13 @@ function main() {
 		case from_js_string("ast").str:
 			{
 				print_ast(array_get(pref.args, 0))
-				exit(0)
-				break
-			}
-		case from_js_string("self").str:
-			{
-				exit(transpile(new bait__prefs__Pref({ command: from_js_string("cli/bait.bt"), out_name: from_js_string("bait.js") })))
-				break
-			}
-		case from_js_string("up").str:
-			{
-				update()
-				exit(0)
+				return
 				break
 			}
 		case from_js_string("version").str:
 			{
 				println(from_js_string(`Bait ${VERSION.str}`).str)
-				exit(0)
+				return
 				break
 			}
 	}
