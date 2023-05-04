@@ -1,5 +1,4 @@
 const js_process = require("process")
-const js_os = require("os")
 const js_fs = require("fs")
 const js_path = require("path")
 const js_child_process = require("child_process")
@@ -5004,14 +5003,6 @@ function os__file_name(path) {
 	return from_js_string(js_path.basename(path.str))
 }
 
-function os__chdir(dir) {
-	process.chdir(dir.str)
-}
-
-function os__home_dir() {
-	return from_js_string(js_os.homedir())
-}
-
 function os__dir(path) {
 	return from_js_string(js_path.dirname(path.str))
 }
@@ -5028,20 +5019,8 @@ function os__mkdir_all(dir) {
 	js_fs.mkdirSync(dir.str, { recursive: true })
 }
 
-function os__rmdir(dir) {
-	js_fs.rmdirSync(dir.str)
-}
-
-function os__rmdir_all(dir) {
-	js_fs.rmdirSync(dir.str, { recursive: true })
-}
-
 function os__read_file(path) {
 	return from_js_string(js_fs.readFileSync(path.str).toString())
-}
-
-function os__read_lines(path) {
-	return from_js_string_arr(js_fs.readFileSync(path.str).toString().split("\\n"))
 }
 
 function os__write_file(path, text) {
@@ -5067,14 +5046,6 @@ function os__abs_path(path) {
 
 function os__resource_abs_path(path) {
 	return os__join_path(from_js_string(__dirname), new array({ data: [path], length: 1 }))
-}
-
-function os__getenv(key) {
-	return from_js_string(process.env[key.str])
-}
-
-function os__setenv(key, value) {
-	process.env[key.str] = value.str
 }
 
 function os__Result({ code = 0, stdout = from_js_string(""), stderr = from_js_string("") }) {
@@ -5113,7 +5084,7 @@ function os__system(cmd) {
 
 
 const VERSION = from_js_string("0.0.2-dev")
-const TOOLS = new array({ data: [from_js_string("ast"), from_js_string("up"), from_js_string("self"), from_js_string("help"), from_js_string("test-all"), from_js_string("build-examples"), from_js_string("build-tools"), from_js_string("gen-baitjs")], length: 8 })
+const TOOLS = new array({ data: [from_js_string("ast"), from_js_string("up"), from_js_string("self"), from_js_string("help"), from_js_string("test-all"), from_js_string("build-examples"), from_js_string("build-tools")], length: 7 })
 function ensure_dir_exists(dir) {
 	if (!os__exists(dir)) {
 		os__mkdir(dir)
