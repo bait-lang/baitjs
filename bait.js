@@ -328,6 +328,14 @@ function string_is_upper(s) {
 	return s.str == s.str.toUpperCase() && s.str != s.str.toLowerCase()
 }
 
+function string_split_lines(s) {
+	const res = from_js_string_arr(s.str.split("\n"))
+	if (array_get(res, res.length - 1).length == 0) {
+		return array_slice(res, 0, res.length - 1)
+	}
+	return res
+}
+
 function string_add(a, b) {
 	return from_js_string(a.str + b.str)
 }
@@ -363,11 +371,12 @@ function array_string_to_js_arr(arr) {
 }
 
 
-function bait__prefs__Pref({ command = from_js_string(""), out_name = from_js_string(""), args = new array({ data: [], length: 0 }), is_test = false, baitexe = from_js_string(""), baitroot = from_js_string("") }) {
+function bait__prefs__Pref({ command = from_js_string(""), out_name = from_js_string(""), args = new array({ data: [], length: 0 }), is_test = false, is_script = false, baitexe = from_js_string(""), baitroot = from_js_string("") }) {
 	this.command = command
 	this.out_name = out_name
 	this.args = args
 	this.is_test = is_test
+	this.is_script = is_script
 	this.baitexe = baitexe
 	this.baitroot = baitroot
 }
@@ -378,6 +387,7 @@ bait__prefs__Pref.prototype = {
     out_name: ${this.out_name.toString()}
     args: ${this.args.toString()}
     is_test: ${this.is_test.toString()}
+    is_script: ${this.is_script.toString()}
     baitexe: ${this.baitexe.toString()}
     baitroot: ${this.baitroot.toString()}
 }`}
@@ -2813,7 +2823,8 @@ function bait__parser__Parser_typeof_expr(p) {
 }
 
 
-function bait__parser__Parser({ path = from_js_string(""), table = new bait__ast__Table({}), tokens = new array({ data: [], length: 0 }), idx = 0, prev_tok = new bait__token__Token({}), tok = new bait__token__Token({}), next_tok = new bait__token__Token({}), pkg_name = from_js_string(""), import_aliases = new map({ data: new Map(), length: 0 }), expr_pkg = from_js_string(""), is_test_file = false, is_for_init = false, is_struct_possible = false }) {
+function bait__parser__Parser({ pref = new bait__prefs__Pref({}), path = from_js_string(""), table = new bait__ast__Table({}), tokens = new array({ data: [], length: 0 }), idx = 0, prev_tok = new bait__token__Token({}), tok = new bait__token__Token({}), next_tok = new bait__token__Token({}), pkg_name = from_js_string(""), import_aliases = new map({ data: new Map(), length: 0 }), expr_pkg = from_js_string(""), is_test_file = false, is_for_init = false, is_struct_possible = false }) {
+	this.pref = pref
 	this.path = path
 	this.table = table
 	this.tokens = tokens
@@ -2831,6 +2842,7 @@ function bait__parser__Parser({ path = from_js_string(""), table = new bait__ast
 bait__parser__Parser.prototype = {
 	toString() {
 		return `bait__parser__Parser{
+    pref: ${this.pref.toString()}
     path: ${this.path.toString()}
     table: ${this.table.toString()}
     tokens: ${this.tokens.toString()}
@@ -2846,8 +2858,8 @@ bait__parser__Parser.prototype = {
     is_struct_possible: ${this.is_struct_possible.toString()}
 }`}
 }
-function bait__parser__parse(tokens, path, table) {
-	let p = new bait__parser__Parser({ path: path, table: table, tokens: tokens, is_struct_possible: true })
+function bait__parser__parse(tokens, path, table, pref) {
+	let p = new bait__parser__Parser({ pref: pref, path: path, table: table, tokens: tokens, is_struct_possible: true })
 	p.is_test_file = string_ends_with(path, from_js_string("_test.bt"))
 	bait__parser__Parser_next(p)
 	bait__parser__Parser_next(p)
@@ -3003,6 +3015,9 @@ function bait__parser__Parser_toplevel_stmt(p) {
 			}
 		default:
 			{
+				if (p.pref.is_script) {
+					return bait__parser__Parser_script_mode_main(p)
+				}
 				bait__parser__Parser_error(p, from_js_string(`bad toplevel token: kind: ${bait__token__TokenKind_str(p.tok.kind)}, val: ${p.tok.val.str}`))
 				break
 			}
@@ -3042,6 +3057,17 @@ function bait__parser__Parser_pub_stmt(p) {
 				break
 			}
 	}
+}
+
+function bait__parser__Parser_script_mode_main(p) {
+	let stmts = new array({ data: [], length: 0 })
+	while (p.tok.kind != bait__token__TokenKind.eof) {
+		array_push(stmts, bait__parser__Parser_stmt(p))
+	}
+	let node = new bait__ast__FunDecl({ name: from_js_string("main.main") })
+	map_set(p.table.fun_decls, from_js_string("main.main"), node)
+	node.stmts = stmts
+	return node
 }
 
 function bait__parser__Parser_stmt(p) {
@@ -5045,7 +5071,8 @@ function os__read_file(path) {
 }
 
 function os__read_lines(path) {
-	return from_js_string_arr(js_fs.readFileSync(path.str).toString().split("\\n"))
+	const text = os__read_file(path)
+	return string_split_lines(text)
 }
 
 function os__write_file(path, text) {
@@ -5117,7 +5144,7 @@ function os__system(cmd) {
 
 
 const VERSION = from_js_string("0.0.2-dev")
-const TOOLS = new array({ data: [from_js_string("ast"), from_js_string("up"), from_js_string("self"), from_js_string("help"), from_js_string("test-all"), from_js_string("build-examples"), from_js_string("build-tools"), from_js_string("gen-baitjs")], length: 8 })
+const TOOLS = new array({ data: [from_js_string("ast"), from_js_string("up"), from_js_string("self"), from_js_string("help"), from_js_string("test-all"), from_js_string("build-examples"), from_js_string("build-tools"), from_js_string("check-md"), from_js_string("gen-baitjs")], length: 9 })
 function ensure_dir_exists(dir) {
 	if (!os__exists(dir)) {
 		os__mkdir(dir)
@@ -5152,7 +5179,7 @@ function transpile(pref) {
 		const p = array_get(paths, _t26)
 		const text2 = os__read_file(p)
 		const tokens2 = bait__tokenizer__tokenize(text2, p)
-		array_push(files, bait__parser__parse(tokens2, p, table))
+		array_push(files, bait__parser__parse(tokens2, p, table, pref))
 	}
 	const root_pkg = array_get(files, files.length - 1).pkg_decl.full_name
 	for (let i = 0; i < files.length; i += 1) {
@@ -5175,7 +5202,7 @@ function transpile(pref) {
 				array_push(paths, p)
 				const text2 = os__read_file(p)
 				const tokens2 = bait__tokenizer__tokenize(text2, p)
-				array_push(files, bait__parser__parse(tokens2, p, table))
+				array_push(files, bait__parser__parse(tokens2, p, table, pref))
 			}
 		}
 	}
@@ -5308,6 +5335,11 @@ function parse_args(args) {
 				{
 					i += 1
 					pref.out_name = array_get(args, i)
+					break
+				}
+			case from_js_string("--script").str:
+				{
+					pref.is_script = true
 					break
 				}
 			default:
