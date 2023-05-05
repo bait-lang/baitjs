@@ -5215,6 +5215,15 @@ function transpile(pref) {
 	return 0
 }
 
+function run(pref) {
+	const comp_res = transpile(pref)
+	if (comp_res != 0) {
+		return comp_res
+	}
+	const run_res = os__system(from_js_string(`node ${pref.out_name.str}`))
+	return run_res
+}
+
 function run_tests(pref) {
 	let files_to_test = new array({ data: [], length: 0 })
 	for (let _t33 = 0; _t33 < pref.args.length; _t33++) {
@@ -5234,14 +5243,8 @@ function run_tests(pref) {
 		const file = array_get(files_to_test, i)
 		test_prefs.command = file
 		test_prefs.out_name = from_js_string(`/tmp/test_${i32_str(i)}.js`)
-		const res = transpile(test_prefs)
-		if (res != 0) {
-			has_fails = true
-			println(from_js_string(`FAIL ${file.str}`).str)
-			continue
-		}
-		const run_res = os__system(from_js_string(`node ${test_prefs.out_name.str}`))
-		if (run_res == 0) {
+		const res = run(test_prefs)
+		if (res == 0) {
 			println(from_js_string(`OK ${file.str}`).str)
 		} else {
 			has_fails = true
@@ -5358,6 +5361,13 @@ function main() {
 				pref.command = array_get(pref.args, 0)
 				ensure_dir_exists(os__dir(pref.out_name))
 				exit(transpile(pref))
+				break
+			}
+		case from_js_string("run").str:
+			{
+				pref.command = array_get(pref.args, 0)
+				ensure_dir_exists(os__dir(pref.out_name))
+				exit(run(pref))
 				break
 			}
 		case from_js_string("test").str:
