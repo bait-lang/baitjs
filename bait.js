@@ -4996,6 +4996,10 @@ function os__ls(dir) {
 	return from_js_string_arr(js_fs.readdirSync(dir.str))
 }
 
+function os__cp(src, dest) {
+	js_fs.copyFileSync(src.str, dest.str)
+}
+
 function os__exists(path) {
 	return js_fs.existsSync(path.str)
 }
