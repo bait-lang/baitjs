@@ -371,14 +371,15 @@ function array_string_to_js_arr(arr) {
 }
 
 
-function bait__prefs__Pref({ command = from_js_string(""), out_name = from_js_string(""), args = new array({ data: [], length: 0 }), is_test = false, is_script = false, baitexe = from_js_string(""), baitroot = from_js_string("") }) {
+function bait__prefs__Pref({ command = from_js_string(""), out_name = from_js_string(""), args = new array({ data: [], length: 0 }), is_test = false, is_script = false, baitexe = from_js_string(""), baitdir = from_js_string(""), baithash = from_js_string("") }) {
 	this.command = command
 	this.out_name = out_name
 	this.args = args
 	this.is_test = is_test
 	this.is_script = is_script
 	this.baitexe = baitexe
-	this.baitroot = baitroot
+	this.baitdir = baitdir
+	this.baithash = baithash
 }
 bait__prefs__Pref.prototype = {
 	toString() {
@@ -389,7 +390,8 @@ bait__prefs__Pref.prototype = {
     is_test: ${this.is_test.toString()}
     is_script: ${this.is_script.toString()}
     baitexe: ${this.baitexe.toString()}
-    baitroot: ${this.baitroot.toString()}
+    baitdir: ${this.baitdir.toString()}
+    baithash: ${this.baithash.toString()}
 }`}
 }
 
@@ -3697,7 +3699,7 @@ function bait__checker__Checker_cast_expr(c, node) {
 	return node.target
 }
 
-const bait__checker__SUPPORTED_COMPTIME_VARS = new array({ data: [from_js_string("BAITEXE"), from_js_string("BAITROOT")], length: 2 })
+const bait__checker__SUPPORTED_COMPTIME_VARS = new array({ data: [from_js_string("PKG"), from_js_string("FILE"), from_js_string("LINE"), from_js_string("FILE_LINE"), from_js_string("FUN"), from_js_string("BAITEXE"), from_js_string("BAITDIR"), from_js_string("BAITHASH")], length: 8 })
 function bait__checker__Checker_comp_time_var(c, node) {
 	if (!array_string_contains(bait__checker__SUPPORTED_COMPTIME_VARS, node.name)) {
 		bait__checker__Checker_error(c, from_js_string(`unsupported comptime var "${node.name.str}"`), node.pos)
@@ -4146,6 +4148,132 @@ function bait__checker__Checker_check_types(c, got, expected) {
 }
 
 
+const os__ARGS = from_js_string_arr(process.argv)
+function os__ls(dir) {
+	return from_js_string_arr(js_fs.readdirSync(dir.str))
+}
+
+function os__cp(src, dest) {
+	js_fs.copyFileSync(src.str, dest.str)
+}
+
+function os__exists(path) {
+	return js_fs.existsSync(path.str)
+}
+
+function os__file_name(path) {
+	return from_js_string(js_path.basename(path.str))
+}
+
+function os__chdir(dir) {
+	process.chdir(dir.str)
+}
+
+function os__home_dir() {
+	return from_js_string(js_os.homedir())
+}
+
+function os__dir(path) {
+	return from_js_string(js_path.dirname(path.str))
+}
+
+function os__is_dir(path) {
+	return js_fs.lstatSync(path.str).isDirectory()
+}
+
+function os__mkdir(dir) {
+	js_fs.mkdirSync(dir.str)
+}
+
+function os__mkdir_all(dir) {
+	js_fs.mkdirSync(dir.str, { recursive: true })
+}
+
+function os__rmdir(dir) {
+	js_fs.rmdirSync(dir.str)
+}
+
+function os__rmdir_all(dir) {
+	js_fs.rmdirSync(dir.str, { recursive: true })
+}
+
+function os__read_file(path) {
+	return from_js_string(js_fs.readFileSync(path.str).toString())
+}
+
+function os__read_lines(path) {
+	const text = os__read_file(path)
+	return string_split_lines(text)
+}
+
+function os__write_file(path, text) {
+	js_fs.writeFileSync(path.str, text.str)
+}
+
+function os__getwd() {
+	return from_js_string(process.cwd())
+}
+
+function os__join_path(base, dirs) {
+	const js_dirs = array_string_to_js_arr(dirs)
+	return from_js_string(js_path.join(base.str, ...js_dirs))
+}
+
+function os__executable() {
+	return from_js_string(__filename)
+}
+
+function os__abs_path(path) {
+	return from_js_string(js_path.resolve(os__getwd().str, path.str))
+}
+
+function os__resource_abs_path(path) {
+	return os__join_path(from_js_string(__dirname), new array({ data: [path], length: 1 }))
+}
+
+function os__getenv(key) {
+	return from_js_string(process.env[key.str])
+}
+
+function os__setenv(key, value) {
+	process.env[key.str] = value.str
+}
+
+function os__Result({ code = 0, stdout = from_js_string(""), stderr = from_js_string("") }) {
+	this.code = code
+	this.stdout = stdout
+	this.stderr = stderr
+}
+os__Result.prototype = {
+	toString() {
+		return `os__Result{
+    code: ${this.code.toString()}
+    stdout: ${this.stdout.toString()}
+    stderr: ${this.stderr.toString()}
+}`}
+}
+function os__exec(cmd) {
+	let res = new os__Result({})
+	try {
+		const stdout = js_child_process.execSync(cmd.str, {stdio: ["pipe", "pipe", "pipe"]}).toString()
+		res.stdout = from_js_string(stdout)
+	} catch (e) {
+		res.code = e.status
+		res.stderr = from_js_string(e.stderr.toString())
+	}
+	return res
+}
+
+function os__system(cmd) {
+	try {
+		js_child_process.execSync(cmd.str, { stdio: "inherit" })
+	} catch (e) {
+		return e.status
+	}
+	return 0
+}
+
+
 function bait__gen__js__Gen_expr(g, expr) {
 	if (expr instanceof bait__ast__AnonFun) {
 		bait__gen__js__Gen_anon_fun(g, expr)
@@ -4291,18 +4419,50 @@ function bait__gen__js__Gen_char_literal(g, node) {
 }
 
 function bait__gen__js__Gen_comp_time_var(g, node) {
+	bait__gen__js__Gen_write(g, from_js_string("from_js_string(\""))
 	switch (node.name.str) {
-		case from_js_string("BAITEXE").str:
+		case from_js_string("PKG").str:
 			{
-				bait__gen__js__Gen_write(g, from_js_string(`from_js_string("${g.pref.baitexe.str}")`))
+				bait__gen__js__Gen_write(g, g.pkg)
 				break
 			}
-		case from_js_string("BAITROOT").str:
+		case from_js_string("FILE").str:
 			{
-				bait__gen__js__Gen_write(g, from_js_string(`from_js_string("${g.pref.baitroot.str}")`))
+				bait__gen__js__Gen_write(g, os__abs_path(g.path))
+				break
+			}
+		case from_js_string("LINE").str:
+			{
+				bait__gen__js__Gen_write(g, from_js_string(`${i32_str(node.pos.line)}`))
+				break
+			}
+		case from_js_string("FILE_LINE").str:
+			{
+				bait__gen__js__Gen_write(g, from_js_string(`${g.path.str}:${i32_str(node.pos.line)}`))
+				break
+			}
+		case from_js_string("FUN").str:
+			{
+				bait__gen__js__Gen_write(g, g.cur_fun.name)
+				break
+			}
+		case from_js_string("BAITEXE").str:
+			{
+				bait__gen__js__Gen_write(g, g.pref.baitexe)
+				break
+			}
+		case from_js_string("BAITDIR").str:
+			{
+				bait__gen__js__Gen_write(g, g.pref.baitdir)
+				break
+			}
+		case from_js_string("BAITHASH").str:
+			{
+				bait__gen__js__Gen_write(g, g.pref.baithash)
 				break
 			}
 	}
+	bait__gen__js__Gen_write(g, from_js_string("\")"))
 }
 
 function bait__gen__js__Gen_enum_val(g, node) {
@@ -4594,10 +4754,11 @@ function bait__gen__js__Gen_expr_to_string(g, expr, typ) {
 
 
 const bait__gen__js__JS_RESERVED = new array({ data: [from_js_string("case"), from_js_string("default"), from_js_string("new"), from_js_string("var"), from_js_string("with")], length: 5 })
-function bait__gen__js__Gen({ pref = new bait__prefs__Pref({}), table = new bait__ast__Table({}), path = from_js_string(""), type_defs_out = from_js_string(""), global_out = from_js_string(""), out = from_js_string(""), indent = 0, empty_line = false, import_names = new array({ data: [], length: 0 }), tmp_counter = 0, is_for_loop_head = false, is_lhs_assign = false, is_array_map_set = false }) {
+function bait__gen__js__Gen({ pref = new bait__prefs__Pref({}), table = new bait__ast__Table({}), path = from_js_string(""), pkg = from_js_string(""), type_defs_out = from_js_string(""), global_out = from_js_string(""), out = from_js_string(""), indent = 0, empty_line = false, import_names = new array({ data: [], length: 0 }), tmp_counter = 0, cur_fun = new bait__ast__FunDecl({}), is_for_loop_head = false, is_lhs_assign = false, is_array_map_set = false }) {
 	this.pref = pref
 	this.table = table
 	this.path = path
+	this.pkg = pkg
 	this.type_defs_out = type_defs_out
 	this.global_out = global_out
 	this.out = out
@@ -4605,6 +4766,7 @@ function bait__gen__js__Gen({ pref = new bait__prefs__Pref({}), table = new bait
 	this.empty_line = empty_line
 	this.import_names = import_names
 	this.tmp_counter = tmp_counter
+	this.cur_fun = cur_fun
 	this.is_for_loop_head = is_for_loop_head
 	this.is_lhs_assign = is_lhs_assign
 	this.is_array_map_set = is_array_map_set
@@ -4615,6 +4777,7 @@ bait__gen__js__Gen.prototype = {
     pref: ${this.pref.toString()}
     table: ${this.table.toString()}
     path: ${this.path.toString()}
+    pkg: ${this.pkg.toString()}
     type_defs_out: ${this.type_defs_out.toString()}
     global_out: ${this.global_out.toString()}
     out: ${this.out.toString()}
@@ -4622,6 +4785,7 @@ bait__gen__js__Gen.prototype = {
     empty_line: ${this.empty_line.toString()}
     import_names: ${this.import_names.toString()}
     tmp_counter: ${this.tmp_counter.toString()}
+    cur_fun: ${this.cur_fun.toString()}
     is_for_loop_head: ${this.is_for_loop_head.toString()}
     is_lhs_assign: ${this.is_lhs_assign.toString()}
     is_array_map_set: ${this.is_array_map_set.toString()}
@@ -4632,6 +4796,7 @@ function bait__gen__js__gen(files, table, pref) {
 	for (let _t17 = 0; _t17 < files.length; _t17++) {
 		const file = array_get(files, _t17)
 		g.path = file.path
+		g.pkg = file.pkg_decl.full_name
 		bait__gen__js__Gen_process_imports(g, file.imports)
 		bait__gen__js__Gen_stmts(g, file.stmts)
 		g.out = string_add(g.out, from_js_string("\n"))
@@ -4935,6 +5100,7 @@ function bait__gen__js__Gen_for_in_map(g, node) {
 }
 
 function bait__gen__js__Gen_fun_decl(g, node) {
+	g.cur_fun = node
 	bait__gen__js__Gen_write(g, from_js_string("function "))
 	if (node.is_method) {
 		const sym = bait__ast__Table_get_sym(g.table, array_get(node.params, 0).typ)
@@ -5014,132 +5180,6 @@ function bait__gen__js__Gen_struct_decl(g, node) {
 	bait__gen__js__Gen_writeln(g, from_js_string("}\`}"))
 	g.indent -= 1
 	bait__gen__js__Gen_writeln(g, from_js_string("}"))
-}
-
-
-const os__ARGS = from_js_string_arr(process.argv)
-function os__ls(dir) {
-	return from_js_string_arr(js_fs.readdirSync(dir.str))
-}
-
-function os__cp(src, dest) {
-	js_fs.copyFileSync(src.str, dest.str)
-}
-
-function os__exists(path) {
-	return js_fs.existsSync(path.str)
-}
-
-function os__file_name(path) {
-	return from_js_string(js_path.basename(path.str))
-}
-
-function os__chdir(dir) {
-	process.chdir(dir.str)
-}
-
-function os__home_dir() {
-	return from_js_string(js_os.homedir())
-}
-
-function os__dir(path) {
-	return from_js_string(js_path.dirname(path.str))
-}
-
-function os__is_dir(path) {
-	return js_fs.lstatSync(path.str).isDirectory()
-}
-
-function os__mkdir(dir) {
-	js_fs.mkdirSync(dir.str)
-}
-
-function os__mkdir_all(dir) {
-	js_fs.mkdirSync(dir.str, { recursive: true })
-}
-
-function os__rmdir(dir) {
-	js_fs.rmdirSync(dir.str)
-}
-
-function os__rmdir_all(dir) {
-	js_fs.rmdirSync(dir.str, { recursive: true })
-}
-
-function os__read_file(path) {
-	return from_js_string(js_fs.readFileSync(path.str).toString())
-}
-
-function os__read_lines(path) {
-	const text = os__read_file(path)
-	return string_split_lines(text)
-}
-
-function os__write_file(path, text) {
-	js_fs.writeFileSync(path.str, text.str)
-}
-
-function os__getwd() {
-	return from_js_string(process.cwd())
-}
-
-function os__join_path(base, dirs) {
-	const js_dirs = array_string_to_js_arr(dirs)
-	return from_js_string(js_path.join(base.str, ...js_dirs))
-}
-
-function os__executable() {
-	return from_js_string(__filename)
-}
-
-function os__abs_path(path) {
-	return from_js_string(js_path.resolve(os__getwd().str, path.str))
-}
-
-function os__resource_abs_path(path) {
-	return os__join_path(from_js_string(__dirname), new array({ data: [path], length: 1 }))
-}
-
-function os__getenv(key) {
-	return from_js_string(process.env[key.str])
-}
-
-function os__setenv(key, value) {
-	process.env[key.str] = value.str
-}
-
-function os__Result({ code = 0, stdout = from_js_string(""), stderr = from_js_string("") }) {
-	this.code = code
-	this.stdout = stdout
-	this.stderr = stderr
-}
-os__Result.prototype = {
-	toString() {
-		return `os__Result{
-    code: ${this.code.toString()}
-    stdout: ${this.stdout.toString()}
-    stderr: ${this.stderr.toString()}
-}`}
-}
-function os__exec(cmd) {
-	let res = new os__Result({})
-	try {
-		const stdout = js_child_process.execSync(cmd.str, {stdio: ["pipe", "pipe", "pipe"]}).toString()
-		res.stdout = from_js_string(stdout)
-	} catch (e) {
-		res.code = e.status
-		res.stderr = from_js_string(e.stderr.toString())
-	}
-	return res
-}
-
-function os__system(cmd) {
-	try {
-		js_child_process.execSync(cmd.str, { stdio: "inherit" })
-	} catch (e) {
-		return e.status
-	}
-	return 0
 }
 
 
@@ -5326,7 +5366,7 @@ function get_user_files(upath) {
 
 function parse_args(args) {
 	const baitexe = os__executable()
-	let pref = new bait__prefs__Pref({ baitexe: baitexe, baitroot: os__dir(baitexe) })
+	let pref = new bait__prefs__Pref({ baitexe: baitexe, baitdir: os__dir(baitexe), baithash: string_trim_space(os__exec(from_js_string("git rev-parse --short HEAD")).stdout) })
 	for (let i = 0; i < args.length; i += 1) {
 		const arg = array_get(args, i)
 		switch (arg.str) {
