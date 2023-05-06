@@ -4239,6 +4239,10 @@ function os__setenv(key, value) {
 	process.env[key.str] = value.str
 }
 
+function os__arch() {
+	return from_js_string(js_os.arch())
+}
+
 function os__Result({ code = 0, stdout = from_js_string(""), stderr = from_js_string("") }) {
 	this.code = code
 	this.stdout = stdout
@@ -5183,9 +5187,9 @@ function bait__gen__js__Gen_struct_decl(g, node) {
 }
 
 
-const bait__util__VERSION = from_js_string(`0.0.2-dev ${from_js_string("f3e57cc").str}`)
+const bait__util__VERSION = from_js_string(`0.0.2-dev ${from_js_string("8b30ed3").str}`)
 
-const TOOLS = new array({ data: [from_js_string("ast"), from_js_string("up"), from_js_string("self"), from_js_string("help"), from_js_string("test-all"), from_js_string("build-examples"), from_js_string("build-tools"), from_js_string("check-md"), from_js_string("gen-baitjs")], length: 9 })
+const TOOLS = new array({ data: [from_js_string("ast"), from_js_string("self"), from_js_string("up"), from_js_string("doctor"), from_js_string("help"), from_js_string("test-all"), from_js_string("build-examples"), from_js_string("build-tools"), from_js_string("check-md"), from_js_string("gen-baitjs")], length: 10 })
 function ensure_dir_exists(dir) {
 	if (!os__exists(dir)) {
 		os__mkdir(dir)
