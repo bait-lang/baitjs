@@ -4153,6 +4153,21 @@ function os__ls(dir) {
 	return from_js_string_arr(js_fs.readdirSync(dir.str))
 }
 
+function os__walk_ext(dir, ext) {
+	let ext_files = new array({ data: [], length: 0 })
+	const all_files = os__ls(dir)
+	for (let _t16 = 0; _t16 < all_files.length; _t16++) {
+		const file = array_get(all_files, _t16)
+		const fpath = os__join_path(dir, new array({ data: [file], length: 1 }))
+		if (os__is_dir(fpath)) {
+			ext_files = array_concat(ext_files, os__walk_ext(fpath, ext))
+		} else if (string_ends_with(fpath, ext)) {
+			array_push(ext_files, fpath)
+		}
+	}
+	return ext_files
+}
+
 function os__cp(src, dest) {
 	js_fs.copyFileSync(src.str, dest.str)
 }
@@ -4613,8 +4628,8 @@ function bait__gen__js__Gen_match_expr(g, node) {
 	}
 	bait__gen__js__Gen_writeln(g, from_js_string(") {"))
 	g.indent += 1
-	for (let _t16 = 0; _t16 < node.branches.length; _t16++) {
-		const b = array_get(node.branches, _t16)
+	for (let _t17 = 0; _t17 < node.branches.length; _t17++) {
+		const b = array_get(node.branches, _t17)
 		if (b.exprs.length == 0) {
 			bait__gen__js__Gen_writeln(g, from_js_string("default:"))
 		} else {
@@ -4797,8 +4812,8 @@ bait__gen__js__Gen.prototype = {
 }
 function bait__gen__js__gen(files, table, pref) {
 	let g = new bait__gen__js__Gen({ pref: pref, table: table, indent: -1, empty_line: true, tmp_counter: -1 })
-	for (let _t17 = 0; _t17 < files.length; _t17++) {
-		const file = array_get(files, _t17)
+	for (let _t18 = 0; _t18 < files.length; _t18++) {
+		const file = array_get(files, _t18)
 		g.path = file.path
 		g.pkg = file.pkg_decl.full_name
 		bait__gen__js__Gen_process_imports(g, file.imports)
@@ -4835,8 +4850,8 @@ function bait__gen__js__Gen_writeln(g, s) {
 }
 
 function bait__gen__js__Gen_process_imports(g, imports) {
-	for (let _t18 = 0; _t18 < imports.length; _t18++) {
-		const imp = array_get(imports, _t18)
+	for (let _t19 = 0; _t19 < imports.length; _t19++) {
+		const imp = array_get(imports, _t19)
 		if (string_eq(imp.lang, from_js_string("bait")) || array_string_contains(g.import_names, imp.name)) {
 			continue
 		}
@@ -4846,8 +4861,8 @@ function bait__gen__js__Gen_process_imports(g, imports) {
 
 function bait__gen__js__Gen_headers(g) {
 	let headers = from_js_string("")
-	for (let _t19 = 0; _t19 < g.import_names.length; _t19++) {
-		const imp = array_get(g.import_names, _t19)
+	for (let _t20 = 0; _t20 < g.import_names.length; _t20++) {
+		const imp = array_get(g.import_names, _t20)
 		headers = string_add(headers, from_js_string(`const js_${imp.str} = require("${imp.str}")\n`))
 	}
 	return string_add(headers, from_js_string("\n"))
@@ -4856,9 +4871,9 @@ function bait__gen__js__Gen_headers(g) {
 function bait__gen__js__Gen_gen_test_main(g) {
 	bait__gen__js__Gen_writeln(g, from_js_string("function main() {"))
 	g.indent += 1
-	const _t20 = map_keys(g.table.fun_decls)
-	for (let _t21 = 0; _t21 < _t20.length; _t21++) {
-		const key = array_get(_t20, _t21)
+	const _t21 = map_keys(g.table.fun_decls)
+	for (let _t22 = 0; _t22 < _t21.length; _t22++) {
+		const key = array_get(_t21, _t22)
 		const func = map_get(g.table.fun_decls, key)
 		if (func.is_test) {
 			const name = bait__gen__js__js_name(func.name)
@@ -4941,8 +4956,8 @@ function bait__gen__js__js_name(n) {
 
 function bait__gen__js__Gen_stmts(g, stmts) {
 	g.indent += 1
-	for (let _t22 = 0; _t22 < stmts.length; _t22++) {
-		const stmt = array_get(stmts, _t22)
+	for (let _t23 = 0; _t23 < stmts.length; _t23++) {
+		const stmt = array_get(stmts, _t23)
 		bait__gen__js__Gen_stmt(g, stmt)
 	}
 	g.indent -= 1
@@ -5166,8 +5181,8 @@ function bait__gen__js__Gen_struct_decl(g, node) {
 	}
 	bait__gen__js__Gen_writeln(g, from_js_string("}) {"))
 	g.indent += 1
-	for (let _t23 = 0; _t23 < node.fields.length; _t23++) {
-		const field = array_get(node.fields, _t23)
+	for (let _t24 = 0; _t24 < node.fields.length; _t24++) {
+		const field = array_get(node.fields, _t24)
 		bait__gen__js__Gen_writeln(g, from_js_string(`this.${field.name.str} = ${field.name.str}`))
 	}
 	g.indent -= 1
@@ -5176,8 +5191,8 @@ function bait__gen__js__Gen_struct_decl(g, node) {
 	g.indent += 1
 	bait__gen__js__Gen_writeln(g, from_js_string("toString() {"))
 	bait__gen__js__Gen_write(g, from_js_string(`\treturn \`${jsname.str}{\n`))
-	for (let _t24 = 0; _t24 < node.fields.length; _t24++) {
-		const field = array_get(node.fields, _t24)
+	for (let _t25 = 0; _t25 < node.fields.length; _t25++) {
+		const field = array_get(node.fields, _t25)
 		bait__gen__js__Gen_write(g, from_js_string(`    ${field.name.str}: \$`))
 		bait__gen__js__Gen_write(g, from_js_string(`{this.${field.name.str}.toString()}\n`))
 	}
@@ -5187,9 +5202,9 @@ function bait__gen__js__Gen_struct_decl(g, node) {
 }
 
 
-const bait__util__VERSION = from_js_string(`0.0.2-dev ${from_js_string("8b30ed3").str}`)
+const bait__util__VERSION = from_js_string(`0.0.2-dev ${from_js_string("82f3a44").str}`)
 
-const TOOLS = new array({ data: [from_js_string("ast"), from_js_string("self"), from_js_string("up"), from_js_string("doctor"), from_js_string("help"), from_js_string("test-all"), from_js_string("build-examples"), from_js_string("build-tools"), from_js_string("check-md"), from_js_string("gen-baitjs")], length: 10 })
+const TOOLS = new array({ data: [from_js_string("ast"), from_js_string("self"), from_js_string("up"), from_js_string("doctor"), from_js_string("help"), from_js_string("test-all"), from_js_string("test-self"), from_js_string("build-examples"), from_js_string("build-tools"), from_js_string("check-md"), from_js_string("gen-baitjs")], length: 11 })
 function ensure_dir_exists(dir) {
 	if (!os__exists(dir)) {
 		os__mkdir(dir)
@@ -5197,8 +5212,8 @@ function ensure_dir_exists(dir) {
 }
 
 function order_pkgs(ordered, pkg, deps) {
-	for (let _t25 = 0; _t25 < map_get_set(deps, pkg, new array({ data: [], length: 0 })).length; _t25++) {
-		const d = array_get(map_get_set(deps, pkg, new array({ data: [], length: 0 })), _t25)
+	for (let _t26 = 0; _t26 < map_get_set(deps, pkg, new array({ data: [], length: 0 })).length; _t26++) {
+		const d = array_get(map_get_set(deps, pkg, new array({ data: [], length: 0 })), _t26)
 		order_pkgs(ordered, d, deps)
 	}
 	if (!array_string_contains(ordered, pkg)) {
@@ -5220,8 +5235,8 @@ function transpile(pref) {
 	paths = array_concat(paths, get_user_files(pref.command))
 	let table = bait__ast__new_table()
 	let files = new array({ data: [], length: 0 })
-	for (let _t26 = 0; _t26 < paths.length; _t26++) {
-		const p = array_get(paths, _t26)
+	for (let _t27 = 0; _t27 < paths.length; _t27++) {
+		const p = array_get(paths, _t27)
 		const text2 = os__read_file(p)
 		const tokens2 = bait__tokenizer__tokenize(text2, p)
 		array_push(files, bait__parser__parse(tokens2, p, table, pref))
@@ -5229,8 +5244,8 @@ function transpile(pref) {
 	const root_pkg = array_get(files, files.length - 1).pkg_decl.full_name
 	for (let i = 0; i < files.length; i += 1) {
 		const f = array_get(files, i)
-		for (let _t27 = 0; _t27 < f.imports.length; _t27++) {
-			const imp = array_get(f.imports, _t27)
+		for (let _t28 = 0; _t28 < f.imports.length; _t28++) {
+			const imp = array_get(f.imports, _t28)
 			if (!string_eq(imp.lang, from_js_string("bait"))) {
 				continue
 			}
@@ -5242,8 +5257,8 @@ function transpile(pref) {
 			imp_paths = array_filter(imp_paths, function (p) {
 				return !array_string_contains(paths, p)
 			})
-			for (let _t28 = 0; _t28 < imp_paths.length; _t28++) {
-				const p = array_get(imp_paths, _t28)
+			for (let _t29 = 0; _t29 < imp_paths.length; _t29++) {
+				const p = array_get(imp_paths, _t29)
 				array_push(paths, p)
 				const text2 = os__read_file(p)
 				const tokens2 = bait__tokenizer__tokenize(text2, p)
@@ -5252,14 +5267,14 @@ function transpile(pref) {
 		}
 	}
 	let deps = new map({ data: new Map([]), length: 0 })
-	for (let _t29 = 0; _t29 < files.length; _t29++) {
-		const f = array_get(files, _t29)
+	for (let _t30 = 0; _t30 < files.length; _t30++) {
+		const f = array_get(files, _t30)
 		const pkg_name = f.pkg_decl.full_name
 		if (!string_eq(pkg_name, from_js_string("builtin"))) {
 			array_push(map_get_set(deps, pkg_name, new array({ data: [], length: 0 })), from_js_string("builtin"))
 		}
-		for (let _t30 = 0; _t30 < f.imports.length; _t30++) {
-			const imp = array_get(f.imports, _t30)
+		for (let _t31 = 0; _t31 < f.imports.length; _t31++) {
+			const imp = array_get(f.imports, _t31)
 			if (!string_eq(imp.lang, from_js_string("bait"))) {
 				continue
 			}
@@ -5269,10 +5284,10 @@ function transpile(pref) {
 	let pkg_order = new array({ data: [], length: 0 })
 	order_pkgs(pkg_order, root_pkg, deps)
 	let sorted_files = new array({ data: [], length: 0 })
-	for (let _t31 = 0; _t31 < pkg_order.length; _t31++) {
-		const pkg = array_get(pkg_order, _t31)
-		for (let _t32 = 0; _t32 < files.length; _t32++) {
-			const f = array_get(files, _t32)
+	for (let _t32 = 0; _t32 < pkg_order.length; _t32++) {
+		const pkg = array_get(pkg_order, _t32)
+		for (let _t33 = 0; _t33 < files.length; _t33++) {
+			const f = array_get(files, _t33)
 			if (string_eq(f.pkg_decl.full_name, pkg)) {
 				array_push(sorted_files, f)
 			}
@@ -5298,8 +5313,8 @@ function run(pref) {
 
 function run_tests(pref) {
 	let files_to_test = new array({ data: [], length: 0 })
-	for (let _t33 = 0; _t33 < pref.args.length; _t33++) {
-		const a = array_get(pref.args, _t33)
+	for (let _t34 = 0; _t34 < pref.args.length; _t34++) {
+		const a = array_get(pref.args, _t34)
 		if (os__is_dir(a)) {
 			files_to_test = array_concat(files_to_test, test_files_from_dir_recursive(a))
 		} else if (os__exists(a) && string_ends_with(a, from_js_string("_test.bt"))) {
@@ -5332,8 +5347,8 @@ function run_tests(pref) {
 function bait_files_from_dir(dir) {
 	const all_files = os__ls(dir)
 	let files = new array({ data: [], length: 0 })
-	for (let _t34 = 0; _t34 < all_files.length; _t34++) {
-		const f = array_get(all_files, _t34)
+	for (let _t35 = 0; _t35 < all_files.length; _t35++) {
+		const f = array_get(all_files, _t35)
 		if (string_ends_with(f, from_js_string("_test.bt"))) {
 			continue
 		}
@@ -5347,8 +5362,8 @@ function bait_files_from_dir(dir) {
 function test_files_from_dir_recursive(dir) {
 	const all_files = os__ls(dir)
 	let test_files = new array({ data: [], length: 0 })
-	for (let _t35 = 0; _t35 < all_files.length; _t35++) {
-		const file = array_get(all_files, _t35)
+	for (let _t36 = 0; _t36 < all_files.length; _t36++) {
+		const file = array_get(all_files, _t36)
 		const p = os__join_path(dir, new array({ data: [file], length: 1 }))
 		if (os__is_dir(p)) {
 			test_files = array_concat(test_files, test_files_from_dir_recursive(p))
