@@ -4487,6 +4487,31 @@ function bait__checker__Checker_check_types(c, got, expected) {
 }
 
 
+function bait__util__escape_char(s, esc_char) {
+	let res = from_js_string("")
+	let is_escaped = false
+	let i = 0
+	while (i < s.length) {
+		const c = string_get(s, i)
+		if (c.val == esc_char.val) {
+			if (!is_escaped) {
+				res = string_add(res, from_js_string("\\"))
+			}
+		}
+		res = string_add(res, u8_ascii(c))
+		i += 1
+		if (c.val == new u8("\\").val && !is_escaped) {
+			is_escaped = true
+		} else {
+			is_escaped = false
+		}
+	}
+	return res
+}
+
+
+const bait__util__VERSION = from_js_string(`0.0.3-dev ${from_js_string("0125f52").str}`)
+
 function bait__gen__js__Gen_expr(g, expr) {
 	if (expr instanceof bait__ast__AnonFun) {
 		bait__gen__js__Gen_anon_fun(g, expr)
@@ -4627,7 +4652,7 @@ function bait__gen__js__Gen_cast_expr(g, node) {
 
 function bait__gen__js__Gen_char_literal(g, node) {
 	bait__gen__js__Gen_write(g, from_js_string("new u8(\""))
-	bait__gen__js__Gen_write(g, node.val)
+	bait__gen__js__Gen_write(g, bait__util__escape_char(node.val, new u8("\"")))
 	bait__gen__js__Gen_write(g, from_js_string("\")"))
 }
 
@@ -4925,7 +4950,7 @@ function bait__gen__js__Gen_string_literal(g, node) {
 		bait__gen__js__Gen_write(g, node.val)
 		return
 	}
-	const val = string_replace(string_replace(node.val, from_js_string("\""), from_js_string("\\\"")), from_js_string("\n"), from_js_string("\\n"))
+	const val = bait__util__escape_char(string_replace(node.val, from_js_string("\n"), from_js_string("\\n")), new u8("\""))
 	bait__gen__js__Gen_write(g, from_js_string("from_js_string(\""))
 	bait__gen__js__Gen_write(g, val)
 	bait__gen__js__Gen_write(g, from_js_string("\")"))
@@ -4935,7 +4960,7 @@ function bait__gen__js__Gen_string_inter_literal(g, node) {
 	bait__gen__js__Gen_write(g, from_js_string("from_js_string(`"))
 	for (let i = 0; i < node.vals.length; i++) {
 		const val = array_get(node.vals, i)
-		bait__gen__js__Gen_write(g, val)
+		bait__gen__js__Gen_write(g, bait__util__escape_char(val, new u8("\`")))
 		if (i < node.exprs.length) {
 			bait__gen__js__Gen_write(g, from_js_string("\${"))
 			bait__gen__js__Gen_expr_to_string(g, array_get(node.exprs, i), array_get(node.expr_types, i))
@@ -5467,8 +5492,6 @@ function bait__gen__js__Gen_struct_decl(g, node) {
 }
 
 
-const bait__util__VERSION = from_js_string(`0.0.2 ${from_js_string("74281fd").str}`)
-
 const TOOLS = new array({ data: [from_js_string("ast"), from_js_string("self"), from_js_string("up"), from_js_string("doctor"), from_js_string("help"), from_js_string("test-all"), from_js_string("test-self"), from_js_string("build-examples"), from_js_string("build-tools"), from_js_string("check-md"), from_js_string("gen-baitjs")], length: 11 })
 function ensure_dir_exists(dir) {
 	if (!os__exists(dir)) {
@@ -5574,10 +5597,10 @@ function run_tests(prefs) {
 	let files_to_test = new array({ data: [], length: 0 })
 	for (let _t35 = 0; _t35 < prefs.args.length; _t35++) {
 		const a = array_get(prefs.args, _t35)
-		if (os__is_dir(a)) {
-			files_to_test = array_concat(files_to_test, test_files_from_dir_recursive(a))
-		} else if (os__exists(a) && string_ends_with(a, from_js_string("_test.bt"))) {
+		if (os__exists(a) && string_ends_with(a, from_js_string("_test.bt"))) {
 			array_push(files_to_test, a)
+		} else if (os__is_dir(a)) {
+			files_to_test = array_concat(files_to_test, os__walk_ext(a, from_js_string("_test.bt")))
 		} else {
 			eprintln(from_js_string(`Unrecognized file or directory: "${a.str}"`).str)
 			exit(1)
@@ -5617,21 +5640,6 @@ function bait_files_from_dir(dir) {
 		}
 	}
 	return files
-}
-
-function test_files_from_dir_recursive(dir) {
-	const all_files = os__ls(dir)
-	let test_files = new array({ data: [], length: 0 })
-	for (let _t37 = 0; _t37 < all_files.length; _t37++) {
-		const file = array_get(all_files, _t37)
-		const p = os__join_path(dir, new array({ data: [file], length: 1 }))
-		if (os__is_dir(p)) {
-			test_files = array_concat(test_files, test_files_from_dir_recursive(p))
-		} else if (os__exists(p) && string_ends_with(p, from_js_string("_test.bt"))) {
-			array_push(test_files, p)
-		}
-	}
-	return test_files
 }
 
 function get_user_files(upath) {
