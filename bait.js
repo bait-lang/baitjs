@@ -4030,7 +4030,7 @@ function bait__checker__Checker_method_call(c, node) {
 	return node.return_type
 }
 
-const bait__checker__SUPPORTED_COMPTIME_VARS = new array({ data: [from_js_string("PKG"), from_js_string("FILE"), from_js_string("LINE"), from_js_string("FILE_LINE"), from_js_string("FUN"), from_js_string("BAITEXE"), from_js_string("BAITDIR"), from_js_string("BAITHASH")], length: 8 })
+const bait__checker__SUPPORTED_COMPTIME_VARS = new array({ data: [from_js_string("PKG"), from_js_string("FILE"), from_js_string("ABS_FILE"), from_js_string("LINE"), from_js_string("FILE_LINE"), from_js_string("FUN"), from_js_string("BAITEXE"), from_js_string("BAITDIR"), from_js_string("BAITHASH")], length: 9 })
 function bait__checker__Checker_comp_time_var(c, node) {
 	if (!array_string_contains(bait__checker__SUPPORTED_COMPTIME_VARS, node.name)) {
 		bait__checker__Checker_error(c, from_js_string(`unsupported comptime var "${node.name.str}"`), node.pos)
@@ -4508,7 +4508,7 @@ function bait__util__escape_char(s, esc_char) {
 }
 
 
-const bait__util__VERSION = from_js_string(`0.0.3-dev ${from_js_string("8fcf134").str}`)
+const bait__util__VERSION = from_js_string(`0.0.3-dev ${from_js_string("6ee6a58").str}`)
 
 function bait__gen__js__Gen_expr(g, expr) {
 	if (expr instanceof bait__ast__AnonFun) {
@@ -4659,6 +4659,11 @@ function bait__gen__js__Gen_comp_time_var(g, node) {
 		case from_js_string("FILE").str:
 			{
 				bait__gen__js__Gen_write(g, os__abs_path(g.path))
+				break
+			}
+		case from_js_string("ABS_FILE").str:
+			{
+				bait__gen__js__Gen_write(g, g.path)
 				break
 			}
 		case from_js_string("LINE").str:
