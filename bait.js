@@ -7,8 +7,8 @@ const js_child_process = require("child_process")
 const bait__token__Precedence = {
 	lowest: 0,
 	cond: 1,
-	as_is: 2,
-	compare: 3,
+	compare: 2,
+	as_is: 3,
 	sum: 4,
 	product: 5,
 	prefix: 6,
@@ -3974,7 +3974,7 @@ function bait__checker__Checker_fun_call(c, node) {
 		}
 		const arg_count_matches = node.args.length == def.params.length
 		if (!arg_count_matches) {
-			bait__checker__Checker_error(c, string_add(string_add(string_add(from_js_string("expected "), def.params.length), from_js_string(" arguments but got ")), node.args.length), node.pos)
+			bait__checker__Checker_error(c, from_js_string(`expected ${i32_str(def.params.length)} arguments but got ${i32_str(node.args.length)}`), node.pos)
 		}
 		if (string_eq(node.name, from_js_string("println"))) {
 			for (let _t11 = 0; _t11 < node.args.length; _t11++) {
@@ -4113,36 +4113,6 @@ function bait__checker__Checker_index_expr(c, node) {
 	return node.left_type
 }
 
-function bait__checker__Checker_infix_expr(c, node) {
-	node.left_type = bait__checker__Checker_expr(c, node.left)
-	if (node.op == bait__token__TokenKind.key_is) {
-		if (node.left instanceof bait__ast__Ident) {
-			let right = node.right
-			if (!string_contains(right.name, from_js_string("."))) {
-				right.name = string_add(string_add(right.pkg, from_js_string(".")), right.name)
-			}
-			node.right_type = map_get_set(c.table.type_idxs, right.name, 0)
-			const left = node.left
-			bait__ast__Scope_update_type(c.scope, left.name, node.right_type)
-		} else if (node.left instanceof bait__ast__SelectorExpr) {
-			let right = node.right
-			if (!string_contains(right.name, from_js_string("."))) {
-				right.name = string_add(string_add(right.pkg, from_js_string(".")), right.name)
-			}
-			node.right_type = map_get_set(c.table.type_idxs, right.name, 0)
-			const left = node.left
-			const name = string_add(string_add((left.expr).name, from_js_string(".")), left.field_name)
-			bait__ast__Scope_update_type(c.scope, name, node.right_type)
-		}
-		return bait__ast__TypeIdx.bool
-	}
-	node.right_type = bait__checker__Checker_expr(c, node.right)
-	if (bait__token__TokenKind_is_compare(node.op)) {
-		return bait__ast__TypeIdx.bool
-	}
-	return node.left_type
-}
-
 function bait__checker__Checker_map_init(c, node) {
 	if (node.keys.length > 0) {
 		for (let i = 0; i < node.keys.length; i++) {
@@ -4273,6 +4243,44 @@ function bait__checker__Checker_type_of(c, node) {
 	const typ = bait__checker__Checker_expr(c, node.expr)
 	node.typ = typ
 	return bait__ast__TypeIdx.string
+}
+
+
+function bait__checker__Checker_infix_expr(c, node) {
+	node.left_type = bait__checker__Checker_expr(c, node.left)
+	if (node.op == bait__token__TokenKind.key_is) {
+		return bait__checker__Checker_is_sumtype_variant_infix(c, node)
+	}
+	node.right_type = bait__checker__Checker_expr(c, node.right)
+	if (!bait__checker__Checker_check_types(c, node.right_type, node.left_type)) {
+		bait__checker__Checker_error(c, from_js_string(`infix expr: cannot compare ${i32_str(node.right_type)} to ${i32_str(node.left_type)}`), node.pos)
+	}
+	if (bait__token__TokenKind_is_compare(node.op)) {
+		return bait__ast__TypeIdx.bool
+	}
+	return node.left_type
+}
+
+function bait__checker__Checker_is_sumtype_variant_infix(c, node) {
+	if (node.left instanceof bait__ast__Ident) {
+		let right = node.right
+		if (!string_contains(right.name, from_js_string("."))) {
+			right.name = string_add(string_add(right.pkg, from_js_string(".")), right.name)
+		}
+		node.right_type = map_get_set(c.table.type_idxs, right.name, 0)
+		const left = node.left
+		bait__ast__Scope_update_type(c.scope, left.name, node.right_type)
+	} else if (node.left instanceof bait__ast__SelectorExpr) {
+		let right = node.right
+		if (!string_contains(right.name, from_js_string("."))) {
+			right.name = string_add(string_add(right.pkg, from_js_string(".")), right.name)
+		}
+		node.right_type = map_get_set(c.table.type_idxs, right.name, 0)
+		const left = node.left
+		const name = string_add(string_add((left.expr).name, from_js_string(".")), left.field_name)
+		bait__ast__Scope_update_type(c.scope, name, node.right_type)
+	}
+	return bait__ast__TypeIdx.bool
 }
 
 
@@ -4508,7 +4516,7 @@ function bait__util__escape_char(s, esc_char) {
 }
 
 
-const bait__util__VERSION = from_js_string(`0.0.3-dev ${from_js_string("a7d02ce").str}`)
+const bait__util__VERSION = from_js_string(`0.0.3-dev ${from_js_string("1a64eaa").str}`)
 
 function bait__gen__js__Gen_expr(g, expr) {
 	if (expr instanceof bait__ast__AnonFun) {
