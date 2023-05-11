@@ -602,13 +602,11 @@ os__Result.prototype = {
 }
 function os__exec(cmd) {
 	let res = new os__Result({})
-	try {
-		const stdout = js_child_process.execSync(cmd.str, {stdio: ["pipe", "pipe", "pipe"]}).toString()
-		res.stdout = from_js_string(stdout)
-	} catch (e) {
-		res.code = e.status
-		res.stderr = from_js_string(e.stderr.toString())
-	}
+	const commands = cmd.str.split(" ")
+	const out = js_child_process.spawnSync(commands[0], commands.slice(1))
+	res.code = out.status
+	res.stdout = from_js_string(out.stdout.toString())
+	res.stderr = from_js_string(out.stderr.toString())
 	return res
 }
 
@@ -4028,6 +4026,7 @@ function bait__checker__Checker_method_call(c, node) {
 }
 
 function bait__checker__Checker_cast_expr(c, node) {
+	bait__checker__Checker_warn(c, from_js_string("Use of deprecated type casts. Use `x as MyType` instead."), node.pos)
 	bait__checker__Checker_expr(c, node.expr)
 	return node.target
 }
@@ -4510,7 +4509,7 @@ function bait__util__escape_char(s, esc_char) {
 }
 
 
-const bait__util__VERSION = from_js_string(`0.0.3-dev ${from_js_string("ddb9792").str}`)
+const bait__util__VERSION = from_js_string(`0.0.3-dev ${from_js_string("a0fba38").str}`)
 
 function bait__gen__js__Gen_expr(g, expr) {
 	if (expr instanceof bait__ast__AnonFun) {
