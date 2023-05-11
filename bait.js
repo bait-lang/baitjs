@@ -4508,7 +4508,7 @@ function bait__util__escape_char(s, esc_char) {
 }
 
 
-const bait__util__VERSION = from_js_string(`0.0.3-dev ${from_js_string("6ee6a58").str}`)
+const bait__util__VERSION = from_js_string(`0.0.3-dev ${from_js_string("a7d02ce").str}`)
 
 function bait__gen__js__Gen_expr(g, expr) {
 	if (expr instanceof bait__ast__AnonFun) {
@@ -4658,12 +4658,12 @@ function bait__gen__js__Gen_comp_time_var(g, node) {
 			}
 		case from_js_string("FILE").str:
 			{
-				bait__gen__js__Gen_write(g, os__abs_path(g.path))
+				bait__gen__js__Gen_write(g, g.path)
 				break
 			}
 		case from_js_string("ABS_FILE").str:
 			{
-				bait__gen__js__Gen_write(g, g.path)
+				bait__gen__js__Gen_write(g, os__abs_path(g.path))
 				break
 			}
 		case from_js_string("LINE").str:
