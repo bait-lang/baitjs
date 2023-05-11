@@ -407,6 +407,38 @@ function string_last_index(s, search) {
 	return s.str.lastIndexOf(search.str)
 }
 
+function string_all_before(s, search) {
+	const idx = string_index(s, search)
+	if (idx == -1) {
+		return s
+	}
+	return string_substr(s, 0, idx)
+}
+
+function string_all_before_last(s, search) {
+	const idx = string_last_index(s, search)
+	if (idx == -1) {
+		return s
+	}
+	return string_substr(s, 0, idx)
+}
+
+function string_all_after(s, search) {
+	const idx = string_index(s, search)
+	if (idx == -1) {
+		return s
+	}
+	return string_substr(s, idx + 1, s.length)
+}
+
+function string_all_after_last(s, search) {
+	const idx = string_last_index(s, search)
+	if (idx == -1) {
+		return s
+	}
+	return string_substr(s, idx + 1, s.length)
+}
+
 function string_repeat(s, count) {
 	return from_js_string(s.str.repeat(count))
 }
@@ -4476,7 +4508,7 @@ function bait__util__escape_char(s, esc_char) {
 }
 
 
-const bait__util__VERSION = from_js_string(`0.0.3-dev ${from_js_string("ce8ede3").str}`)
+const bait__util__VERSION = from_js_string(`0.0.3-dev ${from_js_string("8fcf134").str}`)
 
 function bait__gen__js__Gen_expr(g, expr) {
 	if (expr instanceof bait__ast__AnonFun) {
