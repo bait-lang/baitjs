@@ -1709,19 +1709,6 @@ bait__ast__CallArg.prototype = {
     typ: ${this.typ.toString()}
 }`}
 }
-function bait__ast__CastExpr({ expr = undefined, target = 0, pos = new bait__token__Pos({}) }) {
-	this.expr = expr
-	this.target = target
-	this.pos = pos
-}
-bait__ast__CastExpr.prototype = {
-	toString() {
-		return `bait__ast__CastExpr{
-    expr: ${this.expr.toString()}
-    target: ${this.target.toString()}
-    pos: ${this.pos.toString()}
-}`}
-}
 function bait__ast__CharLiteral({ val = from_js_string(""), pos = new bait__token__Pos({}) }) {
 	this.val = val
 	this.pos = pos
@@ -2877,15 +2864,6 @@ function bait__parser__Parser_bool_literal(p) {
 	return new bait__ast__BoolLiteral({ val: val, pos: pos })
 }
 
-function bait__parser__Parser_cast_expr(p) {
-	const pos = p.tok.pos
-	const target = bait__parser__Parser_parse_type(p)
-	bait__parser__Parser_check(p, bait__token__TokenKind.lpar)
-	const expr = bait__parser__Parser_expr(p, 0)
-	bait__parser__Parser_check(p, bait__token__TokenKind.rpar)
-	return new bait__ast__CastExpr({ target: target, expr: expr, pos: pos })
-}
-
 function bait__parser__Parser_char_literal(p) {
 	const pos = p.tok.pos
 	bait__parser__Parser_next(p)
@@ -3072,9 +3050,6 @@ function bait__parser__Parser_name_expr(p, lang) {
 		return bait__parser__Parser_map_init(p)
 	}
 	if (p.next_tok.kind == bait__token__TokenKind.lpar) {
-		if (map_contains(p.table.type_idxs, p.tok.val)) {
-			return bait__parser__Parser_cast_expr(p)
-		}
 		return bait__parser__Parser_fun_call(p, lang)
 	}
 	if (p.is_struct_possible && p.next_tok.kind == bait__token__TokenKind.lcur) {
@@ -3860,8 +3835,6 @@ function bait__checker__Checker_expr(c, expr) {
 		return bait__ast__TypeIdx.bool
 	} else if (expr instanceof bait__ast__CallExpr) {
 		return bait__checker__Checker_call_expr(c, expr)
-	} else if (expr instanceof bait__ast__CastExpr) {
-		return bait__checker__Checker_cast_expr(c, expr)
 	} else if (expr instanceof bait__ast__CharLiteral) {
 		return bait__ast__TypeIdx.u8
 	} else if (expr instanceof bait__ast__CompTimeVar) {
@@ -4023,12 +3996,6 @@ function bait__checker__Checker_method_call(c, node) {
 	node.left_type = array_get(def.params, 0).typ
 	node.return_type = def.return_type
 	return node.return_type
-}
-
-function bait__checker__Checker_cast_expr(c, node) {
-	bait__checker__Checker_warn(c, from_js_string("Use of deprecated type casts. Use `x as MyType` instead."), node.pos)
-	bait__checker__Checker_expr(c, node.expr)
-	return node.target
 }
 
 const bait__checker__SUPPORTED_COMPTIME_VARS = new array({ data: [from_js_string("PKG"), from_js_string("FILE"), from_js_string("LINE"), from_js_string("FILE_LINE"), from_js_string("FUN"), from_js_string("BAITEXE"), from_js_string("BAITDIR"), from_js_string("BAITHASH")], length: 8 })
@@ -4509,7 +4476,7 @@ function bait__util__escape_char(s, esc_char) {
 }
 
 
-const bait__util__VERSION = from_js_string(`0.0.3-dev ${from_js_string("ef909ca").str}`)
+const bait__util__VERSION = from_js_string(`0.0.3-dev ${from_js_string("ce8ede3").str}`)
 
 function bait__gen__js__Gen_expr(g, expr) {
 	if (expr instanceof bait__ast__AnonFun) {
@@ -4522,8 +4489,6 @@ function bait__gen__js__Gen_expr(g, expr) {
 		bait__gen__js__Gen_bool_literal(g, expr)
 	} else if (expr instanceof bait__ast__CallExpr) {
 		bait__gen__js__Gen_call_expr(g, expr)
-	} else if (expr instanceof bait__ast__CastExpr) {
-		bait__gen__js__Gen_cast_expr(g, expr)
 	} else if (expr instanceof bait__ast__CharLiteral) {
 		bait__gen__js__Gen_char_literal(g, expr)
 	} else if (expr instanceof bait__ast__CompTimeVar) {
@@ -4643,10 +4608,6 @@ function bait__gen__js__Gen_call_args(g, args) {
 			bait__gen__js__Gen_write(g, from_js_string(", "))
 		}
 	}
-}
-
-function bait__gen__js__Gen_cast_expr(g, node) {
-	bait__gen__js__Gen_expr(g, node.expr)
 }
 
 function bait__gen__js__Gen_char_literal(g, node) {
