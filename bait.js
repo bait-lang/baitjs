@@ -4677,13 +4677,11 @@ function bait__util__escape_char(s, esc_char) {
 }
 
 function bait__util__shell_escape(s) {
-	let e = bait__util__escape_char(s, new u8("\""))
-	e = bait__util__escape_char(e, new u8("\`"))
-	return bait__util__escape_char(e, new u8("$"))
+	return bait__util__escape_char(s, new u8("\`"))
 }
 
 
-const bait__util__VERSION = from_js_string(`0.0.3-dev ${from_js_string("c6f83f4").str}`)
+const bait__util__VERSION = from_js_string(`0.0.3-dev ${from_js_string("2210461").str}`)
 
 function bait__gen__js__Gen_expr(g, expr) {
 	if (expr instanceof bait__ast__AnonFun) {
