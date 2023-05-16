@@ -116,6 +116,11 @@ const bait__ast__TypeKind = {
 	sum_type: 6,
 	fun_: 7
 }
+const bait__errors__Kind = {
+	notice: 0,
+	warning: 1,
+	error: 2
+}
 const bait__checker__AttrValue = {
 	none: 0,
 	optional: 1,
@@ -745,6 +750,11 @@ function bait__preference__parse_args(args) {
 				{
 					i += 1
 					p.out_name = array_get(args, i)
+					break
+				}
+			case from_js_string("--nocolor").str:
+				{
+					os__setenv(from_js_string("BAITCOLOR"), from_js_string("0"))
 					break
 				}
 			case from_js_string("--script").str:
@@ -2440,8 +2450,51 @@ function bait__ast__Table_register_builtins(t) {
 }
 
 
-function bait__errors__compiler_message(kind, path, pos, msg) {
-	eprintln(from_js_string(`${path.str}:${i32_str(pos.line)}:${i32_str(pos.col)} ${kind.str}: ${msg.str}`).str)
+function bait__errors__notice(title, path, pos, msg) {
+	bait__errors__message(bait__errors__Kind.notice, title, path, pos, msg)
+}
+
+function bait__errors__warn(path, pos, msg) {
+	bait__errors__message(bait__errors__Kind.warning, from_js_string("warning"), path, pos, msg)
+}
+
+function bait__errors__error(path, pos, msg) {
+	bait__errors__message(bait__errors__Kind.error, from_js_string("error"), path, pos, msg)
+}
+
+function bait__errors__message(kind, title, path, pos, msg) {
+	const file_line = bait__errors__bold(from_js_string(`${path.str}:${i32_str(pos.line)}:${i32_str(pos.col)}`))
+	eprintln(from_js_string(`${file_line.str} ${bait__errors__format_title(kind, title).str}: ${msg.str}`).str)
+}
+
+function bait__errors__bold(s) {
+	if (string_eq(os__getenv(from_js_string("BAITCOLOR")), from_js_string("0"))) {
+		return s
+	}
+	return string_add(string_add(from_js_string("\033[1m"), s), from_js_string("\033[0m"))
+}
+
+function bait__errors__format_title(k, title) {
+	if (string_eq(os__getenv(from_js_string("BAITCOLOR")), from_js_string("0"))) {
+		return title
+	}
+	switch (k) {
+		case bait__errors__Kind.notice:
+			{
+				return string_add(string_add(from_js_string("\033[0;35m"), title), from_js_string("\033[0m"))
+				break
+			}
+		case bait__errors__Kind.warning:
+			{
+				return string_add(string_add(from_js_string("\033[0;33m"), title), from_js_string("\033[0m"))
+				break
+			}
+		case bait__errors__Kind.error:
+			{
+				return string_add(string_add(from_js_string("\033[0;31m"), title), from_js_string("\033[0m"))
+				break
+			}
+	}
 }
 
 
@@ -3051,8 +3104,12 @@ function bait__parser__Parser_next(p) {
 	p.idx += 1
 }
 
+function bait__parser__Parser_warn(p, msg) {
+	bait__errors__warn(p.path, p.tok.pos, msg)
+}
+
 function bait__parser__Parser_error(p, msg) {
-	bait__errors__compiler_message(from_js_string("error"), p.path, p.tok.pos, msg)
+	bait__errors__error(p.path, p.tok.pos, msg)
 	exit(1)
 }
 
@@ -3101,10 +3158,7 @@ function bait__parser__Parser_toplevel_stmt(p) {
 			}
 		default:
 			{
-				if (p.pref.is_script) {
-					return bait__parser__Parser_script_mode_main(p)
-				}
-				bait__parser__Parser_error(p, from_js_string(`bad toplevel token: kind: ${bait__token__TokenKind_str(p.tok.kind)}, val: ${p.tok.val.str}`))
+				return bait__parser__Parser_script_mode_main(p)
 				break
 			}
 	}
@@ -3146,12 +3200,15 @@ function bait__parser__Parser_pub_stmt(p) {
 }
 
 function bait__parser__Parser_script_mode_main(p) {
+	if (!p.pref.is_script) {
+		bait__parser__Parser_warn(p, from_js_string("declare the main function or use the --script option"))
+	}
 	let stmts = new array({ data: [], length: 0 })
 	while (p.tok.kind != bait__token__TokenKind.eof) {
 		array_push(stmts, bait__parser__Parser_stmt(p))
 	}
-	let node = new bait__ast__FunDecl({ name: from_js_string("main.main") })
-	map_set(p.table.fun_decls, from_js_string("main.main"), node)
+	let node = new bait__ast__FunDecl({ name: from_js_string("main") })
+	map_set(p.table.fun_decls, from_js_string("main"), node)
 	node.stmts = stmts
 	return node
 }
@@ -3889,7 +3946,7 @@ function bait__tokenizer__Tokenizer_error(t, msg) {
 
 function bait__tokenizer__Tokenizer_error_with_line(t, msg, line) {
 	const pos = new bait__token__Pos({ line: line, col: t.pos - t.last_nl_pos })
-	bait__errors__compiler_message(from_js_string("error"), t.path, pos, msg)
+	bait__errors__error(t.path, pos, msg)
 	exit(1)
 }
 
@@ -3948,12 +4005,16 @@ function bait__checker__Checker_close_scope(c) {
 	c.scope = c.scope.parent
 }
 
+function bait__checker__Checker_notice(c, title, msg, pos) {
+	bait__errors__notice(title, c.path, pos, msg)
+}
+
 function bait__checker__Checker_warn(c, msg, pos) {
-	bait__errors__compiler_message(from_js_string("warning"), c.path, pos, msg)
+	bait__errors__warn(c.path, pos, msg)
 }
 
 function bait__checker__Checker_error(c, msg, pos) {
-	bait__errors__compiler_message(from_js_string("error"), c.path, pos, msg)
+	bait__errors__error(c.path, pos, msg)
 	c.had_error = true
 }
 
@@ -4681,7 +4742,7 @@ function bait__util__shell_escape(s) {
 }
 
 
-const bait__util__VERSION = from_js_string(`0.0.3-dev ${from_js_string("c295fdc").str}`)
+const bait__util__VERSION = from_js_string(`0.0.3-dev ${from_js_string("099b7b8").str}`)
 
 function bait__gen__js__Gen_expr(g, expr) {
 	if (expr instanceof bait__ast__AnonFun) {
@@ -5349,11 +5410,11 @@ function bait__gen__js__Gen_write_default_value(g, typ) {
 }
 
 function bait__gen__js__Gen_warn(g, msg, pos) {
-	bait__errors__compiler_message(from_js_string("warning"), g.path, pos, msg)
+	bait__errors__warn(g.path, pos, msg)
 }
 
 function bait__gen__js__Gen_error(g, msg, pos) {
-	bait__errors__compiler_message(from_js_string("error"), g.path, pos, msg)
+	bait__errors__error(g.path, pos, msg)
 	exit(1)
 }
 
