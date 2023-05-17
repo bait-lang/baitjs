@@ -597,6 +597,14 @@ function os__file_name(path) {
 	return from_js_string(js_path.basename(path.str))
 }
 
+function os__file_mod_time(path) {
+	return js_fs.lstatSync(path.str).mtimeMs
+}
+
+function os__symlink(src, dest) {
+	js_fs.symlinkSync(src.str, dest.str)
+}
+
 function os__chdir(dir) {
 	process.chdir(dir.str)
 }
@@ -619,6 +627,10 @@ function os__mkdir(dir) {
 
 function os__mkdir_all(dir) {
 	js_fs.mkdirSync(dir.str, { recursive: true })
+}
+
+function os__rm(path) {
+	js_fs.rmSync(path.str)
 }
 
 function os__rmdir(dir) {
@@ -711,11 +723,12 @@ function os__system(cmd) {
 }
 
 
-function bait__preference__Prefs({ command = from_js_string(""), args = new array({ data: [], length: 0 }), out_name = from_js_string(""), should_run = false, is_test = false, is_script = false, baitexe = from_js_string(""), baitdir = from_js_string(""), baithash = from_js_string("") }) {
+function bait__preference__Prefs({ command = from_js_string(""), args = new array({ data: [], length: 0 }), out_name = from_js_string(""), should_run = false, is_verbose = false, is_test = false, is_script = false, baitexe = from_js_string(""), baitdir = from_js_string(""), baithash = from_js_string("") }) {
 	this.command = command
 	this.args = args
 	this.out_name = out_name
 	this.should_run = should_run
+	this.is_verbose = is_verbose
 	this.is_test = is_test
 	this.is_script = is_script
 	this.baitexe = baitexe
@@ -729,6 +742,7 @@ bait__preference__Prefs.prototype = {
     args: ${this.args.toString()}
     out_name: ${this.out_name.toString()}
     should_run: ${this.should_run.toString()}
+    is_verbose: ${this.is_verbose.toString()}
     is_test: ${this.is_test.toString()}
     is_script: ${this.is_script.toString()}
     baitexe: ${this.baitexe.toString()}
@@ -750,6 +764,12 @@ function bait__preference__parse_args(args) {
 				{
 					i += 1
 					p.out_name = array_get(args, i)
+					break
+				}
+			case from_js_string("-v").str:
+			case from_js_string("--verbose").str:
+				{
+					p.is_verbose = true
 					break
 				}
 			case from_js_string("--nocolor").str:
@@ -784,7 +804,7 @@ function bait__preference__parse_args(args) {
 		p.is_test = true
 	}
 	if (p.out_name.length == 0) {
-		p.out_name = from_js_string("out.js")
+		p.out_name = string_add(string_all_before(p.command, from_js_string(".bt")), from_js_string(".js"))
 	}
 	return p
 }
@@ -3628,364 +3648,6 @@ function bait__parser__Parser_infer_expr_type(p, expr) {
 }
 
 
-function bait__tokenizer__Tokenizer({ path = from_js_string(""), text = from_js_string(""), pos = 0, line = 0, last_nl_pos = 0, is_string_inter = false, str_quote = 0 }) {
-	this.path = path
-	this.text = text
-	this.pos = pos
-	this.line = line
-	this.last_nl_pos = last_nl_pos
-	this.is_string_inter = is_string_inter
-	this.str_quote = str_quote
-}
-bait__tokenizer__Tokenizer.prototype = {
-	toString() {
-		return `bait__tokenizer__Tokenizer{
-    path: ${this.path.toString()}
-    text: ${this.text.toString()}
-    pos: ${this.pos.toString()}
-    line: ${this.line.toString()}
-    last_nl_pos: ${this.last_nl_pos.toString()}
-    is_string_inter: ${this.is_string_inter.toString()}
-    str_quote: ${this.str_quote.toString()}
-}`}
-}
-function bait__tokenizer__tokenize(text, path) {
-	let t = new bait__tokenizer__Tokenizer({ path: path, text: text, pos: -1, line: 1, last_nl_pos: -1 })
-	let tokens = new array({ data: [], length: 0 })
-	let tok = new bait__token__Token({})
-	while (tok.kind != bait__token__TokenKind.eof) {
-		tok = bait__tokenizer__Tokenizer_next_token(t)
-		array_push(tokens, tok)
-	}
-	return tokens
-}
-
-function bait__tokenizer__Tokenizer_new_token(t, kind, val) {
-	return new bait__token__Token({ kind: kind, val: val, pos: new bait__token__Pos({ line: t.line, col: t.pos - t.last_nl_pos }) })
-}
-
-function bait__tokenizer__Tokenizer_next_token(t) {
-	while (true) {
-		t.pos += 1
-		bait__tokenizer__Tokenizer_skip_whitespace(t)
-		if (t.pos >= t.text.length) {
-			return bait__tokenizer__Tokenizer_new_token(t, bait__token__TokenKind.eof, from_js_string(""))
-		}
-		const c = string_get(t.text, t.pos)
-		if (bait__tokenizer__is_name_start_char(c)) {
-			return bait__tokenizer__Tokenizer_name_or_keyword(t)
-		} else if (bait__tokenizer__is_digit(c)) {
-			const num = bait__tokenizer__Tokenizer_number_val(t)
-			return bait__tokenizer__Tokenizer_new_token(t, bait__token__TokenKind.number, num)
-		}
-		const nextc = string_get(t.text, t.pos + 1)
-		switch (c.val) {
-			case new u8("'").val:
-			case new u8("\"").val:
-				{
-					const str = bait__tokenizer__Tokenizer_string_val(t, c)
-					return bait__tokenizer__Tokenizer_new_token(t, bait__token__TokenKind.string, str)
-					break
-				}
-			case new u8("\`").val:
-				{
-					const val = bait__tokenizer__Tokenizer_char_val(t)
-					return bait__tokenizer__Tokenizer_new_token(t, bait__token__TokenKind.char, val)
-					break
-				}
-			case new u8(".").val:
-				{
-					return bait__tokenizer__Tokenizer_new_token(t, bait__token__TokenKind.dot, from_js_string(""))
-					break
-				}
-			case new u8(",").val:
-				{
-					return bait__tokenizer__Tokenizer_new_token(t, bait__token__TokenKind.comma, from_js_string(""))
-					break
-				}
-			case new u8("+").val:
-				{
-					if (nextc.val == new u8("=").val) {
-						t.pos += 1
-						return bait__tokenizer__Tokenizer_new_token(t, bait__token__TokenKind.plus_assign, from_js_string(""))
-					}
-					return bait__tokenizer__Tokenizer_new_token(t, bait__token__TokenKind.plus, from_js_string(""))
-					break
-				}
-			case new u8("-").val:
-				{
-					if (nextc.val == new u8("=").val) {
-						t.pos += 1
-						return bait__tokenizer__Tokenizer_new_token(t, bait__token__TokenKind.minus_assign, from_js_string(""))
-					}
-					return bait__tokenizer__Tokenizer_new_token(t, bait__token__TokenKind.minus, from_js_string(""))
-					break
-				}
-			case new u8("*").val:
-				{
-					if (nextc.val == new u8("=").val) {
-						t.pos += 1
-						return bait__tokenizer__Tokenizer_new_token(t, bait__token__TokenKind.mul_assign, from_js_string(""))
-					}
-					return bait__tokenizer__Tokenizer_new_token(t, bait__token__TokenKind.mul, from_js_string(""))
-					break
-				}
-			case new u8("/").val:
-				{
-					if (nextc.val == new u8("=").val) {
-						t.pos += 1
-						return bait__tokenizer__Tokenizer_new_token(t, bait__token__TokenKind.div_assign, from_js_string(""))
-					}
-					if (nextc.val == new u8("/").val) {
-						bait__tokenizer__Tokenizer_ignore_line(t)
-						continue
-					}
-					return bait__tokenizer__Tokenizer_new_token(t, bait__token__TokenKind.div, from_js_string(""))
-					break
-				}
-			case new u8("%").val:
-				{
-					if (nextc.val == new u8("=").val) {
-						t.pos += 1
-						return bait__tokenizer__Tokenizer_new_token(t, bait__token__TokenKind.mod_assign, from_js_string(""))
-					}
-					return bait__tokenizer__Tokenizer_new_token(t, bait__token__TokenKind.mod, from_js_string(""))
-					break
-				}
-			case new u8("=").val:
-				{
-					if (nextc.val == new u8("=").val) {
-						t.pos += 1
-						return bait__tokenizer__Tokenizer_new_token(t, bait__token__TokenKind.eq, from_js_string(""))
-					}
-					return bait__tokenizer__Tokenizer_new_token(t, bait__token__TokenKind.assign, from_js_string(""))
-					break
-				}
-			case new u8(":").val:
-				{
-					if (nextc.val == new u8("=").val) {
-						t.pos += 1
-						return bait__tokenizer__Tokenizer_new_token(t, bait__token__TokenKind.decl_assign, from_js_string(""))
-					}
-					return bait__tokenizer__Tokenizer_new_token(t, bait__token__TokenKind.colon, from_js_string(""))
-					break
-				}
-			case new u8(";").val:
-				{
-					return bait__tokenizer__Tokenizer_new_token(t, bait__token__TokenKind.semicolon, from_js_string(""))
-					break
-				}
-			case new u8("!").val:
-				{
-					if (nextc.val == new u8("=").val) {
-						t.pos += 1
-						return bait__tokenizer__Tokenizer_new_token(t, bait__token__TokenKind.ne, from_js_string(""))
-					}
-					break
-				}
-			case new u8("<").val:
-				{
-					if (nextc.val == new u8("=").val) {
-						t.pos += 1
-						return bait__tokenizer__Tokenizer_new_token(t, bait__token__TokenKind.le, from_js_string(""))
-					}
-					return bait__tokenizer__Tokenizer_new_token(t, bait__token__TokenKind.lt, from_js_string(""))
-					break
-				}
-			case new u8(">").val:
-				{
-					if (nextc.val == new u8("=").val) {
-						t.pos += 1
-						return bait__tokenizer__Tokenizer_new_token(t, bait__token__TokenKind.ge, from_js_string(""))
-					}
-					return bait__tokenizer__Tokenizer_new_token(t, bait__token__TokenKind.gt, from_js_string(""))
-					break
-				}
-			case new u8("(").val:
-				{
-					return bait__tokenizer__Tokenizer_new_token(t, bait__token__TokenKind.lpar, from_js_string(""))
-					break
-				}
-			case new u8(")").val:
-				{
-					return bait__tokenizer__Tokenizer_new_token(t, bait__token__TokenKind.rpar, from_js_string(""))
-					break
-				}
-			case new u8("[").val:
-				{
-					return bait__tokenizer__Tokenizer_new_token(t, bait__token__TokenKind.lbr, from_js_string(""))
-					break
-				}
-			case new u8("]").val:
-				{
-					return bait__tokenizer__Tokenizer_new_token(t, bait__token__TokenKind.rbr, from_js_string(""))
-					break
-				}
-			case new u8("{").val:
-				{
-					return bait__tokenizer__Tokenizer_new_token(t, bait__token__TokenKind.lcur, from_js_string(""))
-					break
-				}
-			case new u8("}").val:
-				{
-					if (t.is_string_inter) {
-						t.is_string_inter = false
-						const str = bait__tokenizer__Tokenizer_string_val(t, t.str_quote)
-						return bait__tokenizer__Tokenizer_new_token(t, bait__token__TokenKind.string, str)
-					}
-					return bait__tokenizer__Tokenizer_new_token(t, bait__token__TokenKind.rcur, from_js_string(""))
-					break
-				}
-			case new u8("|").val:
-				{
-					return bait__tokenizer__Tokenizer_new_token(t, bait__token__TokenKind.pipe, from_js_string(""))
-					break
-				}
-			case new u8("$").val:
-				{
-					return bait__tokenizer__Tokenizer_new_token(t, bait__token__TokenKind.dollar, from_js_string(""))
-					break
-				}
-			case new u8("#").val:
-				{
-					t.pos += 1
-					const name = bait__tokenizer__Tokenizer_name_val(t)
-					return bait__tokenizer__Tokenizer_new_token(t, bait__token__TokenKind.hash, name)
-					break
-				}
-			case new u8("@").val:
-				{
-					t.pos += 1
-					const name = bait__tokenizer__Tokenizer_name_val(t)
-					return bait__tokenizer__Tokenizer_new_token(t, bait__token__TokenKind.attr, name)
-					break
-				}
-			default:
-				{
-					break
-				}
-		}
-		bait__tokenizer__Tokenizer_error(t, from_js_string(`unknown char \`${u8_ascii(c).str}\``))
-	}
-	return bait__tokenizer__Tokenizer_new_token(t, bait__token__TokenKind.eof, from_js_string(""))
-}
-
-function bait__tokenizer__Tokenizer_name_or_keyword(t) {
-	const name = bait__tokenizer__Tokenizer_name_val(t)
-	const kind = bait__token__keyword_to_kind(name)
-	if (kind != bait__token__TokenKind.name) {
-		return bait__tokenizer__Tokenizer_new_token(t, kind, from_js_string(""))
-	}
-	return bait__tokenizer__Tokenizer_new_token(t, bait__token__TokenKind.name, name)
-}
-
-function bait__tokenizer__Tokenizer_name_val(t) {
-	const start = t.pos
-	t.pos += 1
-	while (t.pos < t.text.length) {
-		if (!bait__tokenizer__is_name_char(string_get(t.text, t.pos))) {
-			break
-		}
-		t.pos += 1
-	}
-	t.pos -= 1
-	return string_substr(t.text, start, t.pos + 1)
-}
-
-function bait__tokenizer__Tokenizer_number_val(t) {
-	const start = t.pos
-	while (bait__tokenizer__is_digit(string_get(t.text, t.pos))) {
-		t.pos += 1
-	}
-	t.pos -= 1
-	return string_substr(t.text, start, t.pos + 1)
-}
-
-function bait__tokenizer__Tokenizer_string_val(t, quote) {
-	const is_js = string_get(t.text, t.pos - 1).val == new u8(".").val
-	const start_line = t.line
-	const start = t.pos + 1
-	while (true) {
-		t.pos += 1
-		if (t.pos >= t.text.length) {
-			bait__tokenizer__Tokenizer_error_with_line(t, from_js_string("unfinished string literal"), start_line)
-		}
-		const c = string_get(t.text, t.pos)
-		if (c.val == new u8("\n").val) {
-			t.last_nl_pos = t.pos
-			t.line += 1
-		} else if (c.val == new u8("\\").val) {
-			t.pos += 1
-		} else if (!is_js && c.val == new u8("$").val && string_get(t.text, t.pos + 1).val == new u8("{").val) {
-			t.is_string_inter = true
-			t.str_quote = quote
-			t.pos -= 1
-			return string_substr(t.text, start, t.pos + 1)
-		} else if (c.val == quote.val) {
-			break
-		}
-	}
-	return string_substr(t.text, start, t.pos)
-}
-
-function bait__tokenizer__Tokenizer_char_val(t) {
-	const start = t.pos + 1
-	while (true) {
-		t.pos += 1
-		const c = string_get(t.text, t.pos)
-		if (c.val == new u8("\\").val) {
-			t.pos += 1
-		} else if (c.val == new u8("\`").val) {
-			break
-		}
-	}
-	return string_substr(t.text, start, t.pos)
-}
-
-function bait__tokenizer__Tokenizer_skip_whitespace(t) {
-	while (t.pos < t.text.length) {
-		const c = string_get(t.text, t.pos)
-		if (c.val == new u8("\n").val) {
-			t.last_nl_pos = t.pos
-			t.line += 1
-		} else if (!array_u8_contains(new array({ data: [new u8(" "), new u8("\t"), new u8("\r")], length: 3 }), c)) {
-			return
-		}
-		t.pos += 1
-	}
-}
-
-function bait__tokenizer__Tokenizer_ignore_line(t) {
-	while (t.pos < t.text.length && string_get(t.text, t.pos).val != new u8("\n").val) {
-		t.pos += 1
-	}
-	t.last_nl_pos = t.pos
-	t.line += 1
-}
-
-function bait__tokenizer__Tokenizer_error(t, msg) {
-	bait__tokenizer__Tokenizer_error_with_line(t, msg, t.line)
-}
-
-function bait__tokenizer__Tokenizer_error_with_line(t, msg, line) {
-	const pos = new bait__token__Pos({ line: line, col: t.pos - t.last_nl_pos })
-	bait__errors__error(t.path, pos, msg)
-	exit(1)
-}
-
-function bait__tokenizer__is_name_start_char(c) {
-	return c.val >= new u8("a").val && c.val <= new u8("z").val || c.val >= new u8("A").val && c.val <= new u8("Z").val || c.val == new u8("_").val
-}
-
-function bait__tokenizer__is_name_char(c) {
-	return bait__tokenizer__is_name_start_char(c) || bait__tokenizer__is_digit(c)
-}
-
-function bait__tokenizer__is_digit(c) {
-	return c.val >= new u8("0").val && c.val <= new u8("9").val
-}
-
-
 function bait__checker__build_known_attrs() {
 	let attrs = new map({ data: new Map([]), length: 0 })
 	map_set(attrs, from_js_string("deprecated"), bait__checker__AttrValue.optional)
@@ -4057,10 +3719,6 @@ function bait__checker__Checker_open_scope(c) {
 
 function bait__checker__Checker_close_scope(c) {
 	c.scope = c.scope.parent
-}
-
-function bait__checker__Checker_warn(c, msg, pos) {
-	bait__errors__warn(c.path, pos, msg)
 }
 
 function bait__checker__Checker_error(c, msg, pos) {
@@ -4580,7 +4238,7 @@ function bait__checker__Checker_infix_expr(c, node) {
 	}
 	node.right_type = bait__checker__Checker_expr(c, node.right)
 	if (!bait__checker__Checker_check_types(c, node.right_type, node.left_type)) {
-		bait__checker__Checker_error(c, from_js_string(`infix expr: cannot compare ${i32_str(node.right_type)} to ${i32_str(node.left_type)}`), node.pos)
+		bait__checker__Checker_error(c, from_js_string(`infix expr: types ${i32_str(node.right_type)} and ${i32_str(node.left_type)} do not match`), node.pos)
 	}
 	if (bait__token__TokenKind_is_compare(node.op)) {
 		return bait__ast__TypeIdx.bool
@@ -4828,7 +4486,7 @@ function bait__util__shell_escape(s) {
 }
 
 
-const bait__util__VERSION = from_js_string(`0.0.3-dev ${from_js_string("d5b0993").str}`)
+const bait__util__VERSION = from_js_string(`0.0.3-dev ${from_js_string("8910497").str}`)
 
 function bait__gen__js__Gen_expr(g, expr) {
 	if (expr instanceof bait__ast__AnonFun) {
@@ -5816,6 +5474,364 @@ function bait__gen__js__Gen_struct_decl(g, node) {
 }
 
 
+function bait__tokenizer__Tokenizer({ path = from_js_string(""), text = from_js_string(""), pos = 0, line = 0, last_nl_pos = 0, is_string_inter = false, str_quote = 0 }) {
+	this.path = path
+	this.text = text
+	this.pos = pos
+	this.line = line
+	this.last_nl_pos = last_nl_pos
+	this.is_string_inter = is_string_inter
+	this.str_quote = str_quote
+}
+bait__tokenizer__Tokenizer.prototype = {
+	toString() {
+		return `bait__tokenizer__Tokenizer{
+    path: ${this.path.toString()}
+    text: ${this.text.toString()}
+    pos: ${this.pos.toString()}
+    line: ${this.line.toString()}
+    last_nl_pos: ${this.last_nl_pos.toString()}
+    is_string_inter: ${this.is_string_inter.toString()}
+    str_quote: ${this.str_quote.toString()}
+}`}
+}
+function bait__tokenizer__tokenize(text, path) {
+	let t = new bait__tokenizer__Tokenizer({ path: path, text: text, pos: -1, line: 1, last_nl_pos: -1 })
+	let tokens = new array({ data: [], length: 0 })
+	let tok = new bait__token__Token({})
+	while (tok.kind != bait__token__TokenKind.eof) {
+		tok = bait__tokenizer__Tokenizer_next_token(t)
+		array_push(tokens, tok)
+	}
+	return tokens
+}
+
+function bait__tokenizer__Tokenizer_new_token(t, kind, val) {
+	return new bait__token__Token({ kind: kind, val: val, pos: new bait__token__Pos({ line: t.line, col: t.pos - t.last_nl_pos }) })
+}
+
+function bait__tokenizer__Tokenizer_next_token(t) {
+	while (true) {
+		t.pos += 1
+		bait__tokenizer__Tokenizer_skip_whitespace(t)
+		if (t.pos >= t.text.length) {
+			return bait__tokenizer__Tokenizer_new_token(t, bait__token__TokenKind.eof, from_js_string(""))
+		}
+		const c = string_get(t.text, t.pos)
+		if (bait__tokenizer__is_name_start_char(c)) {
+			return bait__tokenizer__Tokenizer_name_or_keyword(t)
+		} else if (bait__tokenizer__is_digit(c)) {
+			const num = bait__tokenizer__Tokenizer_number_val(t)
+			return bait__tokenizer__Tokenizer_new_token(t, bait__token__TokenKind.number, num)
+		}
+		const nextc = string_get(t.text, t.pos + 1)
+		switch (c.val) {
+			case new u8("'").val:
+			case new u8("\"").val:
+				{
+					const str = bait__tokenizer__Tokenizer_string_val(t, c)
+					return bait__tokenizer__Tokenizer_new_token(t, bait__token__TokenKind.string, str)
+					break
+				}
+			case new u8("\`").val:
+				{
+					const val = bait__tokenizer__Tokenizer_char_val(t)
+					return bait__tokenizer__Tokenizer_new_token(t, bait__token__TokenKind.char, val)
+					break
+				}
+			case new u8(".").val:
+				{
+					return bait__tokenizer__Tokenizer_new_token(t, bait__token__TokenKind.dot, from_js_string(""))
+					break
+				}
+			case new u8(",").val:
+				{
+					return bait__tokenizer__Tokenizer_new_token(t, bait__token__TokenKind.comma, from_js_string(""))
+					break
+				}
+			case new u8("+").val:
+				{
+					if (nextc.val == new u8("=").val) {
+						t.pos += 1
+						return bait__tokenizer__Tokenizer_new_token(t, bait__token__TokenKind.plus_assign, from_js_string(""))
+					}
+					return bait__tokenizer__Tokenizer_new_token(t, bait__token__TokenKind.plus, from_js_string(""))
+					break
+				}
+			case new u8("-").val:
+				{
+					if (nextc.val == new u8("=").val) {
+						t.pos += 1
+						return bait__tokenizer__Tokenizer_new_token(t, bait__token__TokenKind.minus_assign, from_js_string(""))
+					}
+					return bait__tokenizer__Tokenizer_new_token(t, bait__token__TokenKind.minus, from_js_string(""))
+					break
+				}
+			case new u8("*").val:
+				{
+					if (nextc.val == new u8("=").val) {
+						t.pos += 1
+						return bait__tokenizer__Tokenizer_new_token(t, bait__token__TokenKind.mul_assign, from_js_string(""))
+					}
+					return bait__tokenizer__Tokenizer_new_token(t, bait__token__TokenKind.mul, from_js_string(""))
+					break
+				}
+			case new u8("/").val:
+				{
+					if (nextc.val == new u8("=").val) {
+						t.pos += 1
+						return bait__tokenizer__Tokenizer_new_token(t, bait__token__TokenKind.div_assign, from_js_string(""))
+					}
+					if (nextc.val == new u8("/").val) {
+						bait__tokenizer__Tokenizer_ignore_line(t)
+						continue
+					}
+					return bait__tokenizer__Tokenizer_new_token(t, bait__token__TokenKind.div, from_js_string(""))
+					break
+				}
+			case new u8("%").val:
+				{
+					if (nextc.val == new u8("=").val) {
+						t.pos += 1
+						return bait__tokenizer__Tokenizer_new_token(t, bait__token__TokenKind.mod_assign, from_js_string(""))
+					}
+					return bait__tokenizer__Tokenizer_new_token(t, bait__token__TokenKind.mod, from_js_string(""))
+					break
+				}
+			case new u8("=").val:
+				{
+					if (nextc.val == new u8("=").val) {
+						t.pos += 1
+						return bait__tokenizer__Tokenizer_new_token(t, bait__token__TokenKind.eq, from_js_string(""))
+					}
+					return bait__tokenizer__Tokenizer_new_token(t, bait__token__TokenKind.assign, from_js_string(""))
+					break
+				}
+			case new u8(":").val:
+				{
+					if (nextc.val == new u8("=").val) {
+						t.pos += 1
+						return bait__tokenizer__Tokenizer_new_token(t, bait__token__TokenKind.decl_assign, from_js_string(""))
+					}
+					return bait__tokenizer__Tokenizer_new_token(t, bait__token__TokenKind.colon, from_js_string(""))
+					break
+				}
+			case new u8(";").val:
+				{
+					return bait__tokenizer__Tokenizer_new_token(t, bait__token__TokenKind.semicolon, from_js_string(""))
+					break
+				}
+			case new u8("!").val:
+				{
+					if (nextc.val == new u8("=").val) {
+						t.pos += 1
+						return bait__tokenizer__Tokenizer_new_token(t, bait__token__TokenKind.ne, from_js_string(""))
+					}
+					break
+				}
+			case new u8("<").val:
+				{
+					if (nextc.val == new u8("=").val) {
+						t.pos += 1
+						return bait__tokenizer__Tokenizer_new_token(t, bait__token__TokenKind.le, from_js_string(""))
+					}
+					return bait__tokenizer__Tokenizer_new_token(t, bait__token__TokenKind.lt, from_js_string(""))
+					break
+				}
+			case new u8(">").val:
+				{
+					if (nextc.val == new u8("=").val) {
+						t.pos += 1
+						return bait__tokenizer__Tokenizer_new_token(t, bait__token__TokenKind.ge, from_js_string(""))
+					}
+					return bait__tokenizer__Tokenizer_new_token(t, bait__token__TokenKind.gt, from_js_string(""))
+					break
+				}
+			case new u8("(").val:
+				{
+					return bait__tokenizer__Tokenizer_new_token(t, bait__token__TokenKind.lpar, from_js_string(""))
+					break
+				}
+			case new u8(")").val:
+				{
+					return bait__tokenizer__Tokenizer_new_token(t, bait__token__TokenKind.rpar, from_js_string(""))
+					break
+				}
+			case new u8("[").val:
+				{
+					return bait__tokenizer__Tokenizer_new_token(t, bait__token__TokenKind.lbr, from_js_string(""))
+					break
+				}
+			case new u8("]").val:
+				{
+					return bait__tokenizer__Tokenizer_new_token(t, bait__token__TokenKind.rbr, from_js_string(""))
+					break
+				}
+			case new u8("{").val:
+				{
+					return bait__tokenizer__Tokenizer_new_token(t, bait__token__TokenKind.lcur, from_js_string(""))
+					break
+				}
+			case new u8("}").val:
+				{
+					if (t.is_string_inter) {
+						t.is_string_inter = false
+						const str = bait__tokenizer__Tokenizer_string_val(t, t.str_quote)
+						return bait__tokenizer__Tokenizer_new_token(t, bait__token__TokenKind.string, str)
+					}
+					return bait__tokenizer__Tokenizer_new_token(t, bait__token__TokenKind.rcur, from_js_string(""))
+					break
+				}
+			case new u8("|").val:
+				{
+					return bait__tokenizer__Tokenizer_new_token(t, bait__token__TokenKind.pipe, from_js_string(""))
+					break
+				}
+			case new u8("$").val:
+				{
+					return bait__tokenizer__Tokenizer_new_token(t, bait__token__TokenKind.dollar, from_js_string(""))
+					break
+				}
+			case new u8("#").val:
+				{
+					t.pos += 1
+					const name = bait__tokenizer__Tokenizer_name_val(t)
+					return bait__tokenizer__Tokenizer_new_token(t, bait__token__TokenKind.hash, name)
+					break
+				}
+			case new u8("@").val:
+				{
+					t.pos += 1
+					const name = bait__tokenizer__Tokenizer_name_val(t)
+					return bait__tokenizer__Tokenizer_new_token(t, bait__token__TokenKind.attr, name)
+					break
+				}
+			default:
+				{
+					break
+				}
+		}
+		bait__tokenizer__Tokenizer_error(t, from_js_string(`unknown char \`${u8_ascii(c).str}\``))
+	}
+	return bait__tokenizer__Tokenizer_new_token(t, bait__token__TokenKind.eof, from_js_string(""))
+}
+
+function bait__tokenizer__Tokenizer_name_or_keyword(t) {
+	const name = bait__tokenizer__Tokenizer_name_val(t)
+	const kind = bait__token__keyword_to_kind(name)
+	if (kind != bait__token__TokenKind.name) {
+		return bait__tokenizer__Tokenizer_new_token(t, kind, from_js_string(""))
+	}
+	return bait__tokenizer__Tokenizer_new_token(t, bait__token__TokenKind.name, name)
+}
+
+function bait__tokenizer__Tokenizer_name_val(t) {
+	const start = t.pos
+	t.pos += 1
+	while (t.pos < t.text.length) {
+		if (!bait__tokenizer__is_name_char(string_get(t.text, t.pos))) {
+			break
+		}
+		t.pos += 1
+	}
+	t.pos -= 1
+	return string_substr(t.text, start, t.pos + 1)
+}
+
+function bait__tokenizer__Tokenizer_number_val(t) {
+	const start = t.pos
+	while (bait__tokenizer__is_digit(string_get(t.text, t.pos))) {
+		t.pos += 1
+	}
+	t.pos -= 1
+	return string_substr(t.text, start, t.pos + 1)
+}
+
+function bait__tokenizer__Tokenizer_string_val(t, quote) {
+	const is_js = string_get(t.text, t.pos - 1).val == new u8(".").val
+	const start_line = t.line
+	const start = t.pos + 1
+	while (true) {
+		t.pos += 1
+		if (t.pos >= t.text.length) {
+			bait__tokenizer__Tokenizer_error_with_line(t, from_js_string("unfinished string literal"), start_line)
+		}
+		const c = string_get(t.text, t.pos)
+		if (c.val == new u8("\n").val) {
+			t.last_nl_pos = t.pos
+			t.line += 1
+		} else if (c.val == new u8("\\").val) {
+			t.pos += 1
+		} else if (!is_js && c.val == new u8("$").val && string_get(t.text, t.pos + 1).val == new u8("{").val) {
+			t.is_string_inter = true
+			t.str_quote = quote
+			t.pos -= 1
+			return string_substr(t.text, start, t.pos + 1)
+		} else if (c.val == quote.val) {
+			break
+		}
+	}
+	return string_substr(t.text, start, t.pos)
+}
+
+function bait__tokenizer__Tokenizer_char_val(t) {
+	const start = t.pos + 1
+	while (true) {
+		t.pos += 1
+		const c = string_get(t.text, t.pos)
+		if (c.val == new u8("\\").val) {
+			t.pos += 1
+		} else if (c.val == new u8("\`").val) {
+			break
+		}
+	}
+	return string_substr(t.text, start, t.pos)
+}
+
+function bait__tokenizer__Tokenizer_skip_whitespace(t) {
+	while (t.pos < t.text.length) {
+		const c = string_get(t.text, t.pos)
+		if (c.val == new u8("\n").val) {
+			t.last_nl_pos = t.pos
+			t.line += 1
+		} else if (!array_u8_contains(new array({ data: [new u8(" "), new u8("\t"), new u8("\r")], length: 3 }), c)) {
+			return
+		}
+		t.pos += 1
+	}
+}
+
+function bait__tokenizer__Tokenizer_ignore_line(t) {
+	while (t.pos < t.text.length && string_get(t.text, t.pos).val != new u8("\n").val) {
+		t.pos += 1
+	}
+	t.last_nl_pos = t.pos
+	t.line += 1
+}
+
+function bait__tokenizer__Tokenizer_error(t, msg) {
+	bait__tokenizer__Tokenizer_error_with_line(t, msg, t.line)
+}
+
+function bait__tokenizer__Tokenizer_error_with_line(t, msg, line) {
+	const pos = new bait__token__Pos({ line: line, col: t.pos - t.last_nl_pos })
+	bait__errors__error(t.path, pos, msg)
+	exit(1)
+}
+
+function bait__tokenizer__is_name_start_char(c) {
+	return c.val >= new u8("a").val && c.val <= new u8("z").val || c.val >= new u8("A").val && c.val <= new u8("Z").val || c.val == new u8("_").val
+}
+
+function bait__tokenizer__is_name_char(c) {
+	return bait__tokenizer__is_name_start_char(c) || bait__tokenizer__is_digit(c)
+}
+
+function bait__tokenizer__is_digit(c) {
+	return c.val >= new u8("0").val && c.val <= new u8("9").val
+}
+
+
 function bait__builder__Builder({ prefs = new bait__preference__Prefs({}), table = new bait__ast__Table({}) }) {
 	this.prefs = prefs
 	this.table = table
@@ -5832,7 +5848,6 @@ function bait__builder__Builder_parse_source_file(b, path) {
 	const tokens = bait__tokenizer__tokenize(text, path)
 	return bait__parser__parse(tokens, path, b.table, b.prefs)
 }
-
 
 function bait__builder__compile(prefs) {
 	let paths = bait__builder__collect_bait_files(bait__builder__resolve_import(from_js_string("builtin")))
@@ -5985,17 +6000,43 @@ function bait__builder__run_tests(prefs) {
 }
 
 
-const TOOLS = new array({ data: [from_js_string("ast"), from_js_string("self"), from_js_string("up"), from_js_string("doctor"), from_js_string("help"), from_js_string("test-all"), from_js_string("test-self"), from_js_string("build-examples"), from_js_string("build-tools"), from_js_string("check-md"), from_js_string("gen-baitjs")], length: 11 })
-function launch_tool(name, args) {
+const TOOLS = new array({ data: [from_js_string("ast"), from_js_string("self"), from_js_string("up"), from_js_string("symlink"), from_js_string("doctor"), from_js_string("help"), from_js_string("test-all"), from_js_string("test-self"), from_js_string("build-examples"), from_js_string("build-tools"), from_js_string("check-md"), from_js_string("gen-baitjs")], length: 12 })
+function is_recompile_required(baitexe, source, exe) {
+	if (!os__exists(exe)) {
+		return true
+	}
+	const src_mod = os__file_mod_time(source)
+	const exe_mod = os__file_mod_time(exe)
+	if (exe_mod < src_mod) {
+		return true
+	}
+	const bait_mod = os__file_mod_time(baitexe)
+	if (exe_mod < bait_mod) {
+		return true
+	}
+	return false
+}
+
+function launch_tool(name, args, is_verbose) {
+	const baitexe = os__executable()
 	const tool_base_path = os__resource_abs_path(os__join_path(from_js_string("cli"), new array({ data: [from_js_string("tools"), name], length: 2 })))
 	const tool_source = string_add(tool_base_path, from_js_string(".bt"))
 	const tool_exe = string_add(tool_base_path, from_js_string(".js"))
+	const should_recompile = is_recompile_required(baitexe, tool_source, tool_exe)
+	if (should_recompile) {
+		const comp_res = os__exec(from_js_string(`node ${baitexe.str} ${tool_source.str} -o ${tool_exe.str}`))
+		if (comp_res.code != 0) {
+			eprintln(from_js_string(`Failed to compile tool "${name.str}" with error: ${comp_res.stderr.str}`).str)
+			return 1
+		}
+	}
 	const args_string = array_string_join(args, from_js_string(" "))
-	const baitexe = os__executable()
-	const comp_res = os__exec(from_js_string(`node ${baitexe.str} ${tool_source.str} -o ${tool_exe.str}`))
-	if (comp_res.code != 0) {
-		eprintln(from_js_string(`Failed to compile tool "${name.str}" with error: ${comp_res.stderr.str}`).str)
-		return 1
+	if (is_verbose) {
+		println(from_js_string("launching tool").str)
+		println(from_js_string(`  bait:      ${baitexe.str}`).str)
+		println(from_js_string(`  source:    ${tool_source.str}`).str)
+		println(from_js_string(`  recompile: ${should_recompile.toString()}`).str)
+		println(from_js_string(`  args:      ${args_string.str}`).str)
 	}
 	return os__system(from_js_string(`node ${tool_exe.str} ${args_string.str}`))
 }
@@ -6005,7 +6046,7 @@ function main() {
 	let prefs = bait__preference__parse_args(args)
 	bait__preference__Prefs_set_comptime_vars(prefs)
 	if (array_string_contains(TOOLS, prefs.command)) {
-		exit(launch_tool(prefs.command, prefs.args))
+		exit(launch_tool(prefs.command, prefs.args, prefs.is_verbose))
 	}
 	switch (prefs.command.str) {
 		case from_js_string("test").str:
