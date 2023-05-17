@@ -4486,7 +4486,7 @@ function bait__util__shell_escape(s) {
 }
 
 
-const bait__util__VERSION = from_js_string(`0.0.3-dev ${from_js_string("8910497").str}`)
+const bait__util__VERSION = from_js_string(`0.0.3-dev ${from_js_string("0c65a41").str}`)
 
 function bait__gen__js__Gen_expr(g, expr) {
 	if (expr instanceof bait__ast__AnonFun) {
@@ -6001,41 +6001,21 @@ function bait__builder__run_tests(prefs) {
 
 
 const TOOLS = new array({ data: [from_js_string("ast"), from_js_string("self"), from_js_string("up"), from_js_string("symlink"), from_js_string("doctor"), from_js_string("help"), from_js_string("test-all"), from_js_string("test-self"), from_js_string("build-examples"), from_js_string("build-tools"), from_js_string("check-md"), from_js_string("gen-baitjs")], length: 12 })
-function is_recompile_required(baitexe, source, exe) {
-	if (!os__exists(exe)) {
-		return true
-	}
-	const src_mod = os__file_mod_time(source)
-	const exe_mod = os__file_mod_time(exe)
-	if (exe_mod < src_mod) {
-		return true
-	}
-	const bait_mod = os__file_mod_time(baitexe)
-	if (exe_mod < bait_mod) {
-		return true
-	}
-	return false
-}
-
 function launch_tool(name, args, is_verbose) {
 	const baitexe = os__executable()
 	const tool_base_path = os__resource_abs_path(os__join_path(from_js_string("cli"), new array({ data: [from_js_string("tools"), name], length: 2 })))
 	const tool_source = string_add(tool_base_path, from_js_string(".bt"))
 	const tool_exe = string_add(tool_base_path, from_js_string(".js"))
-	const should_recompile = is_recompile_required(baitexe, tool_source, tool_exe)
-	if (should_recompile) {
-		const comp_res = os__exec(from_js_string(`node ${baitexe.str} ${tool_source.str} -o ${tool_exe.str}`))
-		if (comp_res.code != 0) {
-			eprintln(from_js_string(`Failed to compile tool "${name.str}" with error: ${comp_res.stderr.str}`).str)
-			return 1
-		}
+	const comp_res = os__exec(from_js_string(`node ${baitexe.str} ${tool_source.str} -o ${tool_exe.str}`))
+	if (comp_res.code != 0) {
+		eprintln(from_js_string(`Failed to compile tool "${name.str}" with error: ${comp_res.stderr.str}`).str)
+		return 1
 	}
 	const args_string = array_string_join(args, from_js_string(" "))
 	if (is_verbose) {
 		println(from_js_string("launching tool").str)
 		println(from_js_string(`  bait:      ${baitexe.str}`).str)
 		println(from_js_string(`  source:    ${tool_source.str}`).str)
-		println(from_js_string(`  recompile: ${should_recompile.toString()}`).str)
 		println(from_js_string(`  args:      ${args_string.str}`).str)
 	}
 	return os__system(from_js_string(`node ${tool_exe.str} ${args_string.str}`))
