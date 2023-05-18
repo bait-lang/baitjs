@@ -284,10 +284,14 @@ function TestRunner_assert_fail(tr) {
 	tr.fails += 1
 	eprintln(from_js_string(`${tr.file.str}:${i32_str(tr.line)} ${tr.fun_name.str}`).str)
 	eprintln(tr.expr_string.str)
-	if (tr.exp_val.length > 0 || tr.got_val.length > 0) {
-		eprintln(from_js_string(`   left: ${tr.exp_val.str}`).str)
-		eprintln(from_js_string(`  right: ${tr.got_val.str}`).str)
-	}
+}
+
+function TestRunner_assert_fail_infix(tr) {
+	tr.fails += 1
+	eprintln(from_js_string(`${tr.file.str}:${i32_str(tr.line)} ${tr.fun_name.str}`).str)
+	eprintln(tr.expr_string.str)
+	eprintln(from_js_string(`  left:  ${tr.exp_val.str}`).str)
+	eprintln(from_js_string(`  right: ${tr.got_val.str}`).str)
 }
 
 function TestRunner_exit_code(tr) {
@@ -4325,7 +4329,10 @@ function bait__checker__Checker_stmt(c, stmt) {
 }
 
 function bait__checker__Checker_assert_stmt(c, node) {
-	bait__checker__Checker_expr(c, node.expr)
+	const typ = bait__checker__Checker_expr(c, node.expr)
+	if (!bait__checker__Checker_check_types(c, typ, bait__ast__TypeIdx.bool)) {
+		bait__checker__Checker_error(c, from_js_string("assert must be of type bool"), node.pos)
+	}
 }
 
 function bait__checker__Checker_assign_stmt(c, node) {
@@ -4501,7 +4508,7 @@ function bait__util__shell_escape(s) {
 }
 
 
-const bait__util__VERSION = from_js_string(`0.0.3-dev ${from_js_string("407c724").str}`)
+const bait__util__VERSION = from_js_string(`0.0.3-dev ${from_js_string("1f560fb").str}`)
 
 function bait__gen__js__Gen_expr(g, expr) {
 	if (expr instanceof bait__ast__AnonFun) {
@@ -4549,7 +4556,6 @@ function bait__gen__js__Gen_expr(g, expr) {
 	} else if (expr instanceof bait__ast__TypeOf) {
 		bait__gen__js__Gen_type_of(g, expr)
 	} else {
-		bait__gen__js__Gen_error(g, from_js_string(`cannot generate expr: ${expr.toString()}`), expr.pos)
 	}
 }
 
@@ -5100,6 +5106,7 @@ function bait__gen__js__Gen_headers(g) {
 }
 
 function bait__gen__js__Gen_gen_test_main(g) {
+	let nr_test_funs = 0
 	bait__gen__js__Gen_writeln(g, from_js_string("function main() {"))
 	g.indent += 1
 	const _t28 = map_keys(g.table.fun_decls)
@@ -5107,6 +5114,7 @@ function bait__gen__js__Gen_gen_test_main(g) {
 		const key = array_get(_t28, _t29)
 		const func = map_get(g.table.fun_decls, key)
 		if (func.is_test) {
+			nr_test_funs += 1
 			const name = bait__gen__js__js_name(func.name)
 			bait__gen__js__Gen_writeln(g, from_js_string(`TestRunner_set_test_info(test_runner, from_js_string("${g.path.str}"), from_js_string("${name.str}"))`))
 			bait__gen__js__Gen_writeln(g, from_js_string(`${name.str}()`))
@@ -5115,6 +5123,9 @@ function bait__gen__js__Gen_gen_test_main(g) {
 	bait__gen__js__Gen_writeln(g, from_js_string("exit(TestRunner_exit_code(test_runner))"))
 	g.indent -= 1
 	bait__gen__js__Gen_writeln(g, from_js_string("}"))
+	if (nr_test_funs == 0) {
+		bait__errors__generic_error(from_js_string(`${g.path.str} contains no tests`))
+	}
 }
 
 function bait__gen__js__Gen_main_call(g) {
@@ -5168,15 +5179,6 @@ function bait__gen__js__Gen_write_default_value(g, typ) {
 	}
 }
 
-function bait__gen__js__Gen_warn(g, msg, pos) {
-	bait__errors__warn(g.path, pos, msg)
-}
-
-function bait__gen__js__Gen_error(g, msg, pos) {
-	bait__errors__error(g.path, pos, msg)
-	exit(1)
-}
-
 function bait__gen__js__js_name(n) {
 	const name = string_replace(string_replace(n, from_js_string("."), from_js_string("__")), from_js_string("[]"), from_js_string("array_"))
 	if (array_string_contains(bait__gen__js__JS_RESERVED, name)) {
@@ -5227,20 +5229,12 @@ function bait__gen__js__Gen_stmt(g, stmt) {
 		bait__gen__js__Gen_struct_decl(g, stmt)
 	} else if (stmt instanceof bait__ast__TypeDecl) {
 	} else {
-		bait__gen__js__Gen_error(g, from_js_string(`cannot generate stmt: ${stmt.toString()}`), stmt.pos)
 	}
 }
 
 function bait__gen__js__Gen_assert_stmt(g, node) {
 	bait__gen__js__Gen_write(g, from_js_string("if ("))
-	if (node.expr instanceof bait__ast__InfixExpr) {
-		const expr = node.expr
-		bait__gen__js__Gen_expr_to_string(g, expr.left, expr.left_type)
-		bait__gen__js__Gen_write(g, from_js_string(` ${bait__token__TokenKind_js_repr(expr.op).str} `))
-		bait__gen__js__Gen_expr_to_string(g, expr.right, expr.right_type)
-	} else {
-		bait__gen__js__Gen_expr(g, node.expr)
-	}
+	bait__gen__js__Gen_expr(g, node.expr)
 	bait__gen__js__Gen_writeln(g, from_js_string(") {"))
 	bait__gen__js__Gen_writeln(g, from_js_string("\tTestRunner_assert_pass(test_runner)"))
 	bait__gen__js__Gen_writeln(g, from_js_string("} else {"))
@@ -5255,20 +5249,39 @@ function bait__gen__js__Gen_assert_stmt(g, node) {
 		bait__gen__js__Gen_write(g, from_js_string("), from_js_string("))
 		bait__gen__js__Gen_expr_to_string(g, expr.right, expr.right_type)
 		bait__gen__js__Gen_writeln(g, from_js_string("))"))
+		bait__gen__js__Gen_writeln(g, from_js_string("\tTestRunner_assert_fail_infix(test_runner)"))
 	} else {
-		bait__gen__js__Gen_writeln(g, from_js_string(`\tTestRunner_set_assert_info(test_runner, ${i32_str(node.pos.line)}, from_js_string(""), from_js_string(""))`))
+		bait__gen__js__Gen_write(g, from_js_string(`\tTestRunner_set_assert_info(test_runner, ${i32_str(node.pos.line)}, from_js_string("assert `))
+		bait__gen__js__Gen_assert_side_expr(g, node.expr)
+		bait__gen__js__Gen_writeln(g, from_js_string("\"), from_js_string(\"\"), from_js_string(\"\"), from_js_string(\"\"))"))
+		bait__gen__js__Gen_writeln(g, from_js_string("\tTestRunner_assert_fail(test_runner)"))
 	}
-	bait__gen__js__Gen_writeln(g, from_js_string("\tTestRunner_assert_fail(test_runner)"))
 	bait__gen__js__Gen_writeln(g, from_js_string("}"))
 }
 
 function bait__gen__js__Gen_assert_side_expr(g, node) {
-	if (node instanceof bait__ast__IntegerLiteral) {
-		bait__gen__js__Gen_write(g, node.val)
+	if (node instanceof bait__ast__BoolLiteral) {
+		bait__gen__js__Gen_bool_literal(g, node)
+	} else if (node instanceof bait__ast__IntegerLiteral) {
+		bait__gen__js__Gen_integer_literal(g, node)
 	} else if (node instanceof bait__ast__StringLiteral) {
 		bait__gen__js__Gen_write(g, from_js_string("'"))
 		bait__gen__js__Gen_write(g, node.val)
 		bait__gen__js__Gen_write(g, from_js_string("'"))
+	} else if (node instanceof bait__ast__CharLiteral) {
+		bait__gen__js__Gen_write(g, from_js_string("`"))
+		bait__gen__js__Gen_write(g, node.val)
+		bait__gen__js__Gen_write(g, from_js_string("`"))
+	} else if (node instanceof bait__ast__ArrayInit) {
+		bait__gen__js__Gen_write(g, from_js_string("["))
+		for (let i = 0; i < node.exprs.length; i++) {
+			const expr = array_get(node.exprs, i)
+			bait__gen__js__Gen_assert_side_expr(g, expr)
+			if (i < node.exprs.length - 1) {
+				bait__gen__js__Gen_write(g, from_js_string(", "))
+			}
+		}
+		bait__gen__js__Gen_write(g, from_js_string("]"))
 	} else if (node instanceof bait__ast__Ident) {
 		bait__gen__js__Gen_write(g, node.name)
 	} else if (node instanceof bait__ast__IndexExpr) {
