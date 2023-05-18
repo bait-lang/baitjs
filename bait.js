@@ -2553,6 +2553,11 @@ function bait__parser__Parser_expr(p, precedence) {
 				node = bait__parser__Parser_comp_time_var(p)
 				break
 			}
+		case bait__token__TokenKind.dot:
+			{
+				node = bait__parser__Parser_enum_val(p, false)
+				break
+			}
 		case bait__token__TokenKind.lbr:
 			{
 				node = bait__parser__Parser_array_init(p)
@@ -2761,18 +2766,20 @@ function bait__parser__Parser_call_args(p) {
 	return args
 }
 
-function bait__parser__Parser_enum_val(p) {
+function bait__parser__Parser_enum_val(p, has_name) {
 	const pos = p.tok.pos
-	let name = bait__parser__Parser_check_name(p)
-	if (p.expr_pkg.length > 0) {
-		name = bait__parser__Parser_prepend_expr_pkg(p, name)
-	} else {
-		name = bait__parser__Parser_prepend_pkg(p, name)
+	let name = from_js_string("")
+	if (has_name) {
+		name = bait__parser__Parser_check_name(p)
+		if (p.expr_pkg.length > 0) {
+			name = bait__parser__Parser_prepend_expr_pkg(p, name)
+		} else {
+			name = bait__parser__Parser_prepend_pkg(p, name)
+		}
 	}
-	const typ = bait__ast__Table_find_type_or_add_placeholder(p.table, name)
 	bait__parser__Parser_check(p, bait__token__TokenKind.dot)
 	const val = bait__parser__Parser_check_name(p)
-	return new bait__ast__EnumVal({ name: name, val: val, typ: typ, pos: pos })
+	return new bait__ast__EnumVal({ name: name, val: val, pos: pos })
 }
 
 function bait__parser__Parser_hash_expr(p) {
@@ -2901,7 +2908,7 @@ function bait__parser__Parser_name_expr(p, lang) {
 		return bait__parser__Parser_struct_init(p)
 	}
 	if (p.next_tok.kind == bait__token__TokenKind.dot && u8_is_capital(string_get(p.tok.val, 0)) && !string_is_upper(p.tok.val)) {
-		return bait__parser__Parser_enum_val(p)
+		return bait__parser__Parser_enum_val(p, true)
 	}
 	return bait__parser__Parser_ident(p, lang)
 }
@@ -3676,13 +3683,14 @@ function bait__checker__Checker_check_attributes(c, attrs) {
 }
 
 
-function bait__checker__Checker({ parsed_files = new array({ data: [], length: 0 }), table = new bait__ast__Table({}), scope = new bait__ast__Scope({}), path = from_js_string(""), pkg = from_js_string(""), had_error = false, is_lhs_assign = false }) {
+function bait__checker__Checker({ parsed_files = new array({ data: [], length: 0 }), table = new bait__ast__Table({}), scope = new bait__ast__Scope({}), path = from_js_string(""), pkg = from_js_string(""), had_error = false, expected_type = 0, is_lhs_assign = false }) {
 	this.parsed_files = parsed_files
 	this.table = table
 	this.scope = scope
 	this.path = path
 	this.pkg = pkg
 	this.had_error = had_error
+	this.expected_type = expected_type
 	this.is_lhs_assign = is_lhs_assign
 }
 bait__checker__Checker.prototype = {
@@ -3694,6 +3702,7 @@ bait__checker__Checker.prototype = {
     path: ${this.path.toString()}
     pkg: ${this.pkg.toString()}
     had_error: ${this.had_error.toString()}
+    expected_type: ${this.expected_type.toString()}
     is_lhs_assign: ${this.is_lhs_assign.toString()}
 }`}
 }
@@ -3946,6 +3955,11 @@ function bait__checker__Checker_comp_time_var(c, node) {
 }
 
 function bait__checker__Checker_enum_val(c, node) {
+	if (node.name.length == 0) {
+		node.typ = c.expected_type
+	} else {
+		node.typ = bait__ast__Table_get_idx(c.table, node.name)
+	}
 	const sym = bait__ast__Table_get_sym(c.table, node.typ)
 	if (sym.kind == bait__ast__TypeKind.placeholder) {
 		bait__checker__Checker_error(c, from_js_string(`undefined enum ${node.name.str}`), node.pos)
@@ -4328,6 +4342,7 @@ function bait__checker__Checker_assign_stmt(c, node) {
 	}
 	c.is_lhs_assign = true
 	node.left_type = bait__checker__Checker_expr(c, node.left)
+	c.expected_type = node.left_type
 	c.is_lhs_assign = false
 	node.right_type = bait__checker__Checker_expr(c, node.right)
 	if (!bait__checker__Checker_check_types(c, node.right_type, node.left_type)) {
@@ -4486,7 +4501,7 @@ function bait__util__shell_escape(s) {
 }
 
 
-const bait__util__VERSION = from_js_string(`0.0.3-dev ${from_js_string("0c65a41").str}`)
+const bait__util__VERSION = from_js_string(`0.0.3-dev ${from_js_string("407c724").str}`)
 
 function bait__gen__js__Gen_expr(g, expr) {
 	if (expr instanceof bait__ast__AnonFun) {
