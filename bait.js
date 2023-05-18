@@ -3688,13 +3688,14 @@ function bait__checker__Checker_check_attributes(c, attrs) {
 }
 
 
-function bait__checker__Checker({ parsed_files = new array({ data: [], length: 0 }), table = new bait__ast__Table({}), scope = new bait__ast__Scope({}), path = from_js_string(""), pkg = from_js_string(""), had_error = false, expected_type = 0, is_lhs_assign = false }) {
+function bait__checker__Checker({ parsed_files = new array({ data: [], length: 0 }), table = new bait__ast__Table({}), scope = new bait__ast__Scope({}), path = from_js_string(""), pkg = from_js_string(""), had_error = false, cur_fun = new bait__ast__FunDecl({}), expected_type = 0, is_lhs_assign = false }) {
 	this.parsed_files = parsed_files
 	this.table = table
 	this.scope = scope
 	this.path = path
 	this.pkg = pkg
 	this.had_error = had_error
+	this.cur_fun = cur_fun
 	this.expected_type = expected_type
 	this.is_lhs_assign = is_lhs_assign
 }
@@ -3707,6 +3708,7 @@ bait__checker__Checker.prototype = {
     path: ${this.path.toString()}
     pkg: ${this.pkg.toString()}
     had_error: ${this.had_error.toString()}
+    cur_fun: ${this.cur_fun.toString()}
     expected_type: ${this.expected_type.toString()}
     is_lhs_assign: ${this.is_lhs_assign.toString()}
 }`}
@@ -3811,6 +3813,7 @@ function bait__checker__Checker_array_init(c, node) {
 			const typ = bait__checker__Checker_expr(c, e)
 			if (i == 0) {
 				node.elem_type = typ
+				c.expected_type = typ
 			}
 		}
 		node.typ = bait__ast__Table_find_or_register_array(c.table, node.elem_type)
@@ -4084,6 +4087,7 @@ function bait__checker__Checker_match_expr(c, node) {
 				const cond = node.cond
 				bait__ast__Scope_update_type(c.scope, cond.name, variant)
 			} else {
+				c.expected_type = node.cond_type
 				array_push(b.expr_types, bait__checker__Checker_expr(c, e))
 			}
 		}
@@ -4173,6 +4177,7 @@ function bait__checker__Checker_type_of(c, node) {
 
 
 function bait__checker__Checker_fun_decl(c, node) {
+	c.cur_fun = node
 	bait__checker__Checker_check_attributes(c, node.attrs)
 	bait__checker__Checker_open_scope(c)
 	bait__checker__Checker_fun_params(c, node.params)
@@ -4255,6 +4260,7 @@ function bait__checker__Checker_infix_expr(c, node) {
 	if (node.op == bait__token__TokenKind.key_is) {
 		return bait__checker__Checker_is_sumtype_variant_infix(c, node)
 	}
+	c.expected_type = node.left_type
 	node.right_type = bait__checker__Checker_expr(c, node.right)
 	if (!bait__checker__Checker_check_types(c, node.right_type, node.left_type)) {
 		bait__checker__Checker_error(c, from_js_string(`infix expr: types ${i32_str(node.right_type)} and ${i32_str(node.left_type)} do not match`), node.pos)
@@ -4327,6 +4333,7 @@ function bait__checker__Checker_stmt(c, stmt) {
 	} else {
 		bait__checker__Checker_error(c, from_js_string(`unexpected stmt: ${stmt.toString()}`), stmt.pos)
 	}
+	c.expected_type = bait__ast__TypeIdx.void
 }
 
 function bait__checker__Checker_assert_stmt(c, node) {
@@ -4428,6 +4435,7 @@ function bait__checker__Checker_control_stmt(c, node) {
 
 function bait__checker__Checker_return_stmt(c, node) {
 	if (!(node.expr instanceof bait__ast__EmptyExpr)) {
+		c.expected_type = c.cur_fun.return_type
 		bait__checker__Checker_expr(c, node.expr)
 	}
 }
@@ -4509,7 +4517,7 @@ function bait__util__shell_escape(s) {
 }
 
 
-const bait__util__VERSION = from_js_string(`0.0.3-dev ${from_js_string("3afcf1b").str}`)
+const bait__util__VERSION = from_js_string(`0.0.3-dev ${from_js_string("7019db9").str}`)
 
 function bait__gen__js__Gen_expr(g, expr) {
 	if (expr instanceof bait__ast__AnonFun) {
