@@ -774,6 +774,7 @@ function bait__preference__parse_args(args) {
 			case from_js_string("--verbose").str:
 				{
 					p.is_verbose = true
+					array_push(p.args, arg)
 					break
 				}
 			case from_js_string("--nocolor").str:
@@ -4508,7 +4509,7 @@ function bait__util__shell_escape(s) {
 }
 
 
-const bait__util__VERSION = from_js_string(`0.0.3-dev ${from_js_string("1f560fb").str}`)
+const bait__util__VERSION = from_js_string(`0.0.3-dev ${from_js_string("3afcf1b").str}`)
 
 function bait__gen__js__Gen_expr(g, expr) {
 	if (expr instanceof bait__ast__AnonFun) {
