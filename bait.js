@@ -4161,6 +4161,7 @@ function bait__checker__Checker_struct_init(c, node) {
 		if (def.name.length == 0) {
 			bait__checker__Checker_error(c, from_js_string(`struct ${sym.name.str} has no field ${field.name.str}`), node.pos)
 		}
+		c.expected_type = def.typ
 		const expr_type = bait__checker__Checker_expr(c, field.expr)
 		if (!bait__checker__Checker_check_types(c, expr_type, def.typ)) {
 			bait__checker__Checker_error(c, from_js_string(`cannot assign to field ${field.name.str}: expected ${i32_str(def.typ)}, got ${i32_str(expr_type)} `), node.pos)
@@ -4517,7 +4518,7 @@ function bait__util__shell_escape(s) {
 }
 
 
-const bait__util__VERSION = from_js_string(`0.0.3-dev ${from_js_string("7019db9").str}`)
+const bait__util__VERSION = from_js_string(`0.0.3-dev ${from_js_string("559a8a3").str}`)
 
 function bait__gen__js__Gen_expr(g, expr) {
 	if (expr instanceof bait__ast__AnonFun) {
