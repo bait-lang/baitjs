@@ -2176,10 +2176,11 @@ bait__ast__Scope.prototype = {
     objects: ${this.objects.toString()}
 }`}
 }
-function bait__ast__ScopeObject({ typ = 0, kind = undefined, is_pub = false }) {
+function bait__ast__ScopeObject({ typ = 0, kind = undefined, is_pub = false, expr = undefined }) {
 	this.typ = typ
 	this.kind = kind
 	this.is_pub = is_pub
+	this.expr = expr
 }
 bait__ast__ScopeObject.prototype = {
 	toString() {
@@ -2187,6 +2188,7 @@ bait__ast__ScopeObject.prototype = {
     typ: ${this.typ.toString()}
     kind: ${this.kind.toString()}
     is_pub: ${this.is_pub.toString()}
+    expr: ${this.expr.toString()}
 }`}
 }
 function bait__ast__Scope_register(s, name, obj) {
@@ -3331,7 +3333,7 @@ function bait__parser__Parser_const_decl(p) {
 	bait__parser__Parser_check(p, bait__token__TokenKind.decl_assign)
 	const expr = bait__parser__Parser_expr(p, 0)
 	const typ = bait__parser__Parser_infer_expr_type(p, expr)
-	bait__ast__Scope_register(p.table.global_scope, name, new bait__ast__ScopeObject({ typ: typ, kind: bait__ast__ObjectKind.constant, is_pub: is_pub }))
+	bait__ast__Scope_register(p.table.global_scope, name, new bait__ast__ScopeObject({ typ: typ, kind: bait__ast__ObjectKind.constant, is_pub: is_pub, expr: expr }))
 	return new bait__ast__ConstDecl({ name: name, expr: expr, pos: pos })
 }
 
@@ -3651,7 +3653,6 @@ function bait__parser__Parser_parse_map_type(p) {
 }
 
 function bait__parser__Parser_infer_expr_type(p, expr) {
-	let typ = bait__ast__VOID_TYPE
 	if (expr instanceof bait__ast__BoolLiteral) {
 		return bait__ast__BOOL_TYPE
 	} else if (expr instanceof bait__ast__CharLiteral) {
@@ -3667,7 +3668,7 @@ function bait__parser__Parser_infer_expr_type(p, expr) {
 	} else if (expr instanceof bait__ast__MapInit) {
 		return expr.typ
 	}
-	return bait__ast__PLACEHOLDER_TYPE
+	return bait__ast__VOID_TYPE
 }
 
 
@@ -4011,6 +4012,9 @@ function bait__checker__Checker_ident(c, node) {
 	obj = bait__ast__Scope_get(c.table.global_scope, node.name)
 	if (obj.typ == bait__ast__PLACEHOLDER_TYPE) {
 		bait__checker__Checker_error(c, from_js_string(`undefined variable ${node.name.str}`), node.pos)
+	}
+	if (obj.typ == bait__ast__VOID_TYPE) {
+		obj.typ = bait__checker__Checker_expr(c, obj.expr)
 	}
 	if (obj.kind == bait__ast__ObjectKind.constant && !obj.is_pub && !string_eq(node.pkg, c.pkg)) {
 		bait__checker__Checker_error(c, from_js_string(`const ${node.name.str} is private`), node.pos)
@@ -4534,7 +4538,7 @@ function bait__util__shell_escape(s) {
 }
 
 
-const bait__util__VERSION = from_js_string(`0.0.3-dev ${from_js_string("8e6a7bb").str}`)
+const bait__util__VERSION = from_js_string(`0.0.3-dev ${from_js_string("60c29c5").str}`)
 
 function bait__gen__js__Gen_expr(g, expr) {
 	if (expr instanceof bait__ast__AnonFun) {
