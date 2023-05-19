@@ -94,8 +94,9 @@ const bait__ast__TypeKind = {
 	map: 3,
 	struct_: 4,
 	enum_: 5,
-	sum_type: 6,
-	fun_: 7
+	alias_type: 6,
+	sum_type: 7,
+	fun_: 8
 }
 const bait__errors__Kind = {
 	notice: 0,
@@ -3512,11 +3513,13 @@ function bait__parser__Parser_type_decl(p) {
 		const typ = bait__ast__Table_register_sym(p.table, new bait__ast__TypeSymbol({ kind: bait__ast__TypeKind.fun_, name: name, is_pub: is_pub, pkg: p.pkg_name, info: sym.info }))
 		return new bait__ast__TypeDecl({ name: name, typ: typ, variants: variants, pos: pos })
 	}
+	let kind = bait__ast__TypeKind.alias_type
 	while (p.tok.kind == bait__token__TokenKind.pipe) {
 		bait__parser__Parser_next(p)
 		array_push(variants, bait__parser__Parser_parse_type(p))
+		kind = bait__ast__TypeKind.sum_type
 	}
-	const typ = bait__ast__Table_register_sym(p.table, new bait__ast__TypeSymbol({ kind: bait__ast__TypeKind.sum_type, name: name, is_pub: is_pub, pkg: p.pkg_name, info: new bait__ast__SumTypeInfo({ variants: variants }) }))
+	const typ = bait__ast__Table_register_sym(p.table, new bait__ast__TypeSymbol({ kind: kind, name: name, is_pub: is_pub, pkg: p.pkg_name, info: new bait__ast__SumTypeInfo({ variants: variants }) }))
 	return new bait__ast__TypeDecl({ name: name, typ: typ, variants: variants, pos: pos })
 }
 
@@ -4531,7 +4534,7 @@ function bait__util__shell_escape(s) {
 }
 
 
-const bait__util__VERSION = from_js_string(`0.0.3-dev ${from_js_string("d6a5f04").str}`)
+const bait__util__VERSION = from_js_string(`0.0.3-dev ${from_js_string("8e6a7bb").str}`)
 
 function bait__gen__js__Gen_expr(g, expr) {
 	if (expr instanceof bait__ast__AnonFun) {
