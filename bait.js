@@ -3650,15 +3650,22 @@ function bait__parser__Parser_parse_map_type(p) {
 }
 
 function bait__parser__Parser_infer_expr_type(p, expr) {
-	let typ = bait__ast__TypeIdx.void
-	if (expr instanceof bait__ast__StructInit) {
-		typ = expr.typ
+	if (expr instanceof bait__ast__BoolLiteral) {
+		return bait__ast__TypeIdx.bool
+	} else if (expr instanceof bait__ast__CharLiteral) {
+		return bait__ast__TypeIdx.u8
+	} else if (expr instanceof bait__ast__IntegerLiteral) {
+		return bait__ast__TypeIdx.i32
+	} else if (expr instanceof bait__ast__StringLiteral) {
+		return bait__ast__TypeIdx.string
+	} else if (expr instanceof bait__ast__StructInit) {
+		return expr.typ
 	} else if (expr instanceof bait__ast__ArrayInit) {
-		typ = expr.typ
+		return expr.typ
 	} else if (expr instanceof bait__ast__MapInit) {
-		typ = expr.typ
+		return expr.typ
 	}
-	return typ
+	return bait__ast__TypeIdx.placeholder
 }
 
 
@@ -4525,7 +4532,7 @@ function bait__util__shell_escape(s) {
 }
 
 
-const bait__util__VERSION = from_js_string(`0.0.3-dev ${from_js_string("72aba6f").str}`)
+const bait__util__VERSION = from_js_string(`0.0.3-dev ${from_js_string("598c3bc").str}`)
 
 function bait__gen__js__Gen_expr(g, expr) {
 	if (expr instanceof bait__ast__AnonFun) {
