@@ -2134,11 +2134,13 @@ bait__ast__Attribute.prototype = {
     pos: ${this.pos.toString()}
 }`}
 }
-function bait__ast__EmptyExpr({ }) {
+function bait__ast__EmptyExpr({ pos = new bait__token__Pos({}) }) {
+	this.pos = pos
 }
 bait__ast__EmptyExpr.prototype = {
 	toString() {
 		return `bait__ast__EmptyExpr{
+    pos: ${this.pos.toString()}
 }`}
 }
 function bait__ast__PackageDecl({ name = from_js_string(""), full_name = from_js_string("") }) {
@@ -4072,10 +4074,10 @@ function bait__checker__Checker_match_expr(c, node) {
 	const sym = bait__ast__Table_get_sym(c.table, node.cond_type)
 	node.is_sumtype = sym.kind == bait__ast__TypeKind.sum_type
 	for (let _t13 = 0; _t13 < node.branches.length; _t13++) {
-		const b = array_get(node.branches, _t13)
+		const branch = array_get(node.branches, _t13)
 		bait__checker__Checker_open_scope(c)
-		for (let _t14 = 0; _t14 < b.exprs.length; _t14++) {
-			const e = array_get(b.exprs, _t14)
+		for (let _t14 = 0; _t14 < branch.exprs.length; _t14++) {
+			const e = array_get(branch.exprs, _t14)
 			if (node.is_sumtype) {
 				const expr = e
 				const variant = map_get_set(c.table.type_idxs, expr.name, 0)
@@ -4088,10 +4090,15 @@ function bait__checker__Checker_match_expr(c, node) {
 				bait__ast__Scope_update_type(c.scope, cond.name, variant)
 			} else {
 				c.expected_type = node.cond_type
-				array_push(b.expr_types, bait__checker__Checker_expr(c, e))
+				const expr_type = bait__checker__Checker_expr(c, e)
+				if (!bait__checker__Checker_check_types(c, expr_type, node.cond_type)) {
+					const expr = e
+					bait__checker__Checker_error(c, from_js_string(`cannot match ${i32_str(expr_type)} to ${i32_str(node.cond_type)}`), expr.pos)
+				}
+				array_push(branch.expr_types, expr_type)
 			}
 		}
-		bait__checker__Checker_stmts(c, b.stmts)
+		bait__checker__Checker_stmts(c, branch.stmts)
 		bait__checker__Checker_close_scope(c)
 	}
 	return bait__ast__TypeIdx.void
@@ -4518,7 +4525,7 @@ function bait__util__shell_escape(s) {
 }
 
 
-const bait__util__VERSION = from_js_string(`0.0.3-dev ${from_js_string("559a8a3").str}`)
+const bait__util__VERSION = from_js_string(`0.0.3-dev ${from_js_string("72aba6f").str}`)
 
 function bait__gen__js__Gen_expr(g, expr) {
 	if (expr instanceof bait__ast__AnonFun) {
@@ -6038,7 +6045,7 @@ function bait__builder__run_tests(prefs) {
 }
 
 
-const TOOLS = new array({ data: [from_js_string("ast"), from_js_string("self"), from_js_string("up"), from_js_string("symlink"), from_js_string("doctor"), from_js_string("help"), from_js_string("test-all"), from_js_string("test-self"), from_js_string("build-examples"), from_js_string("build-tools"), from_js_string("check-md"), from_js_string("gen-baitjs")], length: 12 })
+const TOOLS = new array({ data: [from_js_string("ast"), from_js_string("self"), from_js_string("up"), from_js_string("symlink"), from_js_string("doctor"), from_js_string("help"), from_js_string("test-all"), from_js_string("test-lib"), from_js_string("build-examples"), from_js_string("build-tools"), from_js_string("check-md"), from_js_string("gen-baitjs")], length: 12 })
 function launch_tool(name, args, is_verbose) {
 	const baitexe = os__executable()
 	const tool_base_path = os__resource_abs_path(os__join_path(from_js_string("cli"), new array({ data: [from_js_string("tools"), name], length: 2 })))
