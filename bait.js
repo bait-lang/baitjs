@@ -3889,26 +3889,25 @@ function bait__checker__Checker_fun_call(c, node) {
 		if (!def.is_pub && !string_eq(node.pkg, c.pkg)) {
 			bait__checker__Checker_error(c, from_js_string(`function ${def.name.str} is private`), node.pos)
 		}
-		const arg_count_matches = node.args.length == def.params.length
-		if (!arg_count_matches) {
-			bait__checker__Checker_error(c, from_js_string(`expected ${i32_str(def.params.length)} arguments but got ${i32_str(node.args.length)}`), node.pos)
-		}
-		if (string_eq(node.name, from_js_string("println"))) {
-			for (let _t11 = 0; _t11 < node.args.length; _t11++) {
-				const arg = array_get(node.args, _t11)
-				arg.typ = bait__checker__Checker_expr(c, arg.expr)
+		if (node.args.length == def.params.length) {
+			if (string_eq(node.name, from_js_string("println"))) {
+				for (let _t11 = 0; _t11 < node.args.length; _t11++) {
+					const arg = array_get(node.args, _t11)
+					arg.typ = bait__checker__Checker_expr(c, arg.expr)
+				}
+				return bait__ast__VOID_TYPE
 			}
-			return bait__ast__VOID_TYPE
-		}
-		for (let i = 0; i < node.args.length; i++) {
-			const arg = array_get(node.args, i)
-			arg.typ = bait__checker__Checker_expr(c, arg.expr)
-			if (arg_count_matches) {
+			for (let i = 0; i < node.args.length; i++) {
+				const arg = array_get(node.args, i)
 				const param_type = array_get(def.params, i).typ
+				c.expected_type = param_type
+				arg.typ = bait__checker__Checker_expr(c, arg.expr)
 				if (!bait__checker__Checker_check_types(c, arg.typ, param_type)) {
 					bait__checker__Checker_error(c, from_js_string(`type ${bait__ast__Table_type_name(c.table, arg.typ).str} not matches ${bait__ast__Table_type_name(c.table, param_type).str} in argument ${i32_str(i + 1)}`), node.pos)
 				}
 			}
+		} else {
+			bait__checker__Checker_error(c, from_js_string(`expected ${i32_str(def.params.length)} arguments but got ${i32_str(node.args.length)}`), node.pos)
 		}
 		node.return_type = def.return_type
 		bait__checker__Checker_check_attributes_on_call(c, node, def)
@@ -3929,19 +3928,18 @@ function bait__checker__Checker_method_call(c, node) {
 	if (!def.is_pub && !string_eq(left_sym.pkg, c.pkg)) {
 		bait__checker__Checker_error(c, from_js_string(`method ${def.name.str} is private`), node.pos)
 	}
-	const arg_count_matches = node.args.length + 1 == def.params.length
-	if (!arg_count_matches) {
-		bait__checker__Checker_error(c, from_js_string(`expected ${i32_str(def.params.length - 1)} arguments but got ${i32_str(node.args.length)}`), node.pos)
-	}
-	for (let i = 0; i < node.args.length; i++) {
-		const arg = array_get(node.args, i)
-		arg.typ = bait__checker__Checker_expr(c, arg.expr)
-		if (arg_count_matches) {
+	if (node.args.length + 1 == def.params.length) {
+		for (let i = 0; i < node.args.length; i++) {
+			const arg = array_get(node.args, i)
 			const param_type = array_get(def.params, i + 1).typ
+			c.expected_type = param_type
+			arg.typ = bait__checker__Checker_expr(c, arg.expr)
 			if (!bait__checker__Checker_check_types(c, arg.typ, param_type)) {
 				bait__checker__Checker_error(c, from_js_string(`type ${bait__ast__Table_type_name(c.table, arg.typ).str} not matches ${bait__ast__Table_type_name(c.table, param_type).str} in argument ${i32_str(i + 1)}`), node.pos)
 			}
 		}
+	} else {
+		bait__checker__Checker_error(c, from_js_string(`expected ${i32_str(def.params.length - 1)} arguments but got ${i32_str(node.args.length)}`), node.pos)
 	}
 	node.left_type = array_get(def.params, 0).typ
 	node.return_type = def.return_type
@@ -4550,7 +4548,7 @@ function bait__util__shell_escape(s) {
 }
 
 
-const bait__util__VERSION = from_js_string(`0.0.3-dev ${from_js_string("532dab7").str}`)
+const bait__util__VERSION = from_js_string(`0.0.3-dev ${from_js_string("1d836c5").str}`)
 
 function bait__gen__js__Gen_expr(g, expr) {
 	if (expr instanceof bait__ast__AnonFun) {
