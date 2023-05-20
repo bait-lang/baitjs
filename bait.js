@@ -2247,6 +2247,10 @@ function bait__ast__Table_get_sym(t, idx) {
 	return array_get(t.type_symbols, idx)
 }
 
+function bait__ast__Table_type_name(t, idx) {
+	return bait__ast__Table_get_sym(t, idx).name
+}
+
 function bait__ast__Table_register_sym(t, sym) {
 	const idx = bait__ast__Table_get_idx(t, sym.name)
 	if (idx > 0) {
@@ -2326,7 +2330,7 @@ function bait__ast__Table_get_method(t, sym, name) {
 				return m
 			}
 		}
-		if (s.parent == 0) {
+		if (s.parent == bait__ast__PLACEHOLDER_TYPE) {
 			break
 		}
 		s = bait__ast__Table_get_sym(t, s.parent)
@@ -2401,23 +2405,31 @@ bait__ast__EmptyInfo.prototype = {
 }`}
 }
 
-const bait__ast__PLACEHOLDER_TYPE = 0
-const bait__ast__VOID_TYPE = 1
-const bait__ast__I8_TYPE = 2
-const bait__ast__I16_TYPE = 3
-const bait__ast__I32_TYPE = 4
-const bait__ast__I64_TYPE = 5
-const bait__ast__U8_TYPE = 6
-const bait__ast__U16_TYPE = 7
-const bait__ast__U32_TYPE = 8
-const bait__ast__U64_TYPE = 9
-const bait__ast__F32_TYPE = 10
-const bait__ast__F64_TYPE = 11
-const bait__ast__BOOL_TYPE = 12
-const bait__ast__STRING_TYPE = 13
-const bait__ast__ARRAY_TYPE = 14
-const bait__ast__MAP_TYPE = 15
-const bait__ast__ANY_TYPE = 16
+const bait__ast__PLACEHOLDER_TYPE = bait__ast__new_type(0)
+const bait__ast__VOID_TYPE = bait__ast__new_type(1)
+const bait__ast__I8_TYPE = bait__ast__new_type(2)
+const bait__ast__I16_TYPE = bait__ast__new_type(3)
+const bait__ast__I32_TYPE = bait__ast__new_type(4)
+const bait__ast__I64_TYPE = bait__ast__new_type(5)
+const bait__ast__U8_TYPE = bait__ast__new_type(6)
+const bait__ast__U16_TYPE = bait__ast__new_type(7)
+const bait__ast__U32_TYPE = bait__ast__new_type(8)
+const bait__ast__U64_TYPE = bait__ast__new_type(9)
+const bait__ast__F32_TYPE = bait__ast__new_type(10)
+const bait__ast__F64_TYPE = bait__ast__new_type(11)
+const bait__ast__BOOL_TYPE = bait__ast__new_type(12)
+const bait__ast__STRING_TYPE = bait__ast__new_type(13)
+const bait__ast__ARRAY_TYPE = bait__ast__new_type(14)
+const bait__ast__MAP_TYPE = bait__ast__new_type(15)
+const bait__ast__ANY_TYPE = bait__ast__new_type(16)
+function bait__ast__new_type(t) {
+	return t
+}
+
+function bait__ast__Type_str(t) {
+	return i32_str((t))
+}
+
 const bait__ast__BUILTIN_STRUCT_TYPES = new array({ data: [bait__ast__STRING_TYPE, bait__ast__ARRAY_TYPE, bait__ast__MAP_TYPE], length: 3 })
 function bait__ast__TypeSymbol({ name = from_js_string(""), kind = undefined, info = undefined, methods = new array({ data: [], length: 0 }), parent = 0, is_pub = false, pkg = from_js_string("") }) {
 	this.name = name
@@ -3894,7 +3906,7 @@ function bait__checker__Checker_fun_call(c, node) {
 			if (arg_count_matches) {
 				const param_type = array_get(def.params, i).typ
 				if (!bait__checker__Checker_check_types(c, arg.typ, param_type)) {
-					bait__checker__Checker_error(c, from_js_string(`type ${i32_str(arg.typ)} not matches ${i32_str(param_type)} in argument ${i32_str(i + 1)}`), node.pos)
+					bait__checker__Checker_error(c, from_js_string(`type ${bait__ast__Table_type_name(c.table, arg.typ).str} not matches ${bait__ast__Table_type_name(c.table, param_type).str} in argument ${i32_str(i + 1)}`), node.pos)
 				}
 			}
 		}
@@ -3927,7 +3939,7 @@ function bait__checker__Checker_method_call(c, node) {
 		if (arg_count_matches) {
 			const param_type = array_get(def.params, i + 1).typ
 			if (!bait__checker__Checker_check_types(c, arg.typ, param_type)) {
-				bait__checker__Checker_error(c, from_js_string(`type ${i32_str(arg.typ)} not matches ${i32_str(param_type)} in argument ${i32_str(i + 1)}`), node.pos)
+				bait__checker__Checker_error(c, from_js_string(`type ${bait__ast__Table_type_name(c.table, arg.typ).str} not matches ${bait__ast__Table_type_name(c.table, param_type).str} in argument ${i32_str(i + 1)}`), node.pos)
 			}
 		}
 	}
@@ -4093,7 +4105,7 @@ function bait__checker__Checker_match_expr(c, node) {
 			const e = array_get(branch.exprs, _t14)
 			if (node.is_sumtype) {
 				const expr = e
-				const variant = map_get_set(c.table.type_idxs, expr.name, 0)
+				const variant = bait__ast__Table_get_idx(c.table, expr.name)
 				const info = sym.info
 				if (!array_contains(info.variants, variant)) {
 					bait__checker__Checker_error(c, from_js_string(`sum type ${sym.name.str} has no variant ${expr.name.str}`), expr.pos)
@@ -4106,7 +4118,7 @@ function bait__checker__Checker_match_expr(c, node) {
 				const expr_type = bait__checker__Checker_expr(c, e)
 				if (!bait__checker__Checker_check_types(c, expr_type, node.cond_type)) {
 					const expr = e
-					bait__checker__Checker_error(c, from_js_string(`cannot match ${i32_str(expr_type)} to ${i32_str(node.cond_type)}`), expr.pos)
+					bait__checker__Checker_error(c, from_js_string(`cannot match ${bait__ast__Table_type_name(c.table, expr_type).str} to ${sym.name.str}`), expr.pos)
 				}
 				array_push(branch.expr_types, expr_type)
 			}
@@ -4184,7 +4196,7 @@ function bait__checker__Checker_struct_init(c, node) {
 		c.expected_type = def.typ
 		const expr_type = bait__checker__Checker_expr(c, field.expr)
 		if (!bait__checker__Checker_check_types(c, expr_type, def.typ)) {
-			bait__checker__Checker_error(c, from_js_string(`cannot assign to field ${field.name.str}: expected ${i32_str(def.typ)}, got ${i32_str(expr_type)} `), node.pos)
+			bait__checker__Checker_error(c, from_js_string(`cannot assign to field ${field.name.str}: expected ${bait__ast__Table_type_name(c.table, def.typ).str}, got ${bait__ast__Table_type_name(c.table, expr_type).str} `), node.pos)
 		}
 	}
 	return node.typ
@@ -4284,7 +4296,7 @@ function bait__checker__Checker_infix_expr(c, node) {
 	c.expected_type = node.left_type
 	node.right_type = bait__checker__Checker_expr(c, node.right)
 	if (!bait__checker__Checker_check_types(c, node.right_type, node.left_type)) {
-		bait__checker__Checker_error(c, from_js_string(`infix expr: types ${i32_str(node.right_type)} and ${i32_str(node.left_type)} do not match`), node.pos)
+		bait__checker__Checker_error(c, from_js_string(`infix expr: types ${bait__ast__Table_type_name(c.table, node.right_type).str} and ${bait__ast__Table_type_name(c.table, node.left_type).str} do not match`), node.pos)
 	}
 	if (bait__token__TokenKind_is_compare(node.op)) {
 		return bait__ast__BOOL_TYPE
@@ -4298,7 +4310,7 @@ function bait__checker__Checker_is_sumtype_variant_infix(c, node) {
 		if (!string_contains(right.name, from_js_string("."))) {
 			right.name = string_add(string_add(right.pkg, from_js_string(".")), right.name)
 		}
-		node.right_type = map_get_set(c.table.type_idxs, right.name, 0)
+		node.right_type = bait__ast__Table_get_idx(c.table, right.name)
 		const left = node.left
 		bait__ast__Scope_update_type(c.scope, left.name, node.right_type)
 	} else if (node.left instanceof bait__ast__SelectorExpr) {
@@ -4306,7 +4318,7 @@ function bait__checker__Checker_is_sumtype_variant_infix(c, node) {
 		if (!string_contains(right.name, from_js_string("."))) {
 			right.name = string_add(string_add(right.pkg, from_js_string(".")), right.name)
 		}
-		node.right_type = map_get_set(c.table.type_idxs, right.name, 0)
+		node.right_type = bait__ast__Table_get_idx(c.table, right.name)
 		const left = node.left
 		const name = string_add(string_add((left.expr).name, from_js_string(".")), left.field_name)
 		bait__ast__Scope_update_type(c.scope, name, node.right_type)
@@ -4382,7 +4394,7 @@ function bait__checker__Checker_assign_stmt(c, node) {
 	c.is_lhs_assign = false
 	node.right_type = bait__checker__Checker_expr(c, node.right)
 	if (!bait__checker__Checker_check_types(c, node.right_type, node.left_type)) {
-		bait__checker__Checker_error(c, from_js_string(`cannot assign type ${i32_str(node.right_type)} to ${i32_str(node.left_type)}`), node.pos)
+		bait__checker__Checker_error(c, from_js_string(`cannot assign type ${bait__ast__Table_type_name(c.table, node.right_type).str} to ${bait__ast__Table_type_name(c.table, node.left_type).str}`), node.pos)
 	}
 }
 
@@ -4538,7 +4550,7 @@ function bait__util__shell_escape(s) {
 }
 
 
-const bait__util__VERSION = from_js_string(`0.0.3-dev ${from_js_string("04114a1").str}`)
+const bait__util__VERSION = from_js_string(`0.0.3-dev ${from_js_string("532dab7").str}`)
 
 function bait__gen__js__Gen_expr(g, expr) {
 	if (expr instanceof bait__ast__AnonFun) {
