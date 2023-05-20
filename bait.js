@@ -1727,10 +1727,9 @@ bait__ast__StructField.prototype = {
     typ: ${this.typ.toString()}
 }`}
 }
-function bait__ast__TypeDecl({ name = from_js_string(""), typ = 0, variants = new array({ data: [], length: 0 }), pos = new bait__token__Pos({}) }) {
+function bait__ast__TypeDecl({ name = from_js_string(""), typ = 0, pos = new bait__token__Pos({}) }) {
 	this.name = name
 	this.typ = typ
-	this.variants = variants
 	this.pos = pos
 }
 bait__ast__TypeDecl.prototype = {
@@ -1738,7 +1737,6 @@ bait__ast__TypeDecl.prototype = {
 		return `bait__ast__TypeDecl{
     name: ${this.name.toString()}
     typ: ${this.typ.toString()}
-    variants: ${this.variants.toString()}
     pos: ${this.pos.toString()}
 }`}
 }
@@ -3513,16 +3511,18 @@ function bait__parser__Parser_type_decl(p) {
 	if (is_fun_type) {
 		const sym = bait__ast__Table_get_sym(p.table, array_get(variants, 0))
 		const typ = bait__ast__Table_register_sym(p.table, new bait__ast__TypeSymbol({ kind: bait__ast__TypeKind.fun_, name: name, is_pub: is_pub, pkg: p.pkg_name, info: sym.info }))
-		return new bait__ast__TypeDecl({ name: name, typ: typ, variants: variants, pos: pos })
+		return new bait__ast__TypeDecl({ name: name, typ: typ, pos: pos })
 	}
-	let kind = bait__ast__TypeKind.alias_type
+	if (p.tok.kind != bait__token__TokenKind.pipe) {
+		const typ = bait__ast__Table_register_sym(p.table, new bait__ast__TypeSymbol({ kind: bait__ast__TypeKind.alias_type, name: name, parent: array_get(variants, 0), is_pub: is_pub, pkg: p.pkg_name }))
+		return new bait__ast__TypeDecl({ name: name, typ: typ, pos: pos })
+	}
 	while (p.tok.kind == bait__token__TokenKind.pipe) {
 		bait__parser__Parser_next(p)
 		array_push(variants, bait__parser__Parser_parse_type(p))
-		kind = bait__ast__TypeKind.sum_type
 	}
-	const typ = bait__ast__Table_register_sym(p.table, new bait__ast__TypeSymbol({ kind: kind, name: name, is_pub: is_pub, pkg: p.pkg_name, info: new bait__ast__SumTypeInfo({ variants: variants }) }))
-	return new bait__ast__TypeDecl({ name: name, typ: typ, variants: variants, pos: pos })
+	const typ = bait__ast__Table_register_sym(p.table, new bait__ast__TypeSymbol({ kind: bait__ast__TypeKind.sum_type, name: name, is_pub: is_pub, pkg: p.pkg_name, info: new bait__ast__SumTypeInfo({ variants: variants }) }))
+	return new bait__ast__TypeDecl({ name: name, typ: typ, pos: pos })
 }
 
 
@@ -4538,7 +4538,7 @@ function bait__util__shell_escape(s) {
 }
 
 
-const bait__util__VERSION = from_js_string(`0.0.3-dev ${from_js_string("60c29c5").str}`)
+const bait__util__VERSION = from_js_string(`0.0.3-dev ${from_js_string("04114a1").str}`)
 
 function bait__gen__js__Gen_expr(g, expr) {
 	if (expr instanceof bait__ast__AnonFun) {
@@ -5201,6 +5201,8 @@ function bait__gen__js__Gen_write_default_value(g, typ) {
 					bait__gen__js__Gen_map_init(g, new bait__ast__MapInit({ keys: new array({ data: [], length: 0 }) }))
 				} else if (sym.kind == bait__ast__TypeKind.struct_) {
 					bait__gen__js__Gen_write(g, from_js_string(`new ${bait__gen__js__js_name(sym.name).str}({})`))
+				} else if (sym.kind == bait__ast__TypeKind.alias_type) {
+					bait__gen__js__Gen_write_default_value(g, sym.parent)
 				} else {
 					bait__gen__js__Gen_write(g, from_js_string("undefined"))
 				}
