@@ -81,6 +81,10 @@ const bait__token__TokenKind = {
 	key_type: 62,
 	key_typeof: 63
 }
+const bait__ast__Language = {
+	bait: 0,
+	js: 1
+}
 const bait__ast__ObjectKind = {
 	variable: 0,
 	constant: 1,
@@ -1775,7 +1779,7 @@ bait__ast__BoolLiteral.prototype = {
     pos: ${this.pos.toString()}
 }`}
 }
-function bait__ast__CallExpr({ name = from_js_string(""), args = new array({ data: [], length: 0 }), lang = from_js_string(""), return_type = 0, is_method = false, left = undefined, left_type = 0, pkg = from_js_string(""), pos = new bait__token__Pos({}) }) {
+function bait__ast__CallExpr({ name = from_js_string(""), args = new array({ data: [], length: 0 }), lang = undefined, return_type = 0, is_method = false, left = undefined, left_type = 0, pkg = from_js_string(""), pos = new bait__token__Pos({}) }) {
 	this.name = name
 	this.args = args
 	this.lang = lang
@@ -1848,7 +1852,7 @@ bait__ast__EnumVal.prototype = {
     pos: ${this.pos.toString()}
 }`}
 }
-function bait__ast__Ident({ name = from_js_string(""), is_mut = false, pkg = from_js_string(""), lang = from_js_string(""), pos = new bait__token__Pos({}) }) {
+function bait__ast__Ident({ name = from_js_string(""), is_mut = false, pkg = from_js_string(""), lang = undefined, pos = new bait__token__Pos({}) }) {
 	this.name = name
 	this.is_mut = is_mut
 	this.pkg = pkg
@@ -2026,7 +2030,7 @@ bait__ast__SelectorExpr.prototype = {
     pos: ${this.pos.toString()}
 }`}
 }
-function bait__ast__StringLiteral({ val = from_js_string(""), lang = from_js_string(""), pos = new bait__token__Pos({}) }) {
+function bait__ast__StringLiteral({ val = from_js_string(""), lang = undefined, pos = new bait__token__Pos({}) }) {
 	this.val = val
 	this.lang = lang
 	this.pos = pos
@@ -2128,7 +2132,7 @@ bait__ast__PackageDecl.prototype = {
     full_name: ${this.full_name.toString()}
 }`}
 }
-function bait__ast__Import({ name = from_js_string(""), alias = from_js_string(""), lang = from_js_string("") }) {
+function bait__ast__Import({ name = from_js_string(""), alias = from_js_string(""), lang = undefined }) {
 	this.name = name
 	this.alias = alias
 	this.lang = lang
@@ -2156,6 +2160,7 @@ bait__ast__File.prototype = {
     stmts: ${this.stmts.toString()}
 }`}
 }
+
 
 function bait__ast__Scope({ parent = this, objects = new map({ data: new Map([]), length: 0 }) }) {
 	this.parent = parent
@@ -2582,7 +2587,7 @@ function bait__parser__Parser_expr(p, precedence) {
 			}
 		case bait__token__TokenKind.name:
 			{
-				node = bait__parser__Parser_name_expr(p, from_js_string("bait"))
+				node = bait__parser__Parser_name_expr(p, bait__ast__Language.bait)
 				break
 			}
 		case bait__token__TokenKind.number:
@@ -2592,7 +2597,7 @@ function bait__parser__Parser_expr(p, precedence) {
 			}
 		case bait__token__TokenKind.string:
 			{
-				node = bait__parser__Parser_string_literal(p, from_js_string("bait"))
+				node = bait__parser__Parser_string_literal(p, bait__ast__Language.bait)
 				break
 			}
 		case bait__token__TokenKind.key_fun:
@@ -2618,7 +2623,7 @@ function bait__parser__Parser_expr(p, precedence) {
 			}
 		case bait__token__TokenKind.key_mut:
 			{
-				node = bait__parser__Parser_ident(p, from_js_string("bait"))
+				node = bait__parser__Parser_ident(p, bait__ast__Language.bait)
 				break
 			}
 		case bait__token__TokenKind.key_not:
@@ -2764,7 +2769,7 @@ function bait__parser__Parser_method_call(p, left) {
 	bait__parser__Parser_check(p, bait__token__TokenKind.lpar)
 	const args = bait__parser__Parser_call_args(p)
 	bait__parser__Parser_check(p, bait__token__TokenKind.rpar)
-	return new bait__ast__CallExpr({ is_method: true, left: left, name: name, args: args, lang: from_js_string("bait"), pos: pos })
+	return new bait__ast__CallExpr({ is_method: true, left: left, name: name, args: args, lang: bait__ast__Language.bait, pos: pos })
 }
 
 function bait__parser__Parser_call_args(p) {
@@ -2798,9 +2803,9 @@ function bait__parser__Parser_hash_expr(p) {
 	bait__parser__Parser_check(p, bait__token__TokenKind.hash)
 	bait__parser__Parser_check(p, bait__token__TokenKind.dot)
 	if (p.tok.kind == bait__token__TokenKind.string) {
-		return bait__parser__Parser_string_literal(p, from_js_string("js"))
+		return bait__parser__Parser_string_literal(p, bait__ast__Language.js)
 	}
-	return bait__parser__Parser_name_expr(p, from_js_string("js"))
+	return bait__parser__Parser_name_expr(p, bait__ast__Language.js)
 }
 
 function bait__parser__Parser_ident(p, lang) {
@@ -3068,11 +3073,11 @@ function bait__parser__Parser_import_stmts(p) {
 	let imports = new array({ data: [], length: 0 })
 	while (p.tok.kind == bait__token__TokenKind.key_import) {
 		bait__parser__Parser_next(p)
-		let lang = from_js_string("bait")
+		let lang = bait__ast__Language.bait
 		if (p.tok.kind == bait__token__TokenKind.hash) {
 			bait__parser__Parser_next(p)
 			bait__parser__Parser_check(p, bait__token__TokenKind.dot)
-			lang = from_js_string("js")
+			lang = bait__ast__Language.js
 		}
 		let name_parts = new array({ data: [], length: 0 })
 		array_push(name_parts, bait__parser__Parser_check_name(p))
@@ -3856,7 +3861,7 @@ function bait__checker__Checker_as_cast(c, node) {
 }
 
 function bait__checker__Checker_call_expr(c, node) {
-	if (string_eq(node.lang, from_js_string("js"))) {
+	if (node.lang == bait__ast__Language.js) {
 		for (let _t10 = 0; _t10 < node.args.length; _t10++) {
 			const arg = array_get(node.args, _t10)
 			arg.typ = bait__checker__Checker_expr(c, arg.expr)
@@ -4009,7 +4014,7 @@ function bait__checker__Checker_enum_val(c, node) {
 }
 
 function bait__checker__Checker_ident(c, node) {
-	if (string_eq(node.lang, from_js_string("js"))) {
+	if (node.lang == bait__ast__Language.js) {
 		return bait__ast__VOID_TYPE
 	}
 	let obj = bait__ast__Scope_get(c.scope, node.name)
@@ -4159,7 +4164,7 @@ function bait__checker__Checker_selector_expr(c, node) {
 }
 
 function bait__checker__Checker_string_literal(c, node) {
-	if (!string_eq(node.lang, from_js_string("bait"))) {
+	if (node.lang != bait__ast__Language.bait) {
 		return bait__ast__VOID_TYPE
 	}
 	return bait__ast__STRING_TYPE
@@ -4421,7 +4426,7 @@ function bait__checker__Checker_const_decl(c, node) {
 function bait__checker__Checker_expr_stmt(c, node) {
 	const expr = node.expr
 	bait__checker__Checker_expr(c, expr)
-	if (expr instanceof bait__ast__CallExpr || expr instanceof bait__ast__IfExpr || expr instanceof bait__ast__MatchExpr || (expr instanceof bait__ast__StringLiteral && string_eq(expr.lang, from_js_string("js")))) {
+	if (expr instanceof bait__ast__CallExpr || expr instanceof bait__ast__IfExpr || expr instanceof bait__ast__MatchExpr || (expr instanceof bait__ast__StringLiteral && expr.lang == bait__ast__Language.js)) {
 		return
 	}
 	bait__checker__Checker_error(c, from_js_string("expression evaluated but not used"), expr.pos)
@@ -4558,7 +4563,7 @@ function bait__util__shell_escape(s) {
 }
 
 
-const bait__util__VERSION = from_js_string(`0.0.3-dev ${from_js_string("f758f8f").str}`)
+const bait__util__VERSION = from_js_string(`0.0.3-dev ${from_js_string("dff4e21").str}`)
 
 function bait__gen__js__Gen_expr(g, expr) {
 	if (expr instanceof bait__ast__AnonFun) {
@@ -4654,7 +4659,7 @@ function bait__gen__js__Gen_bool_literal(g, node) {
 }
 
 function bait__gen__js__Gen_call_expr(g, node) {
-	if (string_eq(node.lang, from_js_string("bait"))) {
+	if (node.lang == bait__ast__Language.bait) {
 		if (node.is_method) {
 			const sym = bait__ast__Table_get_sym(g.table, node.left_type)
 			bait__gen__js__Gen_write(g, bait__gen__js__js_name(string_add(string_add(sym.name, from_js_string("_")), node.name)))
@@ -4754,7 +4759,7 @@ function bait__gen__js__Gen_enum_val(g, node) {
 }
 
 function bait__gen__js__Gen_ident(g, node) {
-	if (string_eq(node.lang, from_js_string("bait"))) {
+	if (node.lang == bait__ast__Language.bait) {
 		bait__gen__js__Gen_write(g, bait__gen__js__js_name(node.name))
 	} else {
 		bait__gen__js__Gen_write(g, from_js_string(`js_${node.name.str}`))
@@ -4992,7 +4997,7 @@ function bait__gen__js__Gen_selector_expr(g, node) {
 }
 
 function bait__gen__js__Gen_string_literal(g, node) {
-	if (!string_eq(node.lang, from_js_string("bait"))) {
+	if (node.lang != bait__ast__Language.bait) {
 		bait__gen__js__Gen_write(g, node.val)
 		return
 	}
@@ -5139,7 +5144,7 @@ function bait__gen__js__Gen_writeln(g, s) {
 function bait__gen__js__Gen_process_imports(g, imports) {
 	for (let _t26 = 0; _t26 < imports.length; _t26++) {
 		const imp = array_get(imports, _t26)
-		if (string_eq(imp.lang, from_js_string("bait")) || array_string_contains(g.import_names, imp.name)) {
+		if (imp.lang == bait__ast__Language.bait || array_string_contains(g.import_names, imp.name)) {
 			continue
 		}
 		array_push(g.import_names, imp.name)
@@ -5943,7 +5948,7 @@ function bait__builder__compile(prefs) {
 		const f = array_get(files, i)
 		for (let _t34 = 0; _t34 < f.imports.length; _t34++) {
 			const imp = array_get(f.imports, _t34)
-			if (!string_eq(imp.lang, from_js_string("bait"))) {
+			if (imp.lang != bait__ast__Language.bait) {
 				continue
 			}
 			const import_dir = bait__builder__resolve_import(string_replace(imp.name, from_js_string("."), from_js_string("/")))
@@ -5967,7 +5972,7 @@ function bait__builder__compile(prefs) {
 		}
 		for (let _t37 = 0; _t37 < f.imports.length; _t37++) {
 			const imp = array_get(f.imports, _t37)
-			if (!string_eq(imp.lang, from_js_string("bait"))) {
+			if (imp.lang != bait__ast__Language.bait) {
 				continue
 			}
 			array_push(map_get_set(deps, pkg_name, new array({ data: [], length: 0 })), imp.name)
