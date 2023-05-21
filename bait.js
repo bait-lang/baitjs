@@ -1611,21 +1611,15 @@ bait__ast__ForInLoop.prototype = {
     pos: ${this.pos.toString()}
 }`}
 }
-function bait__ast__AnonFun({ params = new array({ data: [], length: 0 }), stmts = new array({ data: [], length: 0 }), return_type = 0, name = from_js_string(""), typ = 0, pos = new bait__token__Pos({}) }) {
-	this.params = params
-	this.stmts = stmts
-	this.return_type = return_type
-	this.name = name
+function bait__ast__AnonFun({ decl = new bait__ast__FunDecl({}), typ = 0, pos = new bait__token__Pos({}) }) {
+	this.decl = decl
 	this.typ = typ
 	this.pos = pos
 }
 bait__ast__AnonFun.prototype = {
 	toString() {
 		return `bait__ast__AnonFun{
-    params: ${this.params.toString()}
-    stmts: ${this.stmts.toString()}
-    return_type: ${this.return_type.toString()}
-    name: ${this.name.toString()}
+    decl: ${this.decl.toString()}
     typ: ${this.typ.toString()}
     pos: ${this.pos.toString()}
 }`}
@@ -2693,7 +2687,7 @@ function bait__parser__Parser_anon_fun(p) {
 	}
 	const typ = bait__ast__Table_find_or_register_fun(p.table, param_types, return_type)
 	const stmts = bait__parser__Parser_parse_block(p)
-	return new bait__ast__AnonFun({ params: params, return_type: return_type, stmts: stmts, typ: typ, pos: pos })
+	return new bait__ast__AnonFun({ decl: new bait__ast__FunDecl({ params: params, return_type: return_type, stmts: stmts }), typ: typ, pos: pos })
 }
 
 function bait__parser__Parser_array_init(p) {
@@ -3760,6 +3754,10 @@ function bait__checker__Checker_close_scope(c) {
 	c.scope = c.scope.parent
 }
 
+function bait__checker__Checker_warn(c, msg, pos) {
+	bait__errors__warn(c.path, pos, msg)
+}
+
 function bait__checker__Checker_error(c, msg, pos) {
 	bait__errors__error(c.path, pos, msg)
 	c.had_error = true
@@ -3822,10 +3820,13 @@ function bait__checker__Checker_expr(c, expr) {
 }
 
 function bait__checker__Checker_anon_fun(c, node) {
+	const root_fun_decl = c.cur_fun
+	c.cur_fun = node.decl
 	bait__checker__Checker_open_scope(c)
-	bait__checker__Checker_fun_params(c, node.params)
-	bait__checker__Checker_stmts(c, node.stmts)
+	bait__checker__Checker_fun_params(c, node.decl.params)
+	bait__checker__Checker_stmts(c, node.decl.stmts)
 	bait__checker__Checker_close_scope(c)
+	c.cur_fun = root_fun_decl
 	return node.typ
 }
 
@@ -4227,6 +4228,23 @@ function bait__checker__Checker_fun_params(c, params) {
 	}
 }
 
+function bait__checker__Checker_return_stmt(c, node) {
+	if (node.expr instanceof bait__ast__EmptyExpr) {
+		if (c.cur_fun.return_type != bait__ast__VOID_TYPE) {
+			bait__checker__Checker_error(c, from_js_string(`expected return value of type ${bait__ast__Table_type_name(c.table, c.cur_fun.return_type).str}`), node.pos)
+		}
+	} else {
+		if (c.cur_fun.return_type == bait__ast__VOID_TYPE) {
+			bait__checker__Checker_error(c, from_js_string(`function ${c.cur_fun.name.str} does not return a value`), node.pos)
+		}
+		c.expected_type = c.cur_fun.return_type
+		const expr_type = bait__checker__Checker_expr(c, node.expr)
+		if (!bait__checker__Checker_check_types(c, expr_type, c.cur_fun.return_type)) {
+			bait__checker__Checker_error(c, from_js_string(`expected return value of type ${bait__ast__Table_type_name(c.table, c.cur_fun.return_type).str}, got ${bait__ast__Table_type_name(c.table, expr_type).str}`), node.pos)
+		}
+	}
+}
+
 function bait__checker__Checker_fun_signature(c, node) {
 	let sig = from_js_string(`fun ${node.name.str}(`)
 	for (let i = 0; i < node.params.length; i++) {
@@ -4463,13 +4481,6 @@ function bait__checker__Checker_global_decl(c, node) {
 function bait__checker__Checker_control_stmt(c, node) {
 }
 
-function bait__checker__Checker_return_stmt(c, node) {
-	if (!(node.expr instanceof bait__ast__EmptyExpr)) {
-		c.expected_type = c.cur_fun.return_type
-		bait__checker__Checker_expr(c, node.expr)
-	}
-}
-
 function bait__checker__Checker_struct_decl(c, node) {
 }
 
@@ -4547,7 +4558,7 @@ function bait__util__shell_escape(s) {
 }
 
 
-const bait__util__VERSION = from_js_string(`0.0.3-dev ${from_js_string("a043991").str}`)
+const bait__util__VERSION = from_js_string(`0.0.3-dev ${from_js_string("f758f8f").str}`)
 
 function bait__gen__js__Gen_expr(g, expr) {
 	if (expr instanceof bait__ast__AnonFun) {
@@ -4610,15 +4621,15 @@ function bait__gen__js__Gen_expr_string(g, expr) {
 
 function bait__gen__js__Gen_anon_fun(g, node) {
 	bait__gen__js__Gen_write(g, from_js_string("function ("))
-	for (let i = 0; i < node.params.length; i++) {
-		const param = array_get(node.params, i)
+	for (let i = 0; i < node.decl.params.length; i++) {
+		const param = array_get(node.decl.params, i)
 		bait__gen__js__Gen_write(g, param.name)
-		if (i < node.params.length - 1) {
+		if (i < node.decl.params.length - 1) {
 			bait__gen__js__Gen_write(g, from_js_string(", "))
 		}
 	}
 	bait__gen__js__Gen_writeln(g, from_js_string(") {"))
-	bait__gen__js__Gen_stmts(g, node.stmts)
+	bait__gen__js__Gen_stmts(g, node.decl.stmts)
 	bait__gen__js__Gen_write(g, from_js_string("}"))
 }
 
