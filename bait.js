@@ -3451,7 +3451,6 @@ function bait__parser__Parser_fun_decl(p) {
 			array_push(param_types, param.typ)
 		}
 		const typ = bait__ast__Table_find_or_register_fun(p.table, param_types, return_type)
-		bait__ast__Scope_register(p.table.global_scope, name, new bait__ast__ScopeObject({ typ: typ, kind: bait__ast__ObjectKind.function, is_pub: is_pub }))
 	}
 	const f_stmts = bait__parser__Parser_parse_block(p)
 	node.stmts = f_stmts
@@ -4548,7 +4547,7 @@ function bait__util__shell_escape(s) {
 }
 
 
-const bait__util__VERSION = from_js_string(`0.0.3-dev ${from_js_string("1d836c5").str}`)
+const bait__util__VERSION = from_js_string(`0.0.3-dev ${from_js_string("a043991").str}`)
 
 function bait__gen__js__Gen_expr(g, expr) {
 	if (expr instanceof bait__ast__AnonFun) {
