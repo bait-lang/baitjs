@@ -3075,15 +3075,12 @@ function bait__parser__Parser_js_import(p) {
 	bait__parser__Parser_next(p)
 	bait__parser__Parser_check(p, bait__token__TokenKind.dot)
 	if (p.tok.kind != bait__token__TokenKind.string) {
-		bait__parser__Parser_warn(p, from_js_string("external imports must have the format `#JS.\"name\" as alias`"))
+		bait__parser__Parser_error(p, from_js_string("external imports must have the format `#JS.\"name\" as alias`"))
 	}
 	const name = p.tok.val
 	bait__parser__Parser_next(p)
-	let alias = name
-	if (p.tok.kind == bait__token__TokenKind.key_as) {
-		bait__parser__Parser_check(p, bait__token__TokenKind.key_as)
-		alias = bait__parser__Parser_check_name(p)
-	}
+	bait__parser__Parser_check(p, bait__token__TokenKind.key_as)
+	const alias = bait__parser__Parser_check_name(p)
 	map_set(p.import_aliases, alias, name)
 	return new bait__ast__Import({ name: name, alias: alias, lang: bait__ast__Language.js })
 }
@@ -4640,7 +4637,7 @@ function bait__util__shell_escape(s) {
 }
 
 
-const bait__util__VERSION = from_js_string(`0.0.3-dev ${from_js_string("be26727").str}`)
+const bait__util__VERSION = from_js_string(`0.0.3-dev ${from_js_string("b34be75").str}`)
 
 function bait__gen__js__Gen_expr(g, expr) {
 	if (expr instanceof bait__ast__AnonFun) {
