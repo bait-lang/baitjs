@@ -72,18 +72,19 @@ const bait__token__TokenKind = {
 	key_if: 49,
 	key_import: 50,
 	key_in: 51,
-	key_is: 52,
-	key_match: 53,
-	key_mut: 54,
-	key_not: 55,
-	key_or: 56,
-	key_package: 57,
-	key_pub: 58,
-	key_return: 59,
-	key_struct: 60,
-	key_true: 61,
-	key_type: 62,
-	key_typeof: 63
+	key_interface: 52,
+	key_is: 53,
+	key_match: 54,
+	key_mut: 55,
+	key_not: 56,
+	key_or: 57,
+	key_package: 58,
+	key_pub: 59,
+	key_return: 60,
+	key_struct: 61,
+	key_true: 62,
+	key_type: 63,
+	key_typeof: 64
 }
 const bait__ast__Language = {
 	bait: 0,
@@ -999,6 +1000,11 @@ function bait__token__keyword_to_kind(name) {
 				return bait__token__TokenKind.key_in
 				break
 			}
+		case from_js_string("interface").str:
+			{
+				return bait__token__TokenKind.key_interface
+				break
+			}
 		case from_js_string("is").str:
 			{
 				return bait__token__TokenKind.key_is
@@ -1464,6 +1470,11 @@ function bait__token__TokenKind_str(kind) {
 		case bait__token__TokenKind.key_in:
 			{
 				return from_js_string("key_in")
+				break
+			}
+		case bait__token__TokenKind.key_interface:
+			{
+				return from_js_string("key_interface")
 				break
 			}
 		case bait__token__TokenKind.key_is:
@@ -3031,6 +3042,53 @@ function bait__parser__Parser_typeof_expr(p) {
 }
 
 
+function bait__parser__Parser_import_stmts(p) {
+	let imports = new array({ data: [], length: 0 })
+	while (p.tok.kind == bait__token__TokenKind.key_import) {
+		const pos = p.tok.pos
+		bait__parser__Parser_next(p)
+		if (p.tok.kind == bait__token__TokenKind.hash) {
+			let imp = bait__parser__Parser_js_import(p)
+			imp.pos = pos
+			array_push(imports, imp)
+			continue
+		}
+		let name_parts = new array({ data: [], length: 0 })
+		array_push(name_parts, bait__parser__Parser_check_name(p))
+		while (p.tok.kind == bait__token__TokenKind.dot) {
+			bait__parser__Parser_next(p)
+			array_push(name_parts, bait__parser__Parser_check_name(p))
+		}
+		const name = array_string_join(name_parts, from_js_string("."))
+		let alias = array_get(name_parts, name_parts.length - 1)
+		if (p.tok.kind == bait__token__TokenKind.key_as) {
+			bait__parser__Parser_next(p)
+			alias = bait__parser__Parser_check_name(p)
+		}
+		map_set(p.import_aliases, alias, name)
+		array_push(imports, new bait__ast__Import({ name: name, alias: alias, lang: bait__ast__Language.bait, pos: pos }))
+	}
+	return imports
+}
+
+function bait__parser__Parser_js_import(p) {
+	bait__parser__Parser_next(p)
+	bait__parser__Parser_check(p, bait__token__TokenKind.dot)
+	if (p.tok.kind != bait__token__TokenKind.string) {
+		bait__parser__Parser_warn(p, from_js_string("external imports must have the format `#JS.\"name\" as alias`"))
+	}
+	const name = p.tok.val
+	bait__parser__Parser_next(p)
+	let alias = name
+	if (p.tok.kind == bait__token__TokenKind.key_as) {
+		bait__parser__Parser_check(p, bait__token__TokenKind.key_as)
+		alias = bait__parser__Parser_check_name(p)
+	}
+	map_set(p.import_aliases, alias, name)
+	return new bait__ast__Import({ name: name, alias: alias, lang: bait__ast__Language.js })
+}
+
+
 function bait__parser__Parser({ pref = new bait__preference__Prefs({}), path = from_js_string(""), table = new bait__ast__Table({}), tokens = new array({ data: [], length: 0 }), idx = 0, prev_tok = new bait__token__Token({}), tok = new bait__token__Token({}), next_tok = new bait__token__Token({}), pkg_name = from_js_string(""), import_aliases = new map({ data: new Map([]), length: 0 }), attributes = new array({ data: [], length: 0 }), expr_pkg = from_js_string(""), is_test_file = false, is_for_init = false, is_struct_possible = false }) {
 	this.pref = pref
 	this.path = path
@@ -3098,35 +3156,6 @@ function bait__parser__Parser_package_decl(p) {
 	}
 	p.pkg_name = full_name
 	return new bait__ast__PackageDecl({ name: name, full_name: full_name })
-}
-
-function bait__parser__Parser_import_stmts(p) {
-	let imports = new array({ data: [], length: 0 })
-	while (p.tok.kind == bait__token__TokenKind.key_import) {
-		const pos = p.tok.pos
-		bait__parser__Parser_next(p)
-		let lang = bait__ast__Language.bait
-		if (p.tok.kind == bait__token__TokenKind.hash) {
-			bait__parser__Parser_next(p)
-			bait__parser__Parser_check(p, bait__token__TokenKind.dot)
-			lang = bait__ast__Language.js
-		}
-		let name_parts = new array({ data: [], length: 0 })
-		array_push(name_parts, bait__parser__Parser_check_name(p))
-		while (p.tok.kind == bait__token__TokenKind.dot) {
-			bait__parser__Parser_next(p)
-			array_push(name_parts, bait__parser__Parser_check_name(p))
-		}
-		const name = array_string_join(name_parts, from_js_string("."))
-		let alias = array_get(name_parts, name_parts.length - 1)
-		if (p.tok.kind == bait__token__TokenKind.key_as) {
-			bait__parser__Parser_next(p)
-			alias = bait__parser__Parser_check_name(p)
-		}
-		map_set(p.import_aliases, alias, name)
-		array_push(imports, new bait__ast__Import({ name: name, alias: alias, lang: lang, pos: pos }))
-	}
-	return imports
 }
 
 function bait__parser__Parser_parse_attributes(p) {
@@ -4611,7 +4640,7 @@ function bait__util__shell_escape(s) {
 }
 
 
-const bait__util__VERSION = from_js_string(`0.0.3-dev ${from_js_string("334dada").str}`)
+const bait__util__VERSION = from_js_string(`0.0.3-dev ${from_js_string("be26727").str}`)
 
 function bait__gen__js__Gen_expr(g, expr) {
 	if (expr instanceof bait__ast__AnonFun) {
