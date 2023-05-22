@@ -4087,7 +4087,7 @@ function bait__checker__Checker_enum_val(c, node) {
 		return bait__ast__VOID_TYPE
 	}
 	if (sym.kind != bait__ast__TypeKind.enum_) {
-		bait__checker__Checker_error(c, from_js_string(`cannot use enum value, expecting ${sym.name.str}`), node.pos)
+		bait__checker__Checker_error(c, from_js_string(`expected type is not an enum, got ${sym.name.str}`), node.pos)
 		return bait__ast__VOID_TYPE
 	}
 	if (!sym.is_pub && string_contains(sym.name, from_js_string(".")) && !string_eq(sym.pkg, c.pkg)) {
@@ -4510,6 +4510,9 @@ function bait__checker__Checker_assign_stmt(c, node) {
 	c.expected_type = node.left_type
 	c.is_lhs_assign = false
 	node.right_type = bait__checker__Checker_expr(c, node.right)
+	if (node.right_type == bait__ast__VOID_TYPE && !(node.right instanceof bait__ast__CallExpr)) {
+		return
+	}
 	if (!bait__checker__Checker_check_types(c, node.right_type, node.left_type)) {
 		bait__checker__Checker_error(c, from_js_string(`cannot assign type ${bait__ast__Table_type_name(c.table, node.right_type).str} to ${bait__ast__Table_type_name(c.table, node.left_type).str}`), node.pos)
 	}
@@ -4660,7 +4663,7 @@ function bait__util__shell_escape(s) {
 }
 
 
-const bait__util__VERSION = from_js_string(`0.0.3-dev ${from_js_string("3b67729").str}`)
+const bait__util__VERSION = from_js_string(`0.0.3-dev ${from_js_string("85431b2").str}`)
 
 function bait__gen__js__Gen_expr(g, expr) {
 	if (expr instanceof bait__ast__AnonFun) {
