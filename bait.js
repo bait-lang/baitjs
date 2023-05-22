@@ -4637,7 +4637,7 @@ function bait__util__shell_escape(s) {
 }
 
 
-const bait__util__VERSION = from_js_string(`0.0.3-dev ${from_js_string("b34be75").str}`)
+const bait__util__VERSION = from_js_string(`0.0.3-dev ${from_js_string("97295d6").str}`)
 
 function bait__gen__js__Gen_expr(g, expr) {
 	if (expr instanceof bait__ast__AnonFun) {
@@ -6115,6 +6115,9 @@ function bait__builder__compile(prefs) {
 
 function bait__builder__resolve_import(pkg) {
 	const dir = os__resource_abs_path(os__join_path(from_js_string("lib"), new array({ data: [pkg], length: 1 })))
+	if (os__exists(dir)) {
+		return dir
+	}
 	return os__join_path(os__getwd(), new array({ data: [from_js_string("lib"), pkg], length: 2 }))
 }
 
