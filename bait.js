@@ -91,10 +91,12 @@ const bait__ast__Language = {
 	js: 1
 }
 const bait__ast__ObjectKind = {
-	variable: 0,
-	constant: 1,
-	function: 2,
-	global_: 3
+	unknown: 0,
+	variable: 1,
+	constant: 2,
+	function: 3,
+	global_: 4,
+	package_: 5
 }
 const bait__ast__TypeKind = {
 	placeholder: 0,
@@ -2215,17 +2217,17 @@ bait__ast__Scope.prototype = {
     objects: ${this.objects.toString()}
 }`}
 }
-function bait__ast__ScopeObject({ typ = 0, kind = undefined, is_pub = false, expr = undefined }) {
-	this.typ = typ
+function bait__ast__ScopeObject({ kind = undefined, typ = 0, is_pub = false, expr = undefined }) {
 	this.kind = kind
+	this.typ = typ
 	this.is_pub = is_pub
 	this.expr = expr
 }
 bait__ast__ScopeObject.prototype = {
 	toString() {
 		return `bait__ast__ScopeObject{
-    typ: ${this.typ.toString()}
     kind: ${this.kind.toString()}
+    typ: ${this.typ.toString()}
     is_pub: ${this.is_pub.toString()}
     expr: ${this.expr.toString()}
 }`}
@@ -2244,7 +2246,7 @@ function bait__ast__Scope_get(s, name) {
 	if (s.parent != 0) {
 		return bait__ast__Scope_get(s.parent, name)
 	}
-	return new bait__ast__ScopeObject({ typ: bait__ast__PLACEHOLDER_TYPE })
+	return new bait__ast__ScopeObject({ kind: bait__ast__ObjectKind.unknown })
 }
 
 function bait__ast__Scope_update_type(s, name, typ) {
@@ -2253,7 +2255,7 @@ function bait__ast__Scope_update_type(s, name, typ) {
 
 function bait__ast__Scope_is_known(s, name) {
 	const obj = bait__ast__Scope_get(s, name)
-	return obj.typ != bait__ast__PLACEHOLDER_TYPE
+	return obj.kind != bait__ast__ObjectKind.unknown
 }
 
 
@@ -3066,6 +3068,7 @@ function bait__parser__Parser_import_stmts(p) {
 			alias = bait__parser__Parser_check_name(p)
 		}
 		map_set(p.import_aliases, alias, name)
+		bait__ast__Scope_register(p.table.global_scope, alias, new bait__ast__ScopeObject({ kind: bait__ast__ObjectKind.package_ }))
 		array_push(imports, new bait__ast__Import({ name: name, alias: alias, lang: bait__ast__Language.bait, pos: pos }))
 	}
 	return imports
@@ -3799,7 +3802,7 @@ bait__checker__Checker.prototype = {
 }`}
 }
 function bait__checker__check_files(files, table) {
-	let c = new bait__checker__Checker({ parsed_files: files, table: table, scope: new bait__ast__Scope({ parent: 0 }) })
+	let c = new bait__checker__Checker({ parsed_files: files, table: table, scope: new bait__ast__Scope({ parent: table.global_scope }) })
 	for (let _t9 = 0; _t9 < c.parsed_files.length; _t9++) {
 		const f = array_get(c.parsed_files, _t9)
 		bait__checker__Checker_check(c, f)
@@ -4478,7 +4481,7 @@ function bait__checker__Checker_assign_stmt(c, node) {
 		const typ = bait__checker__Checker_expr(c, node.right)
 		const left = node.left
 		if (bait__ast__Scope_is_known(c.scope, left.name)) {
-			bait__checker__Checker_error(c, from_js_string(`redeclaration of ${left.name.str}`), node.pos)
+			bait__checker__Checker_error(c, from_js_string(`redefinition of ${left.name.str}`), node.pos)
 			return
 		}
 		bait__ast__Scope_register(c.scope, left.name, new bait__ast__ScopeObject({ typ: typ }))
@@ -4640,7 +4643,7 @@ function bait__util__shell_escape(s) {
 }
 
 
-const bait__util__VERSION = from_js_string(`0.0.3-dev ${from_js_string("5cc8ae7").str}`)
+const bait__util__VERSION = from_js_string(`0.0.3-dev ${from_js_string("b69f25d").str}`)
 
 function bait__gen__js__Gen_expr(g, expr) {
 	if (expr instanceof bait__ast__AnonFun) {
