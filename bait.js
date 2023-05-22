@@ -3277,7 +3277,10 @@ function bait__parser__Parser_toplevel_stmt(p) {
 			}
 		default:
 			{
-				return bait__parser__Parser_script_mode_main(p)
+				if (string_eq(p.pkg_name, from_js_string("main"))) {
+					return bait__parser__Parser_script_mode_main(p)
+				}
+				bait__parser__Parser_error(p, from_js_string(`bad toplevel token: kind: ${bait__token__TokenKind_str(p.tok.kind)}, val: ${p.tok.val.str}`))
 				break
 			}
 	}
@@ -4637,7 +4640,7 @@ function bait__util__shell_escape(s) {
 }
 
 
-const bait__util__VERSION = from_js_string(`0.0.3-dev ${from_js_string("97295d6").str}`)
+const bait__util__VERSION = from_js_string(`0.0.3-dev ${from_js_string("79821e2").str}`)
 
 function bait__gen__js__Gen_expr(g, expr) {
 	if (expr instanceof bait__ast__AnonFun) {
