@@ -20,71 +20,72 @@ const bait__token__Precedence = {
 	index: 8
 }
 const bait__token__TokenKind = {
-	eof: 0,
-	attr: 1,
-	name: 2,
-	string: 3,
-	char: 4,
-	number: 5,
-	dot: 6,
-	colon: 7,
-	comma: 8,
-	semicolon: 9,
-	plus: 10,
-	minus: 11,
-	mul: 12,
-	div: 13,
-	mod: 14,
-	assign: 15,
-	decl_assign: 16,
-	plus_assign: 17,
-	minus_assign: 18,
-	mul_assign: 19,
-	div_assign: 20,
-	mod_assign: 21,
-	eq: 22,
-	ne: 23,
-	lt: 24,
-	gt: 25,
-	le: 26,
-	ge: 27,
-	lpar: 28,
-	rpar: 29,
-	lbr: 30,
-	rbr: 31,
-	lcur: 32,
-	rcur: 33,
-	pipe: 34,
-	dollar: 35,
-	hash: 36,
-	key_and: 37,
-	key_as: 38,
-	key_assert: 39,
-	key_break: 40,
-	key_const: 41,
-	key_continue: 42,
-	key_else: 43,
-	key_enum: 44,
-	key_false: 45,
-	key_for: 46,
-	key_fun: 47,
-	key_global: 48,
-	key_if: 49,
-	key_import: 50,
-	key_in: 51,
-	key_interface: 52,
-	key_is: 53,
-	key_match: 54,
-	key_mut: 55,
-	key_not: 56,
-	key_or: 57,
-	key_package: 58,
-	key_pub: 59,
-	key_return: 60,
-	key_struct: 61,
-	key_true: 62,
-	key_type: 63,
-	key_typeof: 64
+	unknown: 0,
+	eof: 1,
+	attr: 2,
+	name: 3,
+	string: 4,
+	char: 5,
+	number: 6,
+	dot: 7,
+	colon: 8,
+	comma: 9,
+	semicolon: 10,
+	plus: 11,
+	minus: 12,
+	mul: 13,
+	div: 14,
+	mod: 15,
+	assign: 16,
+	decl_assign: 17,
+	plus_assign: 18,
+	minus_assign: 19,
+	mul_assign: 20,
+	div_assign: 21,
+	mod_assign: 22,
+	eq: 23,
+	ne: 24,
+	lt: 25,
+	gt: 26,
+	le: 27,
+	ge: 28,
+	lpar: 29,
+	rpar: 30,
+	lbr: 31,
+	rbr: 32,
+	lcur: 33,
+	rcur: 34,
+	pipe: 35,
+	dollar: 36,
+	hash: 37,
+	key_and: 38,
+	key_as: 39,
+	key_assert: 40,
+	key_break: 41,
+	key_const: 42,
+	key_continue: 43,
+	key_else: 44,
+	key_enum: 45,
+	key_false: 46,
+	key_for: 47,
+	key_fun: 48,
+	key_global: 49,
+	key_if: 50,
+	key_import: 51,
+	key_in: 52,
+	key_interface: 53,
+	key_is: 54,
+	key_match: 55,
+	key_mut: 56,
+	key_not: 57,
+	key_or: 58,
+	key_package: 59,
+	key_pub: 60,
+	key_return: 61,
+	key_struct: 62,
+	key_true: 63,
+	key_type: 64,
+	key_typeof: 65
 }
 const bait__ast__Language = {
 	bait: 0,
@@ -99,15 +100,16 @@ const bait__ast__ObjectKind = {
 	package_: 5
 }
 const bait__ast__TypeKind = {
-	placeholder: 0,
-	string: 1,
-	array: 2,
-	map: 3,
-	struct_: 4,
-	enum_: 5,
-	alias_type: 6,
-	sum_type: 7,
-	fun_: 8
+	other: 0,
+	placeholder: 1,
+	string: 2,
+	array: 3,
+	map: 4,
+	struct_: 5,
+	enum_: 6,
+	alias_type: 7,
+	sum_type: 8,
+	fun_: 9
 }
 const bait__errors__Kind = {
 	notice: 0,
@@ -720,7 +722,7 @@ function os__system(cmd) {
 }
 
 
-function bait__preference__Prefs({ command = from_js_string(""), args = new array({ data: [], length: 0 }), out_name = from_js_string(""), should_run = false, is_verbose = false, is_test = false, is_script = false, backend = undefined, baitexe = from_js_string(""), baitdir = from_js_string(""), baithash = from_js_string("") }) {
+function bait__preference__Prefs({ command = from_js_string(""), args = new array({ data: [], length: 0 }), out_name = from_js_string(""), should_run = false, is_verbose = false, is_test = false, is_script = false, backend = 0, baitexe = from_js_string(""), baitdir = from_js_string(""), baithash = from_js_string("") }) {
 	this.command = command
 	this.args = args
 	this.out_name = out_name
@@ -912,7 +914,7 @@ function bait__token__Token_precedence(t) {
 }
 
 
-function bait__token__Token({ kind = undefined, val = from_js_string(""), pos = new bait__token__Pos({}) }) {
+function bait__token__Token({ kind = 0, val = from_js_string(""), pos = new bait__token__Pos({}) }) {
 	this.kind = kind
 	this.val = val
 	this.pos = pos
@@ -1554,7 +1556,7 @@ bait__ast__AssertStmt.prototype = {
     pos: ${this.pos.toString()}
 }`}
 }
-function bait__ast__AssignStmt({ op = undefined, left = undefined, left_type = 0, right = undefined, right_type = 0, pos = new bait__token__Pos({}) }) {
+function bait__ast__AssignStmt({ op = 0, left = undefined, left_type = 0, right = undefined, right_type = 0, pos = new bait__token__Pos({}) }) {
 	this.op = op
 	this.left = left
 	this.left_type = left_type
@@ -1708,7 +1710,7 @@ bait__ast__Param.prototype = {
     pos: ${this.pos.toString()}
 }`}
 }
-function bait__ast__LoopControlStmt({ kind = undefined, pos = new bait__token__Pos({}) }) {
+function bait__ast__LoopControlStmt({ kind = 0, pos = new bait__token__Pos({}) }) {
 	this.kind = kind
 	this.pos = pos
 }
@@ -1823,7 +1825,7 @@ bait__ast__BoolLiteral.prototype = {
     pos: ${this.pos.toString()}
 }`}
 }
-function bait__ast__CallExpr({ name = from_js_string(""), args = new array({ data: [], length: 0 }), lang = undefined, return_type = 0, is_method = false, left = undefined, left_type = 0, pkg = from_js_string(""), pos = new bait__token__Pos({}) }) {
+function bait__ast__CallExpr({ name = from_js_string(""), args = new array({ data: [], length: 0 }), lang = 0, return_type = 0, is_method = false, left = undefined, left_type = 0, pkg = from_js_string(""), pos = new bait__token__Pos({}) }) {
 	this.name = name
 	this.args = args
 	this.lang = lang
@@ -1896,7 +1898,7 @@ bait__ast__EnumVal.prototype = {
     pos: ${this.pos.toString()}
 }`}
 }
-function bait__ast__Ident({ name = from_js_string(""), is_mut = false, pkg = from_js_string(""), lang = undefined, pos = new bait__token__Pos({}) }) {
+function bait__ast__Ident({ name = from_js_string(""), is_mut = false, pkg = from_js_string(""), lang = 0, pos = new bait__token__Pos({}) }) {
 	this.name = name
 	this.is_mut = is_mut
 	this.pkg = pkg
@@ -1956,7 +1958,7 @@ bait__ast__IndexExpr.prototype = {
     pos: ${this.pos.toString()}
 }`}
 }
-function bait__ast__InfixExpr({ left = undefined, left_type = 0, right = undefined, right_type = 0, op = undefined, pos = new bait__token__Pos({}) }) {
+function bait__ast__InfixExpr({ left = undefined, left_type = 0, right = undefined, right_type = 0, op = 0, pos = new bait__token__Pos({}) }) {
 	this.left = left
 	this.left_type = left_type
 	this.right = right
@@ -2048,7 +2050,7 @@ bait__ast__ParExpr.prototype = {
     pos: ${this.pos.toString()}
 }`}
 }
-function bait__ast__PrefixExpr({ op = undefined, right = undefined, pos = new bait__token__Pos({}) }) {
+function bait__ast__PrefixExpr({ op = 0, right = undefined, pos = new bait__token__Pos({}) }) {
 	this.op = op
 	this.right = right
 	this.pos = pos
@@ -2074,7 +2076,7 @@ bait__ast__SelectorExpr.prototype = {
     pos: ${this.pos.toString()}
 }`}
 }
-function bait__ast__StringLiteral({ val = from_js_string(""), lang = undefined, pos = new bait__token__Pos({}) }) {
+function bait__ast__StringLiteral({ val = from_js_string(""), lang = 0, pos = new bait__token__Pos({}) }) {
 	this.val = val
 	this.lang = lang
 	this.pos = pos
@@ -2176,7 +2178,7 @@ bait__ast__PackageDecl.prototype = {
     full_name: ${this.full_name.toString()}
 }`}
 }
-function bait__ast__Import({ name = from_js_string(""), alias = from_js_string(""), lang = undefined, pos = new bait__token__Pos({}) }) {
+function bait__ast__Import({ name = from_js_string(""), alias = from_js_string(""), lang = 0, pos = new bait__token__Pos({}) }) {
 	this.name = name
 	this.alias = alias
 	this.lang = lang
@@ -2219,7 +2221,7 @@ bait__ast__Scope.prototype = {
     objects: ${this.objects.toString()}
 }`}
 }
-function bait__ast__ScopeObject({ kind = undefined, typ = 0, is_pub = false, expr = undefined }) {
+function bait__ast__ScopeObject({ kind = 0, typ = 0, is_pub = false, expr = undefined }) {
 	this.kind = kind
 	this.typ = typ
 	this.is_pub = is_pub
@@ -2476,7 +2478,7 @@ function bait__ast__Type_str(t) {
 }
 
 const bait__ast__BUILTIN_STRUCT_TYPES = new array({ data: [bait__ast__STRING_TYPE, bait__ast__ARRAY_TYPE, bait__ast__MAP_TYPE], length: 3 })
-function bait__ast__TypeSymbol({ name = from_js_string(""), kind = undefined, info = undefined, methods = new array({ data: [], length: 0 }), parent = 0, is_pub = false, pkg = from_js_string("") }) {
+function bait__ast__TypeSymbol({ name = from_js_string(""), kind = 0, info = undefined, methods = new array({ data: [], length: 0 }), parent = 0, is_pub = false, pkg = from_js_string("") }) {
 	this.name = name
 	this.kind = kind
 	this.info = info
@@ -3764,7 +3766,7 @@ function bait__checker__Checker_check_attributes(c, attrs) {
 			bait__checker__Checker_error(c, from_js_string(`unknown attribute "${attr.name.str}"`), attr.pos)
 			continue
 		}
-		const val_req = map_get_set(bait__checker__KNOWN_ATTRS, attr.name, undefined)
+		const val_req = map_get_set(bait__checker__KNOWN_ATTRS, attr.name, 0)
 		if (val_req == bait__checker__AttrValue.none && attr.value.length > 0) {
 			bait__checker__Checker_error(c, from_js_string(`attribute "${attr.name.str}" does not take a value`), attr.pos)
 			continue
@@ -4663,7 +4665,7 @@ function bait__util__shell_escape(s) {
 }
 
 
-const bait__util__VERSION = from_js_string(`0.0.3-dev ${from_js_string("85431b2").str}`)
+const bait__util__VERSION = from_js_string(`0.0.3-dev ${from_js_string("8771acb").str}`)
 
 function bait__gen__js__Gen_expr(g, expr) {
 	if (expr instanceof bait__ast__AnonFun) {
@@ -5328,6 +5330,8 @@ function bait__gen__js__Gen_write_default_value(g, typ) {
 					bait__gen__js__Gen_write(g, from_js_string(`new ${bait__gen__js__js_name(sym.name).str}({})`))
 				} else if (sym.kind == bait__ast__TypeKind.alias_type) {
 					bait__gen__js__Gen_write_default_value(g, sym.parent)
+				} else if (sym.kind == bait__ast__TypeKind.enum_) {
+					bait__gen__js__Gen_write(g, from_js_string("0"))
 				} else {
 					bait__gen__js__Gen_write(g, from_js_string("undefined"))
 				}
