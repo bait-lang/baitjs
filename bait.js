@@ -12,7 +12,7 @@ array.prototype = {
 }`}
 }
 function array_get(a, i) {
-	return a.data[i]
+	return a.data.at(i)
 }
 
 function array_set(a, i, val) {
@@ -101,7 +101,7 @@ function array_reverse(a) {
 }
 
 function array_reverse_in_place(a) {
-	a.data = a.data.reverse()
+	a.data.reverse()
 }
 
 function array_filter(a, fn) {
@@ -217,6 +217,7 @@ function u8_ascii(c) {
 function u8_add(a, b) {
 	return new u8(a.val + b.val)
 }
+
 
 
 function f32_str(n) {
@@ -412,7 +413,7 @@ function string_add(a, b) {
 }
 
 function string_eq(a, b) {
-	return a.str === b.str
+	return a.str == b.str
 }
 
 function array_string_join(arr, sep) {
@@ -4716,7 +4717,7 @@ function bait__util__shell_escape(s) {
 }
 
 
-const bait__util__VERSION = from_js_string(`0.0.3-dev ${from_js_string("9d48551").str}`)
+const bait__util__VERSION = from_js_string(`0.0.3-dev ${from_js_string("93296b9").str}`)
 
 function bait__gen__js__Gen_expr(g, expr) {
 	if (expr instanceof bait__ast__AnonFun) {
