@@ -2792,8 +2792,8 @@ function bait__parser__Parser_array_init(p) {
 function bait__parser__Parser_as_cast(p, left) {
 	const pos = p.tok.pos
 	bait__parser__Parser_check(p, bait__token__TokenKind.key_as)
-	const target = bait__parser__Parser_parse_type(p)
-	return new bait__ast__AsCast({ target: target, expr: left, pos: pos })
+	const bait_target = bait__parser__Parser_parse_type(p)
+	return new bait__ast__AsCast({ target: bait_target, expr: left, pos: pos })
 }
 
 function bait__parser__Parser_bool_literal(p) {
@@ -4730,7 +4730,7 @@ function bait__util__shell_escape(s) {
 }
 
 
-const bait__util__VERSION = from_js_string(`0.0.3-dev ${from_js_string("2b6a107").str}`)
+const bait__util__VERSION = from_js_string(`0.0.3-dev ${from_js_string("ff75e9a").str}`)
 
 function bait__gen__js__Gen_expr(g, expr) {
 	if (expr instanceof bait__ast__AnonFun) {
@@ -5232,7 +5232,7 @@ function bait__gen__js__Gen_expr_to_string(g, expr, typ) {
 }
 
 
-const bait__gen__js__JS_RESERVED = new array({ data: [from_js_string("case"), from_js_string("default"), from_js_string("new"), from_js_string("var"), from_js_string("with")], length: 5 })
+const bait__gen__js__JS_RESERVED = new array({ data: [from_js_string("await"), from_js_string("break"), from_js_string("case"), from_js_string("catch"), from_js_string("class"), from_js_string("const"), from_js_string("continue"), from_js_string("debugger"), from_js_string("default"), from_js_string("delete"), from_js_string("do"), from_js_string("else"), from_js_string("enum"), from_js_string("export"), from_js_string("extends"), from_js_string("false"), from_js_string("finally"), from_js_string("for"), from_js_string("function"), from_js_string("if"), from_js_string("import"), from_js_string("in"), from_js_string("instanceof"), from_js_string("new"), from_js_string("null"), from_js_string("return"), from_js_string("super"), from_js_string("switch"), from_js_string("this"), from_js_string("throw"), from_js_string("true"), from_js_string("try"), from_js_string("typeof"), from_js_string("var"), from_js_string("void"), from_js_string("while"), from_js_string("with"), from_js_string("yield"), from_js_string("let"), from_js_string("static"), from_js_string("implements"), from_js_string("interface"), from_js_string("package"), from_js_string("private"), from_js_string("protected"), from_js_string("public"), from_js_string("as"), from_js_string("async"), from_js_string("from"), from_js_string("get"), from_js_string("meta"), from_js_string("of"), from_js_string("set"), from_js_string("target")], length: 54 })
 function bait__gen__js__Gen({ pref = new bait__preference__Prefs({}), table = new bait__ast__Table({}), path = from_js_string(""), pkg = from_js_string(""), type_defs_out = from_js_string(""), global_out = from_js_string(""), out = from_js_string(""), indent = 0, empty_line = false, tmp_counter = 0, cur_fun = new bait__ast__FunDecl({}), is_for_loop_head = false, is_lhs_assign = false, is_array_map_set = false }) {
 	this.pref = pref
 	this.table = table
