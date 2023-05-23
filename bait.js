@@ -1887,6 +1887,17 @@ bait__ast__EnumVal.prototype = {
     pos: ${this.pos.toString()}
 }`}
 }
+function bait__ast__HashExpr({ val = from_js_string(""), pos = new bait__token__Pos({}) }) {
+	this.val = val
+	this.pos = pos
+}
+bait__ast__HashExpr.prototype = {
+	toString() {
+		return `bait__ast__HashExpr{
+    val: ${this.val.toString()}
+    pos: ${this.pos.toString()}
+}`}
+}
 function bait__ast__Ident({ name = from_js_string(""), is_mut = false, pkg = from_js_string(""), pos = new bait__token__Pos({}) }) {
 	this.name = name
 	this.is_mut = is_mut
@@ -2063,16 +2074,14 @@ bait__ast__SelectorExpr.prototype = {
     pos: ${this.pos.toString()}
 }`}
 }
-function bait__ast__StringLiteral({ val = from_js_string(""), lang = 0, pos = new bait__token__Pos({}) }) {
+function bait__ast__StringLiteral({ val = from_js_string(""), pos = new bait__token__Pos({}) }) {
 	this.val = val
-	this.lang = lang
 	this.pos = pos
 }
 bait__ast__StringLiteral.prototype = {
 	toString() {
 		return `bait__ast__StringLiteral{
     val: ${this.val.toString()}
-    lang: ${this.lang.toString()}
     pos: ${this.pos.toString()}
 }`}
 }
@@ -2660,7 +2669,7 @@ function bait__parser__Parser_expr(p, precedence) {
 			}
 		case bait__token__TokenKind.string:
 			{
-				node = bait__parser__Parser_string_literal(p, bait__ast__Language.bait)
+				node = bait__parser__Parser_string_literal(p)
 				break
 			}
 		case bait__token__TokenKind.key_fun:
@@ -2865,7 +2874,8 @@ function bait__parser__Parser_enum_val(p, has_name) {
 function bait__parser__Parser_hash_expr(p) {
 	bait__parser__Parser_check(p, bait__token__TokenKind.hash)
 	bait__parser__Parser_check(p, bait__token__TokenKind.dot)
-	return bait__parser__Parser_string_literal(p, bait__ast__Language.js)
+	const str_node = bait__parser__Parser_string_literal(p)
+	return new bait__ast__HashExpr({ val: str_node.val, pos: str_node.pos })
 }
 
 function bait__parser__Parser_ident(p) {
@@ -3012,11 +3022,11 @@ function bait__parser__Parser_prefix_expr(p) {
 	return new bait__ast__PrefixExpr({ op: op, right: right, pos: pos })
 }
 
-function bait__parser__Parser_string_literal(p, lang) {
+function bait__parser__Parser_string_literal(p) {
 	const pos = p.tok.pos
 	if (p.next_tok.kind != bait__token__TokenKind.dollar) {
 		bait__parser__Parser_next(p)
-		return new bait__ast__StringLiteral({ val: p.prev_tok.val, lang: lang, pos: pos })
+		return new bait__ast__StringLiteral({ val: p.prev_tok.val, pos: pos })
 	}
 	let vals = new array({ data: [], length: 0 })
 	let exprs = new array({ data: [], length: 0 })
@@ -3929,6 +3939,8 @@ function bait__checker__Checker_expr(c, expr) {
 		return bait__checker__Checker_comp_time_var(c, expr)
 	} else if (expr instanceof bait__ast__EnumVal) {
 		return bait__checker__Checker_enum_val(c, expr)
+	} else if (expr instanceof bait__ast__HashExpr) {
+		return bait__checker__Checker_hash_expr(c, expr)
 	} else if (expr instanceof bait__ast__Ident) {
 		return bait__checker__Checker_ident(c, expr)
 	} else if (expr instanceof bait__ast__IfExpr) {
@@ -4155,6 +4167,13 @@ function bait__checker__Checker_enum_val(c, node) {
 	return node.typ
 }
 
+function bait__checker__Checker_hash_expr(c, node) {
+	if (!c.is_js_file) {
+		bait__checker__Checker_warn(c, from_js_string("JS code can only be used in .js.bt files"), node.pos)
+	}
+	return bait__ast__VOID_TYPE
+}
+
 function bait__checker__Checker_ident(c, node) {
 	let obj = bait__ast__Scope_get(c.scope, node.name)
 	if (obj.typ != bait__ast__PLACEHOLDER_TYPE) {
@@ -4303,12 +4322,6 @@ function bait__checker__Checker_selector_expr(c, node) {
 }
 
 function bait__checker__Checker_string_literal(c, node) {
-	if (node.lang != bait__ast__Language.bait) {
-		if (!c.is_js_file) {
-			bait__checker__Checker_warn(c, from_js_string("JS code can only be used in .js.bt files"), node.pos)
-		}
-		return bait__ast__VOID_TYPE
-	}
 	return bait__ast__STRING_TYPE
 }
 
@@ -4577,7 +4590,7 @@ function bait__checker__Checker_const_decl(c, node) {
 function bait__checker__Checker_expr_stmt(c, node) {
 	const expr = node.expr
 	bait__checker__Checker_expr(c, expr)
-	if (expr instanceof bait__ast__CallExpr || expr instanceof bait__ast__IfExpr || expr instanceof bait__ast__MatchExpr || (expr instanceof bait__ast__StringLiteral && expr.lang == bait__ast__Language.js)) {
+	if (expr instanceof bait__ast__CallExpr || expr instanceof bait__ast__IfExpr || expr instanceof bait__ast__MatchExpr || expr instanceof bait__ast__HashExpr) {
 		return
 	}
 	bait__checker__Checker_error(c, from_js_string("expression evaluated but not used"), expr.pos)
@@ -4717,7 +4730,7 @@ function bait__util__shell_escape(s) {
 }
 
 
-const bait__util__VERSION = from_js_string(`0.0.3-dev ${from_js_string("4be0089").str}`)
+const bait__util__VERSION = from_js_string(`0.0.3-dev ${from_js_string("2b6a107").str}`)
 
 function bait__gen__js__Gen_expr(g, expr) {
 	if (expr instanceof bait__ast__AnonFun) {
@@ -4736,6 +4749,8 @@ function bait__gen__js__Gen_expr(g, expr) {
 		bait__gen__js__Gen_comp_time_var(g, expr)
 	} else if (expr instanceof bait__ast__EnumVal) {
 		bait__gen__js__Gen_enum_val(g, expr)
+	} else if (expr instanceof bait__ast__HashExpr) {
+		bait__gen__js__Gen_hash_expr(g, expr)
 	} else if (expr instanceof bait__ast__Ident) {
 		bait__gen__js__Gen_ident(g, expr)
 	} else if (expr instanceof bait__ast__IfExpr) {
@@ -4913,6 +4928,10 @@ function bait__gen__js__Gen_comp_time_var(g, node) {
 
 function bait__gen__js__Gen_enum_val(g, node) {
 	bait__gen__js__Gen_write(g, string_add(string_add(bait__gen__js__js_name(node.name), from_js_string(".")), node.val))
+}
+
+function bait__gen__js__Gen_hash_expr(g, node) {
+	bait__gen__js__Gen_write(g, node.val)
 }
 
 function bait__gen__js__Gen_ident(g, node) {
@@ -5150,10 +5169,6 @@ function bait__gen__js__Gen_selector_expr(g, node) {
 }
 
 function bait__gen__js__Gen_string_literal(g, node) {
-	if (node.lang != bait__ast__Language.bait) {
-		bait__gen__js__Gen_write(g, node.val)
-		return
-	}
 	const val = bait__util__escape_char(string_replace(node.val, from_js_string("\n"), from_js_string("\\n")), new u8("\""))
 	bait__gen__js__Gen_write(g, from_js_string("from_js_string(\""))
 	bait__gen__js__Gen_write(g, val)
