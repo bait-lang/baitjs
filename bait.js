@@ -100,8 +100,8 @@ const bait__ast__ObjectKind = {
 	package_: 5
 }
 const bait__ast__TypeKind = {
-	other: 0,
-	placeholder: 1,
+	placeholder: 0,
+	other: 1,
 	string: 2,
 	array: 3,
 	map: 4,
@@ -2528,22 +2528,22 @@ function bait__ast__TypeSymbol_has_method(sym, name) {
 
 function bait__ast__Table_register_builtins(t) {
 	bait__ast__Table_register_sym(t, new bait__ast__TypeSymbol({ name: from_js_string("placeholder"), kind: bait__ast__TypeKind.placeholder }))
-	bait__ast__Table_register_sym(t, new bait__ast__TypeSymbol({ name: from_js_string("void") }))
-	bait__ast__Table_register_sym(t, new bait__ast__TypeSymbol({ name: from_js_string("i8") }))
-	bait__ast__Table_register_sym(t, new bait__ast__TypeSymbol({ name: from_js_string("i16") }))
-	bait__ast__Table_register_sym(t, new bait__ast__TypeSymbol({ name: from_js_string("i32") }))
-	bait__ast__Table_register_sym(t, new bait__ast__TypeSymbol({ name: from_js_string("i64") }))
-	bait__ast__Table_register_sym(t, new bait__ast__TypeSymbol({ name: from_js_string("u8") }))
-	bait__ast__Table_register_sym(t, new bait__ast__TypeSymbol({ name: from_js_string("u16") }))
-	bait__ast__Table_register_sym(t, new bait__ast__TypeSymbol({ name: from_js_string("u32") }))
-	bait__ast__Table_register_sym(t, new bait__ast__TypeSymbol({ name: from_js_string("u64") }))
-	bait__ast__Table_register_sym(t, new bait__ast__TypeSymbol({ name: from_js_string("f32") }))
-	bait__ast__Table_register_sym(t, new bait__ast__TypeSymbol({ name: from_js_string("f64") }))
-	bait__ast__Table_register_sym(t, new bait__ast__TypeSymbol({ name: from_js_string("bool") }))
+	bait__ast__Table_register_sym(t, new bait__ast__TypeSymbol({ name: from_js_string("void"), kind: bait__ast__TypeKind.other }))
+	bait__ast__Table_register_sym(t, new bait__ast__TypeSymbol({ name: from_js_string("i8"), kind: bait__ast__TypeKind.other }))
+	bait__ast__Table_register_sym(t, new bait__ast__TypeSymbol({ name: from_js_string("i16"), kind: bait__ast__TypeKind.other }))
+	bait__ast__Table_register_sym(t, new bait__ast__TypeSymbol({ name: from_js_string("i32"), kind: bait__ast__TypeKind.other }))
+	bait__ast__Table_register_sym(t, new bait__ast__TypeSymbol({ name: from_js_string("i64"), kind: bait__ast__TypeKind.other }))
+	bait__ast__Table_register_sym(t, new bait__ast__TypeSymbol({ name: from_js_string("u8"), kind: bait__ast__TypeKind.other }))
+	bait__ast__Table_register_sym(t, new bait__ast__TypeSymbol({ name: from_js_string("u16"), kind: bait__ast__TypeKind.other }))
+	bait__ast__Table_register_sym(t, new bait__ast__TypeSymbol({ name: from_js_string("u32"), kind: bait__ast__TypeKind.other }))
+	bait__ast__Table_register_sym(t, new bait__ast__TypeSymbol({ name: from_js_string("u64"), kind: bait__ast__TypeKind.other }))
+	bait__ast__Table_register_sym(t, new bait__ast__TypeSymbol({ name: from_js_string("f32"), kind: bait__ast__TypeKind.other }))
+	bait__ast__Table_register_sym(t, new bait__ast__TypeSymbol({ name: from_js_string("f64"), kind: bait__ast__TypeKind.other }))
+	bait__ast__Table_register_sym(t, new bait__ast__TypeSymbol({ name: from_js_string("bool"), kind: bait__ast__TypeKind.other }))
 	bait__ast__Table_register_sym(t, new bait__ast__TypeSymbol({ name: from_js_string("string"), kind: bait__ast__TypeKind.string }))
 	bait__ast__Table_register_sym(t, new bait__ast__TypeSymbol({ name: from_js_string("array"), kind: bait__ast__TypeKind.array }))
 	bait__ast__Table_register_sym(t, new bait__ast__TypeSymbol({ name: from_js_string("map"), kind: bait__ast__TypeKind.map }))
-	bait__ast__Table_register_sym(t, new bait__ast__TypeSymbol({ name: from_js_string("any") }))
+	bait__ast__Table_register_sym(t, new bait__ast__TypeSymbol({ name: from_js_string("any"), kind: bait__ast__TypeKind.other }))
 }
 
 
@@ -4665,7 +4665,7 @@ function bait__util__shell_escape(s) {
 }
 
 
-const bait__util__VERSION = from_js_string(`0.0.3-dev ${from_js_string("8771acb").str}`)
+const bait__util__VERSION = from_js_string(`0.0.3-dev ${from_js_string("3f6ae86").str}`)
 
 function bait__gen__js__Gen_expr(g, expr) {
 	if (expr instanceof bait__ast__AnonFun) {
