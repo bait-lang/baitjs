@@ -2458,6 +2458,7 @@ bait__ast__EmptyInfo.prototype = {
 }`}
 }
 
+function bait__ast__Type(val) { return val }
 const bait__ast__PLACEHOLDER_TYPE = bait__ast__new_type(0)
 const bait__ast__VOID_TYPE = bait__ast__new_type(1)
 const bait__ast__I8_TYPE = bait__ast__new_type(2)
@@ -3994,6 +3995,9 @@ function bait__checker__Checker_array_init(c, node) {
 				node.elem_type = typ
 				c.expected_type = typ
 			}
+			if (!bait__checker__Checker_check_types(c, typ, node.elem_type)) {
+				bait__checker__Checker_error(c, from_js_string(`expected element type ${bait__ast__Table_type_name(c.table, node.elem_type).str}, got ${bait__ast__Table_type_name(c.table, typ).str}`), node.pos)
+			}
 		}
 		node.typ = bait__ast__Table_find_or_register_array(c.table, node.elem_type)
 	}
@@ -4044,7 +4048,7 @@ function bait__checker__Checker_fun_call(c, node) {
 			bait__checker__Checker_error(c, from_js_string(`function ${def.name.str} is private`), node.pos)
 		}
 		if (node.args.length == def.params.length) {
-			if (string_eq(node.name, from_js_string("println"))) {
+			if (string_eq(node.name, from_js_string("println")) || string_eq(node.name, from_js_string("eprintln"))) {
 				for (let _t10 = 0; _t10 < node.args.length; _t10++) {
 					const arg = array_get(node.args, _t10)
 					arg.typ = bait__checker__Checker_expr(c, arg.expr)
@@ -4730,7 +4734,7 @@ function bait__util__shell_escape(s) {
 }
 
 
-const bait__util__VERSION = from_js_string(`0.0.3-dev ${from_js_string("ff75e9a").str}`)
+const bait__util__VERSION = from_js_string(`0.0.3-dev ${from_js_string("92c1819").str}`)
 
 function bait__gen__js__Gen_expr(g, expr) {
 	if (expr instanceof bait__ast__AnonFun) {
@@ -4738,7 +4742,7 @@ function bait__gen__js__Gen_expr(g, expr) {
 	} else if (expr instanceof bait__ast__ArrayInit) {
 		bait__gen__js__Gen_array_init(g, expr)
 	} else if (expr instanceof bait__ast__AsCast) {
-		bait__gen__js__Gen_expr(g, expr.expr)
+		bait__gen__js__Gen_as_cast(g, expr)
 	} else if (expr instanceof bait__ast__BoolLiteral) {
 		bait__gen__js__Gen_bool_literal(g, expr)
 	} else if (expr instanceof bait__ast__CallExpr) {
@@ -4817,6 +4821,15 @@ function bait__gen__js__Gen_array_init(g, node) {
 		}
 	}
 	bait__gen__js__Gen_write(g, from_js_string(`], length: ${i32_str(node.exprs.length)} })`))
+}
+
+function bait__gen__js__Gen_as_cast(g, node) {
+	const target_sym = bait__ast__Table_get_sym(g.table, node.target)
+	if (target_sym.kind == bait__ast__TypeKind.alias_type) {
+		bait__gen__js__Gen_expr(g, node.expr)
+		return
+	}
+	bait__gen__js__Gen_expr(g, node.expr)
 }
 
 function bait__gen__js__Gen_bool_literal(g, node) {
@@ -5209,7 +5222,7 @@ function bait__gen__js__Gen_struct_init(g, node) {
 
 function bait__gen__js__Gen_type_of(g, node) {
 	const sym = bait__ast__Table_get_sym(g.table, node.typ)
-	bait__gen__js__Gen_write(g, string_add(string_add(from_js_string("\""), sym.name), from_js_string("\"")))
+	bait__gen__js__Gen_write(g, string_add(string_add(from_js_string("from_js_string(\""), sym.name), from_js_string("\")")))
 }
 
 function bait__gen__js__Gen_expr_to_string(g, expr, typ) {
@@ -5289,18 +5302,20 @@ function bait__gen__js__Gen_new_temp_var(g) {
 	return from_js_string(`_t${i32_str(g.tmp_counter)}`)
 }
 
-function bait__gen__js__Gen_write(g, s) {
+function bait__gen__js__Gen_write_indent(g) {
 	if (g.indent > 0 && g.empty_line) {
 		g.out = string_add(g.out, string_repeat(from_js_string("\t"), g.indent))
 	}
+}
+
+function bait__gen__js__Gen_write(g, s) {
+	bait__gen__js__Gen_write_indent(g)
 	g.out = string_add(g.out, s)
 	g.empty_line = false
 }
 
 function bait__gen__js__Gen_writeln(g, s) {
-	if (g.indent > 0 && g.empty_line) {
-		g.out = string_add(g.out, string_repeat(from_js_string("\t"), g.indent))
-	}
+	bait__gen__js__Gen_write_indent(g)
 	g.out = string_add(g.out, string_add(s, from_js_string("\n")))
 	g.empty_line = true
 }
@@ -5325,6 +5340,7 @@ function bait__gen__js__Gen_gen_test_main(g) {
 	bait__gen__js__Gen_writeln(g, from_js_string("}"))
 	if (nr_test_funs == 0) {
 		bait__errors__generic_error(from_js_string(`${g.path.str} contains no tests`))
+		exit(1)
 	}
 }
 
@@ -5434,6 +5450,7 @@ function bait__gen__js__Gen_stmt(g, stmt) {
 	} else if (stmt instanceof bait__ast__StructDecl) {
 		bait__gen__js__Gen_struct_decl(g, stmt)
 	} else if (stmt instanceof bait__ast__TypeDecl) {
+		bait__gen__js__Gen_type_decl(g, stmt)
 	} else {
 	}
 }
@@ -5658,6 +5675,8 @@ function bait__gen__js__Gen_interface_decl(g, node) {
 	if (node.lang != bait__ast__Language.bait) {
 		return
 	}
+	bait__errors__error(g.path, node.pos, from_js_string("only JS interfaces are supported right now"))
+	exit(1)
 }
 
 function bait__gen__js__Gen_return_stmt(g, node) {
@@ -5709,6 +5728,16 @@ function bait__gen__js__Gen_struct_decl(g, node) {
 	bait__gen__js__Gen_writeln(g, from_js_string("}\`}"))
 	g.indent -= 1
 	bait__gen__js__Gen_writeln(g, from_js_string("}"))
+}
+
+function bait__gen__js__Gen_type_decl(g, node) {
+	const sym = bait__ast__Table_get_sym(g.table, node.typ)
+	if (sym.kind != bait__ast__TypeKind.alias_type) {
+		return
+	}
+	bait__gen__js__Gen_write(g, from_js_string("function "))
+	bait__gen__js__Gen_write(g, bait__gen__js__js_name(node.name))
+	bait__gen__js__Gen_writeln(g, from_js_string("(val) { return val }"))
 }
 
 
