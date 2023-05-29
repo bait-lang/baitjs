@@ -4801,7 +4801,7 @@ function bait__util__shell_escape(s) {
 }
 
 
-const bait__util__VERSION = from_js_string(`0.0.3-dev ${from_js_string("c63ada4").str}`)
+const bait__util__VERSION = from_js_string(`0.0.3-dev ${from_js_string("d7dc36f").str}`)
 
 function bait__gen__js__Gen_expr(g, expr) {
 	if (expr instanceof bait__ast__AnonFun) {
@@ -5117,14 +5117,6 @@ function bait__gen__js__Gen_infix_expr(g, node) {
 		return
 	}
 	if (eq(node.left_type, bait__ast__U8_TYPE)) {
-		if (eq(node.op, bait__token__TokenKind.plus)) {
-			bait__gen__js__Gen_write(g, from_js_string("u8_add("))
-			bait__gen__js__Gen_expr(g, node.left)
-			bait__gen__js__Gen_write(g, from_js_string(", "))
-			bait__gen__js__Gen_expr(g, node.right)
-			bait__gen__js__Gen_write(g, from_js_string(")"))
-			return
-		}
 		bait__gen__js__Gen_expr(g, node.left)
 		bait__gen__js__Gen_write(g, from_js_string(".val "))
 		bait__gen__js__Gen_write(g, bait__token__TokenKind_js_repr(node.op))
