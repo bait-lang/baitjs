@@ -3590,7 +3590,7 @@ function bait__parser__Parser_fun_decl(p) {
 	params = array_concat(params, bait__parser__Parser_fun_params(p))
 	bait__parser__Parser_check(p, bait__token__TokenKind.rpar)
 	let return_type = bait__ast__VOID_TYPE
-	if (!eq(p.tok.kind, bait__token__TokenKind.lcur)) {
+	if (!eq(p.tok.kind, bait__token__TokenKind.lcur) && eq(pos.line, p.tok.pos.line)) {
 		return_type = bait__parser__Parser_parse_type(p)
 	}
 	let node = new bait__ast__FunDecl({ is_test: p.is_test_file && string_starts_with(name, from_js_string("test_")), is_pub: is_pub, name: name, params: params, return_type: return_type, attrs: p.attributes, lang: lang, pos: pos })
@@ -4852,7 +4852,7 @@ function bait__util__shell_escape(s) {
 }
 
 
-const bait__util__VERSION = from_js_string(`0.0.3-dev ${from_js_string("e409d7a").str}`)
+const bait__util__VERSION = from_js_string(`0.0.3-dev ${from_js_string("492df0b").str}`)
 
 function bait__gen__js__Gen_expr(g, expr) {
 	if (expr instanceof bait__ast__AnonFun) {
