@@ -1,3 +1,8 @@
+const JS__process = require("process")
+const JS__os = require("os")
+const JS__fs = require("fs")
+const JS__path = require("path")
+const JS__child_process = require("child_process")
 
 var test_runner = new TestRunner({})
 
@@ -175,7 +180,6 @@ function TestRunner_exit_code(tr) {
 }
 
 
-var process = require("process")
 function println(msg) {
 	console.log(msg)
 }
@@ -185,7 +189,7 @@ function eprintln(msg) {
 }
 
 function exit(code) {
-	process.exit(code)
+	JS__process.exit(code)
 }
 
 function panic(msg) {
@@ -455,14 +459,10 @@ function array_string_to_js_arr(arr) {
 }
 
 
-var os = require("os")
-var fs = require("fs")
-var js_path = require("path")
-var child_process = require("child_process")
 
-const os__ARGS = from_js_string_arr(process.argv)
+const os__ARGS = from_js_string_arr(JS__process.argv)
 function os__ls(dir) {
-	return from_js_string_arr(fs.readdirSync(dir.str))
+	return from_js_string_arr(JS__fs.readdirSync(dir.str))
 }
 
 function os__walk_ext(dir, ext) {
@@ -481,63 +481,63 @@ function os__walk_ext(dir, ext) {
 }
 
 function os__cp(src, dest) {
-	fs.copyFileSync(src.str, dest.str)
+	JS__fs.copyFileSync(src.str, dest.str)
 }
 
 function os__exists(path) {
-	return fs.existsSync(path.str)
+	return JS__fs.existsSync(path.str)
 }
 
 function os__file_name(path) {
-	return from_js_string(js_path.basename(path.str))
+	return from_js_string(JS__path.basename(path.str))
 }
 
 function os__file_mod_time(path) {
-	return fs.lstatSync(path.str).mtimeMs
+	return JS__fs.lstatSync(path.str).mtimeMs
 }
 
 function os__symlink(src, dest) {
-	fs.symlinkSync(src.str, dest.str)
+	JS__fs.symlinkSync(src.str, dest.str)
 }
 
 function os__chdir(dir) {
-	process.chdir(dir.str)
+	JS__process.chdir(dir.str)
 }
 
 function os__home_dir() {
-	return from_js_string(os.homedir())
+	return from_js_string(JS__os.homedir())
 }
 
 function os__dir(path) {
-	return from_js_string(js_path.dirname(path.str))
+	return from_js_string(JS__path.dirname(path.str))
 }
 
 function os__is_dir(path) {
-	return fs.lstatSync(path.str).isDirectory()
+	return JS__fs.lstatSync(path.str).isDirectory()
 }
 
 function os__mkdir(dir) {
-	fs.mkdirSync(dir.str)
+	JS__fs.mkdirSync(dir.str)
 }
 
 function os__mkdir_all(dir) {
-	fs.mkdirSync(dir.str, { recursive: true })
+	JS__fs.mkdirSync(dir.str, { recursive: true })
 }
 
 function os__rm(path) {
-	fs.rmSync(path.str)
+	JS__fs.rmSync(path.str)
 }
 
 function os__rmdir(dir) {
-	fs.rmdirSync(dir.str)
+	JS__fs.rmdirSync(dir.str)
 }
 
 function os__rmdir_all(dir) {
-	fs.rmdirSync(dir.str, { recursive: true })
+	JS__fs.rmdirSync(dir.str, { recursive: true })
 }
 
 function os__read_file(path) {
-	return from_js_string(fs.readFileSync(path.str).toString())
+	return from_js_string(JS__fs.readFileSync(path.str).toString())
 }
 
 function os__read_lines(path) {
@@ -546,16 +546,16 @@ function os__read_lines(path) {
 }
 
 function os__write_file(path, text) {
-	fs.writeFileSync(path.str, text.str)
+	JS__fs.writeFileSync(path.str, text.str)
 }
 
 function os__getwd() {
-	return from_js_string(process.cwd())
+	return from_js_string(JS__process.cwd())
 }
 
 function os__join_path(base, dirs) {
 	const js_dirs = array_string_to_js_arr(dirs)
-	return from_js_string(js_path.join(base.str, ...js_dirs))
+	return from_js_string(JS__path.join(base.str, ...js_dirs))
 }
 
 function os__executable() {
@@ -564,7 +564,7 @@ function os__executable() {
 
 function os__abs_path(path) {
 	const wd = os__getwd()
-	return from_js_string(js_path.resolve(wd.str, path.str))
+	return from_js_string(JS__path.resolve(wd.str, path.str))
 }
 
 function os__resource_abs_path(path) {
@@ -572,18 +572,18 @@ function os__resource_abs_path(path) {
 }
 
 function os__getenv(key) {
-	if (process.env[key.str]) {
-		return from_js_string(process.env[key.str])
+	if (JS__process.env[key.str]) {
+		return from_js_string(JS__process.env[key.str])
 	}
 	return from_js_string("")
 }
 
 function os__setenv(key, value) {
-	process.env[key.str] = value.str
+	JS__process.env[key.str] = value.str
 }
 
 function os__arch() {
-	return from_js_string(os.arch())
+	return from_js_string(JS__os.arch())
 }
 
 function os__Result({ code = 0, stdout = from_js_string(""), stderr = from_js_string("") }) {
@@ -602,7 +602,7 @@ os__Result.prototype = {
 function os__exec(cmd) {
 	let res = new os__Result({})
 	const commands = cmd.str.split(" ")
-	const out = child_process.spawnSync(commands[0], commands.slice(1))
+	const out = JS__child_process.spawnSync(commands[0], commands.slice(1))
 	res.code = out.status
 	res.stdout = from_js_string(out.stdout.toString())
 	res.stderr = from_js_string(out.stderr.toString())
@@ -611,7 +611,7 @@ function os__exec(cmd) {
 
 function os__system(cmd) {
 	try {
-		child_process.execSync(cmd.str, { stdio: "inherit" })
+		JS__child_process.execSync(cmd.str, { stdio: "inherit" })
 	} catch (e) {
 		return e.status
 	}
@@ -4852,7 +4852,7 @@ function bait__util__shell_escape(s) {
 }
 
 
-const bait__util__VERSION = from_js_string(`0.0.3-dev ${from_js_string("492df0b").str}`)
+const bait__util__VERSION = from_js_string(`0.0.3-dev ${from_js_string("e0c01a3").str}`)
 
 function bait__gen__js__Gen_expr(g, expr) {
 	if (expr instanceof bait__ast__AnonFun) {
