@@ -4886,7 +4886,7 @@ function bait__util__shell_escape(s) {
 }
 
 
-const bait__util__VERSION = from_js_string(`0.0.4-dev ${from_js_string("b0a0c14").str}`)
+const bait__util__VERSION = from_js_string(`0.0.4-dev ${from_js_string("8630aef").str}`)
 
 function bait__gen__js__Gen_expr(g, expr) {
 	if (expr instanceof bait__ast__AnonFun) {
