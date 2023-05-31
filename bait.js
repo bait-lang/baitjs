@@ -3899,6 +3899,7 @@ function bait__checker__build_known_attrs() {
 	let attrs = new map({ data: new Map([]), length: 0 })
 	map_set(attrs, from_js_string("deprecated"), bait__checker__AttrValue.optional)
 	map_set(attrs, from_js_string("deprecated_after"), bait__checker__AttrValue.required)
+	map_set(attrs, from_js_string("export"), bait__checker__AttrValue.required)
 	map_set(attrs, from_js_string("overload"), bait__checker__AttrValue.required)
 	return attrs
 }
@@ -3922,6 +3923,8 @@ function bait__checker__Checker_check_attributes(c, node) {
 		}
 		if (eq(attr.name, from_js_string("overload"))) {
 			bait__checker__Checker_attr_overload(c, node, attr)
+		} else if (eq(attr.name, from_js_string("export"))) {
+			bait__checker__Checker_attr_export(c, attr)
 		}
 	}
 }
@@ -3947,8 +3950,16 @@ function bait__checker__Checker_attr_overload(c, node, attr) {
 	map_set(rec_sym.overloads, attr.value, node)
 }
 
+function bait__checker__Checker_attr_export(c, attr) {
+	if (array_string_contains(c.export_names, attr.value)) {
+		bait__checker__Checker_error(c, from_js_string(`@export name "${attr.value.str}" is already used`), attr.pos)
+		return
+	}
+	array_push(c.export_names, attr.value)
+}
 
-function bait__checker__Checker({ pref = new bait__preference__Prefs({}), parsed_files = new array({ data: [], length: 0 }), table = new bait__ast__Table({}), scope = new bait__ast__Scope({}), path = from_js_string(""), pkg = from_js_string(""), has_main_pkg_files = false, has_main_fun = false, is_js_file = false, had_error = false, cur_fun = new bait__ast__FunDecl({}), expected_type = 0, is_lhs_assign = false }) {
+
+function bait__checker__Checker({ pref = new bait__preference__Prefs({}), parsed_files = new array({ data: [], length: 0 }), table = new bait__ast__Table({}), scope = new bait__ast__Scope({}), path = from_js_string(""), pkg = from_js_string(""), has_main_pkg_files = false, has_main_fun = false, is_js_file = false, had_error = false, cur_fun = new bait__ast__FunDecl({}), expected_type = 0, is_lhs_assign = false, export_names = new array({ data: [], length: 0 }) }) {
 	this.pref = pref
 	this.parsed_files = parsed_files
 	this.table = table
@@ -3962,6 +3973,7 @@ function bait__checker__Checker({ pref = new bait__preference__Prefs({}), parsed
 	this.cur_fun = cur_fun
 	this.expected_type = expected_type
 	this.is_lhs_assign = is_lhs_assign
+	this.export_names = export_names
 }
 bait__checker__Checker.prototype = {
 	toString() {
@@ -3979,6 +3991,7 @@ bait__checker__Checker.prototype = {
     cur_fun: ${this.cur_fun.toString()}
     expected_type: ${this.expected_type.toString()}
     is_lhs_assign: ${this.is_lhs_assign.toString()}
+    export_names: ${this.export_names.toString()}
 }`}
 }
 function bait__checker__check_files(files, table, pref) {
@@ -4886,7 +4899,7 @@ function bait__util__shell_escape(s) {
 }
 
 
-const bait__util__VERSION = from_js_string(`0.0.4-dev ${from_js_string("acc6214").str}`)
+const bait__util__VERSION = from_js_string(`0.0.4-dev ${from_js_string("d7207be").str}`)
 
 function bait__gen__js__Gen_expr(g, expr) {
 	if (expr instanceof bait__ast__AnonFun) {
@@ -5840,7 +5853,12 @@ function bait__gen__js__Gen_fun_decl(g, node) {
 	bait__gen__js__Gen_fun_params(g, node.params)
 	bait__gen__js__Gen_writeln(g, from_js_string(") {"))
 	bait__gen__js__Gen_stmts(g, node.stmts)
-	bait__gen__js__Gen_writeln(g, from_js_string("}\n"))
+	bait__gen__js__Gen_writeln(g, from_js_string("}"))
+	const export_attr = array_bait__ast__Attribute_find_attr(node.attrs, from_js_string("export"))
+	if (!eq(export_attr.name, from_js_string(""))) {
+		bait__gen__js__Gen_writeln(g, from_js_string(`module.exports.${export_attr.value.str} = ${bait__gen__js__js_name(node.name).str}`))
+	}
+	bait__gen__js__Gen_writeln(g, from_js_string(""))
 }
 
 function bait__gen__js__Gen_fun_params(g, params) {
