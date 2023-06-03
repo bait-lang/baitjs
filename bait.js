@@ -482,7 +482,7 @@ function os__walk_ext(dir, ext) {
 }
 
 function os__cp(src, dest) {
-	JS__fs.copyFileSync(src.str, dest.str)
+	JS__fs.cpSync(src.str, dest.str, { recursive: true })
 }
 
 function os__exists(path) {
@@ -4900,7 +4900,7 @@ function bait__util__shell_escape(s) {
 }
 
 
-const bait__util__VERSION = from_js_string(`0.0.4-dev ${from_js_string("d271c63").str}`)
+const bait__util__VERSION = from_js_string(`0.0.4-dev ${from_js_string("24fadba").str}`)
 
 function bait__gen__js__Gen_expr(g, expr) {
 	if (expr instanceof bait__ast__AnonFun) {
