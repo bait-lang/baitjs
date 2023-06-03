@@ -2812,7 +2812,7 @@ function bait__parser__Parser_expr(p, precedence) {
 			}
 		default:
 			{
-				bait__parser__Parser_error(p, from_js_string(`invalid expression: ${bait__token__TokenKind_str(p.tok.kind).str}, val: ${p.tok.val.str}`))
+				bait__parser__Parser_error(p, from_js_string(`invalid expression: kind = ${bait__token__TokenKind_str(p.tok.kind).str}, val = ${p.tok.val.str}`))
 				break
 			}
 	}
@@ -3429,7 +3429,7 @@ function bait__parser__Parser_toplevel_stmt(p) {
 				if (eq(p.pkg_name, from_js_string("main"))) {
 					return bait__parser__Parser_script_mode_main(p)
 				}
-				bait__parser__Parser_error(p, from_js_string(`bad toplevel token: kind: ${bait__token__TokenKind_str(p.tok.kind).str}, val: ${p.tok.val.str}`))
+				bait__parser__Parser_error(p, from_js_string(`bad toplevel token: kind = ${bait__token__TokenKind_str(p.tok.kind).str}, val = ${p.tok.val.str}`))
 				break
 			}
 	}
@@ -4935,7 +4935,7 @@ function bait__util__shell_escape(s) {
 }
 
 
-const bait__util__VERSION = from_js_string(`0.0.4-dev ${from_js_string("07dcea9").str}`)
+const bait__util__VERSION = from_js_string(`0.0.4-dev ${from_js_string("3e9dae3").str}`)
 
 function bait__gen__js__Gen_expr(g, expr) {
 	if (expr instanceof bait__ast__AnonFun) {
