@@ -719,10 +719,11 @@ function bait__preference__parse_args(args) {
 		p.should_run = true
 	}
 	if (eq(p.command, from_js_string("test"))) {
+		p.should_run = true
 		p.is_test = true
 	}
 	if (eq(p.out_name.length, 0)) {
-		p.out_name = string_add(string_all_before(p.command, from_js_string(".bt")), from_js_string(".js"))
+		p.out_name = string_replace(p.command, from_js_string(".bt"), from_js_string(".js"))
 	}
 	return p
 }
@@ -3159,7 +3160,7 @@ function bait__parser__Parser_import_stmts(p) {
 }
 
 
-function bait__parser__Parser({ pref = new bait__preference__Prefs({}), path = from_js_string(""), table = new bait__ast__Table({}), tokens = new array({ data: [], length: 0 }), idx = 0, prev_tok = new bait__token__Token({}), tok = new bait__token__Token({}), next_tok = new bait__token__Token({}), pkg_name = from_js_string(""), import_aliases = new map({ data: new Map([]), length: 0 }), attributes = new array({ data: [], length: 0 }), expr_pkg = from_js_string(""), is_test_file = false, is_for_init = false, is_struct_possible = false }) {
+function bait__parser__Parser({ pref = new bait__preference__Prefs({}), path = from_js_string(""), table = new bait__ast__Table({}), tokens = new array({ data: [], length: 0 }), idx = 0, prev_tok = new bait__token__Token({}), tok = new bait__token__Token({}), next_tok = new bait__token__Token({}), pkg_name = from_js_string(""), import_aliases = new map({ data: new Map([]), length: 0 }), attributes = new array({ data: [], length: 0 }), expr_pkg = from_js_string(""), is_for_init = false, is_struct_possible = false }) {
 	this.pref = pref
 	this.path = path
 	this.table = table
@@ -3172,7 +3173,6 @@ function bait__parser__Parser({ pref = new bait__preference__Prefs({}), path = f
 	this.import_aliases = import_aliases
 	this.attributes = attributes
 	this.expr_pkg = expr_pkg
-	this.is_test_file = is_test_file
 	this.is_for_init = is_for_init
 	this.is_struct_possible = is_struct_possible
 }
@@ -3191,13 +3191,12 @@ bait__parser__Parser.prototype = {
     import_aliases: ${this.import_aliases.toString()}
     attributes: ${this.attributes.toString()}
     expr_pkg: ${this.expr_pkg.toString()}
-    is_test_file: ${this.is_test_file.toString()}
     is_for_init: ${this.is_for_init.toString()}
     is_struct_possible: ${this.is_struct_possible.toString()}
 }`}
 }
 function bait__parser__parse(tokens, path, table, pref) {
-	let p = new bait__parser__Parser({ pref: pref, path: path, table: table, tokens: tokens, is_test_file: string_ends_with(path, from_js_string("_test.bt")), is_struct_possible: true })
+	let p = new bait__parser__Parser({ pref: pref, path: path, table: table, tokens: tokens, is_struct_possible: true })
 	bait__parser__Parser_next(p)
 	bait__parser__Parser_next(p)
 	const pkg_decl = bait__parser__Parser_package_decl(p)
@@ -3601,7 +3600,7 @@ function bait__parser__Parser_fun_decl(p) {
 	if (!eq(p.tok.kind, bait__token__TokenKind.lcur) && eq(pos.line, p.tok.pos.line)) {
 		return_type = bait__parser__Parser_parse_type(p)
 	}
-	let node = new bait__ast__FunDecl({ is_test: p.is_test_file && string_starts_with(name, from_js_string("test_")), is_pub: is_pub, name: name, params: params, return_type: return_type, attrs: p.attributes, lang: lang, pos: pos })
+	let node = new bait__ast__FunDecl({ is_test: string_starts_with(name, from_js_string("test_")), is_pub: is_pub, name: name, params: params, return_type: return_type, attrs: p.attributes, lang: lang, pos: pos })
 	p.attributes = new array({ data: [], length: 0 })
 	if (is_method) {
 		const sym = bait__ast__Table_get_sym(p.table, array_get(params, 0).typ)
@@ -4015,7 +4014,7 @@ function bait__checker__check_files(files, table, pref) {
 
 function bait__checker__Checker_check(c, file) {
 	c.path = file.path
-	c.is_js_file = string_ends_with(c.path, from_js_string(".js.bt"))
+	c.is_js_file = string_contains(c.path, from_js_string(".js."))
 	c.pkg = file.pkg_decl.full_name
 	if (eq(c.pkg, from_js_string("main"))) {
 		c.has_main_pkg_files = true
@@ -4900,7 +4899,7 @@ function bait__util__shell_escape(s) {
 }
 
 
-const bait__util__VERSION = from_js_string(`0.0.4-dev ${from_js_string("24fadba").str}`)
+const bait__util__VERSION = from_js_string(`0.0.4-dev ${from_js_string("ef2249c").str}`)
 
 function bait__gen__js__Gen_expr(g, expr) {
 	if (expr instanceof bait__ast__AnonFun) {
@@ -6323,16 +6322,16 @@ function bait__builder__Builder_collect_bait_files(b, dir) {
 	let files = new array({ data: [], length: 0 })
 	for (let _t36 = 0; _t36 < all_files.length; _t36++) {
 		const f = array_get(all_files, _t36)
-		if (string_ends_with(f, from_js_string("_test.bt"))) {
-			continue
-		}
 		if (!string_ends_with(f, from_js_string(".bt"))) {
 			continue
 		}
-		if (eq(b.prefs.backend, bait__preference__Backend.js) && string_ends_with(f, from_js_string(".c.bt"))) {
+		if (string_contains(f, from_js_string("_test."))) {
 			continue
 		}
-		if (eq(b.prefs.backend, bait__preference__Backend.c) && string_ends_with(f, from_js_string(".js.bt"))) {
+		if (eq(b.prefs.backend, bait__preference__Backend.js) && string_contains(f, from_js_string(".c."))) {
+			continue
+		}
+		if (eq(b.prefs.backend, bait__preference__Backend.c) && string_contains(f, from_js_string(".js."))) {
 			continue
 		}
 		array_push(files, os__join_path(dir, new array({ data: [f], length: 1 })))
@@ -6458,7 +6457,7 @@ function bait__builder__run_tests(prefs) {
 	let files_to_test = new array({ data: [], length: 0 })
 	for (let _t45 = 0; _t45 < prefs.args.length; _t45++) {
 		const a = array_get(prefs.args, _t45)
-		if (os__exists(a) && string_ends_with(a, from_js_string("_test.bt"))) {
+		if (os__exists(a) && string_ends_with(a, from_js_string(".bt")) && string_contains(a, from_js_string("_test."))) {
 			array_push(files_to_test, a)
 		} else if (os__is_dir(a)) {
 			files_to_test = array_concat(files_to_test, os__walk_ext(a, from_js_string("_test.bt")))
@@ -6468,7 +6467,6 @@ function bait__builder__run_tests(prefs) {
 		}
 	}
 	let test_prefs = prefs
-	test_prefs.should_run = true
 	let has_fails = false
 	for (let i = 0; i < files_to_test.length; i++) {
 		const file = array_get(files_to_test, i)
