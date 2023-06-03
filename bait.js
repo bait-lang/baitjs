@@ -3821,7 +3821,7 @@ function bait__parser__Parser_struct_init_field(p) {
 		bait__parser__Parser_warn(p, from_js_string("use `field = \"value\"` instead"))
 		bait__parser__Parser_next(p)
 	} else {
-		bait__parser__Parser_check(p, bait__token__TokenKind.eq)
+		bait__parser__Parser_check(p, bait__token__TokenKind.assign)
 	}
 	const expr = bait__parser__Parser_expr(p, 0)
 	return new bait__ast__StructInitField({ name: name, expr: expr, pos: pos })
@@ -4935,7 +4935,7 @@ function bait__util__shell_escape(s) {
 }
 
 
-const bait__util__VERSION = from_js_string(`0.0.4-dev ${from_js_string("a481506").str}`)
+const bait__util__VERSION = from_js_string(`0.0.4-dev ${from_js_string("07dcea9").str}`)
 
 function bait__gen__js__Gen_expr(g, expr) {
 	if (expr instanceof bait__ast__AnonFun) {
