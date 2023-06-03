@@ -2706,18 +2706,18 @@ function bait__ast__TypeSymbol_has_method(sym, name) {
 
 function bait__ast__Table_register_builtins(t) {
 	bait__ast__Table_register_sym(t, new bait__ast__TypeSymbol({ name: from_js_string("placeholder"), kind: bait__ast__TypeKind.placeholder }))
-	bait__ast__Table_register_sym(t, new bait__ast__TypeSymbol({ name: from_js_string("void"), kind: bait__ast__TypeKind.other }))
-	bait__ast__Table_register_sym(t, new bait__ast__TypeSymbol({ name: from_js_string("i8"), kind: bait__ast__TypeKind.other }))
-	bait__ast__Table_register_sym(t, new bait__ast__TypeSymbol({ name: from_js_string("i16"), kind: bait__ast__TypeKind.other }))
-	bait__ast__Table_register_sym(t, new bait__ast__TypeSymbol({ name: from_js_string("i32"), kind: bait__ast__TypeKind.other }))
-	bait__ast__Table_register_sym(t, new bait__ast__TypeSymbol({ name: from_js_string("i64"), kind: bait__ast__TypeKind.other }))
-	bait__ast__Table_register_sym(t, new bait__ast__TypeSymbol({ name: from_js_string("u8"), kind: bait__ast__TypeKind.other }))
-	bait__ast__Table_register_sym(t, new bait__ast__TypeSymbol({ name: from_js_string("u16"), kind: bait__ast__TypeKind.other }))
-	bait__ast__Table_register_sym(t, new bait__ast__TypeSymbol({ name: from_js_string("u32"), kind: bait__ast__TypeKind.other }))
-	bait__ast__Table_register_sym(t, new bait__ast__TypeSymbol({ name: from_js_string("u64"), kind: bait__ast__TypeKind.other }))
-	bait__ast__Table_register_sym(t, new bait__ast__TypeSymbol({ name: from_js_string("f32"), kind: bait__ast__TypeKind.other }))
-	bait__ast__Table_register_sym(t, new bait__ast__TypeSymbol({ name: from_js_string("f64"), kind: bait__ast__TypeKind.other }))
-	bait__ast__Table_register_sym(t, new bait__ast__TypeSymbol({ name: from_js_string("bool"), kind: bait__ast__TypeKind.other }))
+	bait__ast__Table_register_sym(t, new bait__ast__TypeSymbol({ name: from_js_string("void") }))
+	bait__ast__Table_register_sym(t, new bait__ast__TypeSymbol({ name: from_js_string("i8") }))
+	bait__ast__Table_register_sym(t, new bait__ast__TypeSymbol({ name: from_js_string("i16") }))
+	bait__ast__Table_register_sym(t, new bait__ast__TypeSymbol({ name: from_js_string("i32") }))
+	bait__ast__Table_register_sym(t, new bait__ast__TypeSymbol({ name: from_js_string("i64") }))
+	bait__ast__Table_register_sym(t, new bait__ast__TypeSymbol({ name: from_js_string("u8") }))
+	bait__ast__Table_register_sym(t, new bait__ast__TypeSymbol({ name: from_js_string("u16") }))
+	bait__ast__Table_register_sym(t, new bait__ast__TypeSymbol({ name: from_js_string("u32") }))
+	bait__ast__Table_register_sym(t, new bait__ast__TypeSymbol({ name: from_js_string("u64") }))
+	bait__ast__Table_register_sym(t, new bait__ast__TypeSymbol({ name: from_js_string("f32") }))
+	bait__ast__Table_register_sym(t, new bait__ast__TypeSymbol({ name: from_js_string("f64") }))
+	bait__ast__Table_register_sym(t, new bait__ast__TypeSymbol({ name: from_js_string("bool") }))
 	bait__ast__Table_register_sym(t, new bait__ast__TypeSymbol({ name: from_js_string("string"), kind: bait__ast__TypeKind.string }))
 	bait__ast__Table_register_sym(t, new bait__ast__TypeSymbol({ name: from_js_string("array"), kind: bait__ast__TypeKind.array }))
 	bait__ast__Table_register_sym(t, new bait__ast__TypeSymbol({ name: from_js_string("map"), kind: bait__ast__TypeKind.map }))
@@ -3817,12 +3817,7 @@ function bait__parser__Parser_struct_init(p) {
 function bait__parser__Parser_struct_init_field(p) {
 	const pos = p.tok.pos
 	const name = bait__parser__Parser_check_name(p)
-	if (eq(p.tok.kind, bait__token__TokenKind.colon)) {
-		bait__parser__Parser_warn(p, from_js_string("use `field = \"value\"` instead"))
-		bait__parser__Parser_next(p)
-	} else {
-		bait__parser__Parser_check(p, bait__token__TokenKind.assign)
-	}
+	bait__parser__Parser_check(p, bait__token__TokenKind.assign)
 	const expr = bait__parser__Parser_expr(p, 0)
 	return new bait__ast__StructInitField({ name: name, expr: expr, pos: pos })
 }
@@ -4935,7 +4930,7 @@ function bait__util__shell_escape(s) {
 }
 
 
-const bait__util__VERSION = from_js_string(`0.0.4-dev ${from_js_string("3e9dae3").str}`)
+const bait__util__VERSION = from_js_string(`0.0.4-dev ${from_js_string("10e6205").str}`)
 
 function bait__gen__js__Gen_expr(g, expr) {
 	if (expr instanceof bait__ast__AnonFun) {
