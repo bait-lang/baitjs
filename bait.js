@@ -3199,7 +3199,6 @@ function bait__parser__Parser_import_stmts(p) {
 			imp = bait__parser__Parser_bait_import(p)
 		}
 		map_set(p.import_aliases, imp.alias, imp.name)
-		bait__ast__Scope_register(p.table.global_scope, imp.alias, new bait__ast__ScopeObject({ kind: bait__ast__ObjectKind.package_ }))
 		imp.pos = pos
 		array_push(imports, imp)
 	}
@@ -4075,7 +4074,7 @@ bait__checker__Checker.prototype = {
 }`}
 }
 function bait__checker__new_checker(table, pref) {
-	return new bait__checker__Checker({ pref: pref, table: table, scope: new bait__ast__Scope({ parent: table.global_scope }) })
+	return new bait__checker__Checker({ pref: pref, table: table })
 }
 
 function bait__checker__Checker_check_files(c, files) {
@@ -4103,6 +4102,7 @@ function bait__checker__Checker_check(c, file) {
 	c.path = file.path
 	c.is_js_file = string_contains(c.path, from_js_string(".js."))
 	c.pkg = file.pkg_decl.full_name
+	c.scope = new bait__ast__Scope({ parent: c.table.global_scope })
 	if (eq(c.pkg, from_js_string("main"))) {
 		c.has_main_pkg_files = true
 		bait__checker__Checker_check_main_fun(c, file.stmts)
@@ -4114,6 +4114,7 @@ function bait__checker__Checker_check(c, file) {
 function bait__checker__Checker_check_imports(c, imports) {
 	for (let _t12 = 0; _t12 < imports.length; _t12++) {
 		const imp = array_get(imports, _t12)
+		bait__ast__Scope_register(c.scope, imp.alias, new bait__ast__ScopeObject({ kind: bait__ast__ObjectKind.package_ }))
 		if (!c.is_js_file && eq(imp.lang, bait__ast__Language.js)) {
 			bait__checker__Checker_warn(c, from_js_string("JS imports have to be in .js.bt files"), imp.pos)
 		}
@@ -4748,7 +4749,7 @@ function bait__checker__Checker_assign_stmt(c, node) {
 			bait__checker__Checker_error(c, from_js_string(`redefinition of ${left.name.str}`), node.pos)
 			return
 		}
-		bait__ast__Scope_register(c.scope, left.name, new bait__ast__ScopeObject({ typ: typ }))
+		bait__ast__Scope_register(c.scope, left.name, new bait__ast__ScopeObject({ kind: bait__ast__ObjectKind.variable, typ: typ }))
 		bait__checker__Checker_expr(c, node.left)
 		return
 	}
@@ -4930,7 +4931,7 @@ function bait__util__shell_escape(s) {
 }
 
 
-const bait__util__VERSION = from_js_string(`0.0.4-dev ${from_js_string("10e6205").str}`)
+const bait__util__VERSION = from_js_string(`0.0.4-dev ${from_js_string("3554e4e").str}`)
 
 function bait__gen__js__Gen_expr(g, expr) {
 	if (expr instanceof bait__ast__AnonFun) {
