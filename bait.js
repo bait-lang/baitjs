@@ -4494,6 +4494,9 @@ function bait__checker__Checker_struct_init(c, node) {
 		}
 		c.expected_type = def.typ
 		const expr_type = bait__checker__Checker_expr(c, field.expr)
+		if (eq(def.typ, bait__ast__PLACEHOLDER_TYPE)) {
+			continue
+		}
 		if (!bait__checker__Checker_check_types(c, expr_type, def.typ)) {
 			bait__checker__Checker_error(c, from_js_string(`cannot assign to field ${field.name.str}: expected ${bait__ast__Table_type_name(c.table, def.typ).str}, got ${bait__ast__Table_type_name(c.table, expr_type).str} `), node.pos)
 		}
@@ -4960,7 +4963,7 @@ function bait__util__shell_escape(s) {
 }
 
 
-const bait__util__VERSION = from_js_string(`0.0.4-dev ${from_js_string("80e4ddc").str}`)
+const bait__util__VERSION = from_js_string(`0.0.4-dev ${from_js_string("d51f295").str}`)
 
 function bait__gen__js__Gen_expr(g, expr) {
 	if (expr instanceof bait__ast__AnonFun) {
