@@ -2845,7 +2845,11 @@ function bait__parser__Parser_expr(p, precedence) {
 			}
 		default:
 			{
-				bait__parser__Parser_error(p, from_js_string(`invalid expression: kind = ${bait__token__TokenKind_str(p.tok.kind).str}, val = ${p.tok.val.str}`))
+				let msg = from_js_string(`invalid expression: kind = ${bait__token__TokenKind_str(p.tok.kind).str}`)
+				if (p.tok.val.length > 0) {
+					msg = string_add(msg, from_js_string(`, val = ${p.tok.val.str}`))
+				}
+				bait__parser__Parser_error(p, msg)
 				break
 			}
 	}
@@ -3512,7 +3516,7 @@ function bait__parser__Parser_script_mode_main(p) {
 		bait__parser__Parser_warn(p, from_js_string("declare the main function or use the --script option"))
 	}
 	let stmts = new array({ data: [], length: 0 })
-	while (!eq(p.tok.kind, bait__token__TokenKind.eof)) {
+	while (!p.should_abort && !eq(p.tok.kind, bait__token__TokenKind.eof)) {
 		array_push(stmts, bait__parser__Parser_stmt(p))
 	}
 	let node = new bait__ast__FunDecl({ name: from_js_string("main") })
@@ -5000,7 +5004,7 @@ function bait__util__shell_escape(s) {
 }
 
 
-const bait__util__VERSION = from_js_string(`0.0.4-dev ${from_js_string("19a9ce7").str}`)
+const bait__util__VERSION = from_js_string(`0.0.4-dev ${from_js_string("121f69d").str}`)
 
 function bait__gen__js__Gen_expr(g, expr) {
 	if (expr instanceof bait__ast__AnonFun) {
