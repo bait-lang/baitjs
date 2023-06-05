@@ -1626,7 +1626,11 @@ function bait__preference__parse_args(args) {
 		p.is_test = true
 	}
 	if (eq(p.out_name.length, 0)) {
-		p.out_name = string_replace(p.command, from_js_string(".bt"), from_js_string(".js"))
+		if (string_ends_with(p.command, from_js_string(".bt"))) {
+			p.out_name = string_replace(p.command, from_js_string(".bt"), from_js_string(".js"))
+		} else {
+			p.out_name = string_add(p.command, from_js_string(".js"))
+		}
 	}
 	return p
 }
@@ -4956,7 +4960,7 @@ function bait__util__shell_escape(s) {
 }
 
 
-const bait__util__VERSION = from_js_string(`0.0.4-dev ${from_js_string("54ee3e1").str}`)
+const bait__util__VERSION = from_js_string(`0.0.4-dev ${from_js_string("80e4ddc").str}`)
 
 function bait__gen__js__Gen_expr(g, expr) {
 	if (expr instanceof bait__ast__AnonFun) {
