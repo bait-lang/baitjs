@@ -4609,6 +4609,9 @@ function bait__checker__Checker_fun_call(c, node) {
 		const param_type = array_get(def.params, i).typ
 		c.expected_type = param_type
 		arg.typ = bait__checker__Checker_expr(c, arg.expr)
+		if (eq(arg.typ, bait__ast__VOID_TYPE) && !(arg.expr instanceof bait__ast__CallExpr)) {
+			continue
+		}
 		if (!bait__checker__Checker_check_types(c, arg.typ, param_type)) {
 			bait__checker__Checker_error(c, from_js_string(`type ${bait__ast__Table_type_name(c.table, arg.typ).str} not matches ${bait__ast__Table_type_name(c.table, param_type).str} in argument ${i32_str(i + 1).str}`), node.pos)
 		}
@@ -4902,11 +4905,16 @@ function bait__checker__Checker_return_stmt(c, node) {
 function bait__checker__Checker_struct_decl(c, node) {
 	for (let i = 0; i < node.fields.length; i++) {
 		const field = array_get(node.fields, i)
+		let should_continue = false
 		for (let j = 0; j < i; j += 1) {
 			if (eq(field.name, array_get(node.fields, j).name)) {
 				bait__checker__Checker_error(c, from_js_string(`duplicate field name ${field.name.str}`), field.pos)
+				should_continue = true
 				break
 			}
+		}
+		if (should_continue) {
+			continue
 		}
 		if (field.expr instanceof bait__ast__EmptyExpr) {
 			continue
@@ -4992,7 +5000,7 @@ function bait__util__shell_escape(s) {
 }
 
 
-const bait__util__VERSION = from_js_string(`0.0.4-dev ${from_js_string("d24c88b").str}`)
+const bait__util__VERSION = from_js_string(`0.0.4-dev ${from_js_string("19a9ce7").str}`)
 
 function bait__gen__js__Gen_expr(g, expr) {
 	if (expr instanceof bait__ast__AnonFun) {
