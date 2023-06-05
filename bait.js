@@ -478,7 +478,7 @@ function os__walk_ext(dir, ext) {
 		const file = array_get(all_files, _t1)
 		const fpath = os__join_path(dir, new array({ data: [file], length: 1 }))
 		if (os__is_dir(fpath)) {
-			ext_files = array_concat(ext_files, os__walk_ext(fpath, ext))
+			array_push_many(ext_files, os__walk_ext(fpath, ext))
 		} else if (string_ends_with(fpath, ext)) {
 			array_push(ext_files, fpath)
 		}
@@ -586,6 +586,10 @@ function os__getenv(key) {
 
 function os__setenv(key, value) {
 	JS__process.env[key.str] = value.str
+}
+
+function os__user_os() {
+	return from_js_string(JS__process.platform)
 }
 
 function os__arch() {
@@ -1647,6 +1651,27 @@ function bait__preference__backend_from_string(s) {
 			}
 	}
 	return bait__preference__Backend.js
+}
+
+
+function bait__preference__Prefs_should_compile_file(prefs, file) {
+	if (!string_ends_with(file, from_js_string(".bt"))) {
+		return false
+	}
+	if (string_contains(file, from_js_string("_test."))) {
+		return false
+	}
+	return bait__preference__Prefs_matches_backend(prefs, file)
+}
+
+function bait__preference__Prefs_matches_backend(prefs, file) {
+	if (eq(prefs.backend, bait__preference__Backend.js) && string_contains(file, from_js_string(".c."))) {
+		return false
+	}
+	if (eq(prefs.backend, bait__preference__Backend.c) && string_contains(file, from_js_string(".js."))) {
+		return false
+	}
+	return true
 }
 
 
@@ -4931,7 +4956,7 @@ function bait__util__shell_escape(s) {
 }
 
 
-const bait__util__VERSION = from_js_string(`0.0.4-dev ${from_js_string("3554e4e").str}`)
+const bait__util__VERSION = from_js_string(`0.0.4-dev ${from_js_string("54ee3e1").str}`)
 
 function bait__gen__js__Gen_expr(g, expr) {
 	if (expr instanceof bait__ast__AnonFun) {
@@ -6368,19 +6393,9 @@ function bait__builder__Builder_collect_bait_files(b, dir) {
 	let files = new array({ data: [], length: 0 })
 	for (let _t32 = 0; _t32 < all_files.length; _t32++) {
 		const f = array_get(all_files, _t32)
-		if (!string_ends_with(f, from_js_string(".bt"))) {
-			continue
+		if (bait__preference__Prefs_should_compile_file(b.prefs, f)) {
+			array_push(files, os__join_path(dir, new array({ data: [f], length: 1 })))
 		}
-		if (string_contains(f, from_js_string("_test."))) {
-			continue
-		}
-		if (eq(b.prefs.backend, bait__preference__Backend.js) && string_contains(f, from_js_string(".c."))) {
-			continue
-		}
-		if (eq(b.prefs.backend, bait__preference__Backend.c) && string_contains(f, from_js_string(".js."))) {
-			continue
-		}
-		array_push(files, os__join_path(dir, new array({ data: [f], length: 1 })))
 	}
 	return files
 }
@@ -6609,7 +6624,10 @@ function bait__builder__run_tests(prefs) {
 		if (os__exists(a) && string_ends_with(a, from_js_string(".bt")) && string_contains(a, from_js_string("_test."))) {
 			array_push(files_to_test, a)
 		} else if (os__is_dir(a)) {
-			files_to_test = array_concat(files_to_test, os__walk_ext(a, from_js_string("_test.bt")))
+			const t = array_filter(os__walk_ext(a, from_js_string(".bt")), function (f) {
+				return string_contains(f, from_js_string("_test.")) && !string_contains(f, from_js_string(".in."))
+			})
+			array_push_many(files_to_test, t)
 		} else {
 			eprintln(from_js_string(`Unrecognized file or directory: "${a.str}"`).str)
 			exit(1)
