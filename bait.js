@@ -1416,6 +1416,229 @@ function bait__token__TokenKind_str(kind) {
 }
 
 
+const term__color__RESET = term__color__esc(0)
+function term__color__esc(code) {
+	return from_js_string(`\x1b[${i32_str(code).str}m`)
+}
+
+function term__color__format(code, text) {
+	return string_add(string_add(term__color__esc(code), text), term__color__RESET)
+}
+
+const term__color__AnsiCode = {
+	reset: 0,
+	bold: 1,
+	dim: 2,
+	italic: 3,
+	underline: 4,
+	blink_slow: 5,
+	blink_rapid: 6,
+	invert: 7,
+	hide: 8,
+	strike: 9,
+	black: 30,
+	red: 31,
+	green: 32,
+	yellow: 33,
+	blue: 34,
+	magenta: 35,
+	cyan: 36,
+	white: 37,
+	bg_black: 40,
+	bg_red: 41,
+	bg_green: 42,
+	bg_yellow: 43,
+	bg_blue: 44,
+	bg_magenta: 45,
+	bg_cyan: 46,
+	bg_white: 47,
+	overline: 53,
+	bright_black: 90,
+	bright_red: 91,
+	bright_green: 92,
+	bright_yellow: 93,
+	bright_blue: 94,
+	bright_magenta: 95,
+	bright_cyan: 96,
+	bright_white: 97,
+	bg_bright_black: 100,
+	bg_bright_red: 101,
+	bg_bright_green: 102,
+	bg_bright_yellow: 103,
+	bg_bright_blue: 104,
+	bg_bright_magenta: 105,
+	bg_bright_cyan: 106,
+	bg_bright_white: 107,
+}
+function term__color__bold(text) {
+	return term__color__format(term__color__AnsiCode.bold, text)
+}
+
+function term__color__dim(text) {
+	return term__color__format(term__color__AnsiCode.dim, text)
+}
+
+function term__color__italic(text) {
+	return term__color__format(term__color__AnsiCode.italic, text)
+}
+
+function term__color__underline(text) {
+	return term__color__format(term__color__AnsiCode.underline, text)
+}
+
+function term__color__blink_slow(text) {
+	return term__color__format(term__color__AnsiCode.blink_slow, text)
+}
+
+function term__color__blink_rapid(text) {
+	return term__color__format(term__color__AnsiCode.blink_rapid, text)
+}
+
+function term__color__invert(text) {
+	return term__color__format(term__color__AnsiCode.invert, text)
+}
+
+function term__color__hide(text) {
+	return term__color__format(term__color__AnsiCode.hide, text)
+}
+
+function term__color__strike(text) {
+	return term__color__format(term__color__AnsiCode.strike, text)
+}
+
+function term__color__overline(text) {
+	return term__color__format(term__color__AnsiCode.overline, text)
+}
+
+function term__color__black(text) {
+	return term__color__format(term__color__AnsiCode.black, text)
+}
+
+function term__color__red(text) {
+	return term__color__format(term__color__AnsiCode.red, text)
+}
+
+function term__color__green(text) {
+	return term__color__format(term__color__AnsiCode.green, text)
+}
+
+function term__color__yellow(text) {
+	return term__color__format(term__color__AnsiCode.yellow, text)
+}
+
+function term__color__blue(text) {
+	return term__color__format(term__color__AnsiCode.blue, text)
+}
+
+function term__color__magenta(text) {
+	return term__color__format(term__color__AnsiCode.magenta, text)
+}
+
+function term__color__cyan(text) {
+	return term__color__format(term__color__AnsiCode.cyan, text)
+}
+
+function term__color__white(text) {
+	return term__color__format(term__color__AnsiCode.white, text)
+}
+
+function term__color__bg_black(text) {
+	return term__color__format(term__color__AnsiCode.bg_black, text)
+}
+
+function term__color__bg_red(text) {
+	return term__color__format(term__color__AnsiCode.bg_red, text)
+}
+
+function term__color__bg_green(text) {
+	return term__color__format(term__color__AnsiCode.bg_green, text)
+}
+
+function term__color__bg_yellow(text) {
+	return term__color__format(term__color__AnsiCode.bg_yellow, text)
+}
+
+function term__color__bg_blue(text) {
+	return term__color__format(term__color__AnsiCode.bg_blue, text)
+}
+
+function term__color__bg_magenta(text) {
+	return term__color__format(term__color__AnsiCode.bg_magenta, text)
+}
+
+function term__color__bg_cyan(text) {
+	return term__color__format(term__color__AnsiCode.bg_cyan, text)
+}
+
+function term__color__bg_white(text) {
+	return term__color__format(term__color__AnsiCode.bg_white, text)
+}
+
+function term__color__bright_black(text) {
+	return term__color__format(term__color__AnsiCode.bright_black, text)
+}
+
+function term__color__bright_red(text) {
+	return term__color__format(term__color__AnsiCode.bright_red, text)
+}
+
+function term__color__bright_green(text) {
+	return term__color__format(term__color__AnsiCode.bright_green, text)
+}
+
+function term__color__bright_yellow(text) {
+	return term__color__format(term__color__AnsiCode.bright_yellow, text)
+}
+
+function term__color__bright_blue(text) {
+	return term__color__format(term__color__AnsiCode.bright_blue, text)
+}
+
+function term__color__bright_magenta(text) {
+	return term__color__format(term__color__AnsiCode.bright_magenta, text)
+}
+
+function term__color__bright_cyan(text) {
+	return term__color__format(term__color__AnsiCode.bright_cyan, text)
+}
+
+function term__color__bright_white(text) {
+	return term__color__format(term__color__AnsiCode.bright_white, text)
+}
+
+function term__color__bg_bright_black(text) {
+	return term__color__format(term__color__AnsiCode.bg_bright_black, text)
+}
+
+function term__color__bg_bright_red(text) {
+	return term__color__format(term__color__AnsiCode.bg_bright_red, text)
+}
+
+function term__color__bg_bright_green(text) {
+	return term__color__format(term__color__AnsiCode.bg_bright_green, text)
+}
+
+function term__color__bg_bright_yellow(text) {
+	return term__color__format(term__color__AnsiCode.bg_bright_yellow, text)
+}
+
+function term__color__bg_bright_blue(text) {
+	return term__color__format(term__color__AnsiCode.bg_bright_blue, text)
+}
+
+function term__color__bg_bright_magenta(text) {
+	return term__color__format(term__color__AnsiCode.bg_bright_magenta, text)
+}
+
+function term__color__bg_bright_cyan(text) {
+	return term__color__format(term__color__AnsiCode.bg_bright_cyan, text)
+}
+
+function term__color__bg_bright_white(text) {
+	return term__color__format(term__color__AnsiCode.bg_bright_white, text)
+}
+
+
 const bait__errors__Kind = {
 	info: 0,
 	warning: 1,
@@ -1492,17 +1715,17 @@ function bait__errors__format_title(k, title) {
 	switch (k) {
 		case bait__errors__Kind.info:
 			{
-				return string_add(string_add(from_js_string("\033[0;35m"), title), from_js_string("\033[0m"))
+				return term__color__magenta(title)
 				break
 			}
 		case bait__errors__Kind.warning:
 			{
-				return string_add(string_add(from_js_string("\033[0;33m"), title), from_js_string("\033[0m"))
+				return term__color__yellow(title)
 				break
 			}
 		case bait__errors__Kind.error:
 			{
-				return string_add(string_add(from_js_string("\033[0;31m"), title), from_js_string("\033[0m"))
+				return term__color__red(title)
 				break
 			}
 	}
@@ -5064,7 +5287,7 @@ function bait__util__shell_escape(s) {
 }
 
 
-const bait__util__VERSION = from_js_string(`0.0.4-dev ${from_js_string("a4f0ee1").str}`)
+const bait__util__VERSION = from_js_string(`0.0.4-dev ${from_js_string("34a119b").str}`)
 
 function bait__gen__js__Gen_expr(g, expr) {
 	if (expr instanceof bait__ast__AnonFun) {
