@@ -1513,13 +1513,14 @@ const bait__preference__Backend = {
 	js: 0,
 	c: 1,
 }
-function bait__preference__Prefs({ command = from_js_string(""), args = new array({ data: [], length: 0 }), out_name = from_js_string(""), should_run = false, is_verbose = false, backend = 0, is_test = false, is_script = false, is_library = false, hide_warnings = false, warn_is_error = false, baitexe = from_js_string(""), baitdir = from_js_string(""), baithash = from_js_string("") }) {
+function bait__preference__Prefs({ command = from_js_string(""), args = new array({ data: [], length: 0 }), out_name = from_js_string(""), should_run = false, is_verbose = false, backend = 0, expected_pkg = from_js_string(""), is_test = false, is_script = false, is_library = false, hide_warnings = false, warn_is_error = false, baitexe = from_js_string(""), baitdir = from_js_string(""), baithash = from_js_string("") }) {
 	this.command = command
 	this.args = args
 	this.out_name = out_name
 	this.should_run = should_run
 	this.is_verbose = is_verbose
 	this.backend = backend
+	this.expected_pkg = expected_pkg
 	this.is_test = is_test
 	this.is_script = is_script
 	this.is_library = is_library
@@ -1538,6 +1539,7 @@ bait__preference__Prefs.prototype = {
     should_run = ${this.should_run.toString()}
     is_verbose = ${this.is_verbose.toString()}
     backend = ${this.backend.toString()}
+    expected_pkg = ${this.expected_pkg.toString()}
     is_test = ${this.is_test.toString()}
     is_script = ${this.is_script.toString()}
     is_library = ${this.is_library.toString()}
@@ -3306,6 +3308,9 @@ function bait__parser__parse(tokens, path, table, pref) {
 	bait__parser__Parser_next(p)
 	bait__parser__Parser_next(p)
 	const pkg_decl = bait__parser__Parser_package_decl(p)
+	if (p.pref.expected_pkg.length > 0 && !eq(pkg_decl.full_name, p.pref.expected_pkg)) {
+		return new bait__ast__File({ path: path })
+	}
 	const imports = bait__parser__Parser_import_stmts(p)
 	let stmts = new array({ data: [], length: 0 })
 	while (!eq(p.tok.kind, bait__token__TokenKind.eof)) {
@@ -5059,7 +5064,7 @@ function bait__util__shell_escape(s) {
 }
 
 
-const bait__util__VERSION = from_js_string(`0.0.4-dev ${from_js_string("10e0221").str}`)
+const bait__util__VERSION = from_js_string(`0.0.4-dev ${from_js_string("a4f0ee1").str}`)
 
 function bait__gen__js__Gen_expr(g, expr) {
 	if (expr instanceof bait__ast__AnonFun) {
@@ -6542,6 +6547,7 @@ function bait__builder__compile(prefs) {
 			if (!eq(imp.lang, bait__ast__Language.bait)) {
 				continue
 			}
+			b.prefs.expected_pkg = imp.name
 			const import_dir = bait__builder__resolve_import(string_replace(imp.name, from_js_string("."), from_js_string("/")))
 			let imp_paths = bait__builder__Builder_collect_bait_files(b, import_dir)
 			imp_paths = array_filter(imp_paths, function (p) {
@@ -6550,12 +6556,15 @@ function bait__builder__compile(prefs) {
 			for (let _t36 = 0; _t36 < imp_paths.length; _t36++) {
 				const p = array_get(imp_paths, _t36)
 				array_push(paths, p)
-				array_push(files, bait__builder__Builder_parse_source_file(b, p))
+				const parsed_file = bait__builder__Builder_parse_source_file(b, p)
+				array_push(files, parsed_file)
 			}
 		}
 	}
 	b.parsed_files = files
-	bait__builder__Builder_print_errors_and_warnings(b)
+	if (bait__builder__Builder_print_errors_and_warnings(b)) {
+		return 1
+	}
 	let deps = new map({ data: new Map([]), length: 0 })
 	for (let _t37 = 0; _t37 < files.length; _t37++) {
 		const f = array_get(files, _t37)
@@ -6586,8 +6595,12 @@ function bait__builder__compile(prefs) {
 	b.parsed_files = sorted_files
 	b.checker = bait__checker__new_checker(b.table, b.prefs)
 	bait__checker__Checker_check_files(b.checker, sorted_files)
-	bait__builder__Builder_check_redefined_functions(b)
-	bait__builder__Builder_print_errors_and_warnings(b)
+	if (bait__builder__Builder_check_redefined_functions(b)) {
+		return 1
+	}
+	if (bait__builder__Builder_print_errors_and_warnings(b)) {
+		return 1
+	}
 	if (!eq(b.prefs.backend, bait__preference__Backend.js)) {
 		bait__errors__generic_error(from_js_string("Only the JS backend is supported right now."))
 		return 1
@@ -6636,9 +6649,7 @@ function bait__builder__Builder_print_errors_and_warnings(b) {
 		const err = array_get(b.checker.errors, _t46)
 		bait__errors__Message_print(err)
 	}
-	if (nr_errors > 0 || (b.prefs.warn_is_error && nr_warns > 0)) {
-		exit(1)
-	}
+	return nr_errors > 0 || (b.prefs.warn_is_error && nr_warns > 0)
 }
 
 function bait__builder__resolve_import(pkg) {
@@ -6682,6 +6693,9 @@ bait__builder__FunRedefinition.prototype = {
 }`}
 }
 function bait__builder__Builder_check_redefined_functions(b) {
+	if (eq(b.table.redefined_funs.length, 0)) {
+		return false
+	}
 	let unique_redefs = new array({ data: [], length: 0 })
 	for (let _t48 = 0; _t48 < b.table.redefined_funs.length; _t48++) {
 		const name = array_get(b.table.redefined_funs, _t48)
@@ -6707,6 +6721,7 @@ function bait__builder__Builder_check_redefined_functions(b) {
 			bait__errors__info(from_js_string("conflict"), redef.path, redef.pos, redef.signature)
 		}
 	}
+	return true
 }
 
 function bait__builder__Builder_fun_signature(b, node) {
