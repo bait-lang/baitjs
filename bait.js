@@ -3584,6 +3584,9 @@ function bait__parser__Parser_parse_block(p) {
 	let bstmts = new array({ data: [], length: 0 })
 	while (!array_contains(new array({ data: [bait__token__TokenKind.eof, bait__token__TokenKind.rcur], length: 2 }), p.tok.kind)) {
 		array_push(bstmts, bait__parser__Parser_stmt(p))
+		if (p.should_abort) {
+			break
+		}
 	}
 	bait__parser__Parser_check(p, bait__token__TokenKind.rcur)
 	return bstmts
@@ -5287,7 +5290,7 @@ function bait__util__shell_escape(s) {
 }
 
 
-const bait__util__VERSION = from_js_string(`0.0.4-dev ${from_js_string("34a119b").str}`)
+const bait__util__VERSION = from_js_string(`0.0.4-dev ${from_js_string("3e10164").str}`)
 
 function bait__gen__js__Gen_expr(g, expr) {
 	if (expr instanceof bait__ast__AnonFun) {
