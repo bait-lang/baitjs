@@ -2185,10 +2185,11 @@ bait__ast__TypeDecl.prototype = {
     pos = ${this.pos.toString()}
 }`}
 }
-function bait__ast__ArrayInit({ exprs = new array({ data: [], length: 0 }), typ = 0, elem_type = 0, pos = new bait__token__Pos({}) }) {
+function bait__ast__ArrayInit({ exprs = new array({ data: [], length: 0 }), typ = 0, elem_type = 0, length_expr = new bait__ast__EmptyExpr({}), pos = new bait__token__Pos({}) }) {
 	this.exprs = exprs
 	this.typ = typ
 	this.elem_type = elem_type
+	this.length_expr = length_expr
 	this.pos = pos
 }
 bait__ast__ArrayInit.prototype = {
@@ -2197,6 +2198,7 @@ bait__ast__ArrayInit.prototype = {
     exprs = ${this.exprs.toString()}
     typ = ${this.typ.toString()}
     elem_type = ${this.elem_type.toString()}
+    length_expr = ${this.length_expr.toString()}
     pos = ${this.pos.toString()}
 }`}
 }
@@ -3148,25 +3150,38 @@ function bait__parser__Parser_anon_fun(p) {
 }
 
 function bait__parser__Parser_array_init(p) {
-	let exprs = new array({ data: [], length: 0 })
-	let elem_type = bait__ast__PLACEHOLDER_TYPE
-	let typ = bait__ast__ARRAY_TYPE
 	const pos = p.tok.pos
 	bait__parser__Parser_check(p, bait__token__TokenKind.lbr)
 	if (eq(p.tok.kind, bait__token__TokenKind.rbr)) {
 		bait__parser__Parser_next(p)
-		elem_type = bait__parser__Parser_parse_type(p)
-		typ = bait__ast__Table_find_or_register_array(p.table, elem_type)
-	} else {
-		while (!eq(p.tok.kind, bait__token__TokenKind.rbr)) {
-			array_push(exprs, bait__parser__Parser_expr(p, 0))
-			if (eq(p.tok.kind, bait__token__TokenKind.comma)) {
-				bait__parser__Parser_next(p)
+		const elem_type = bait__parser__Parser_parse_type(p)
+		const typ = bait__ast__Table_find_or_register_array(p.table, elem_type)
+		let length_expr = new bait__ast__EmptyExpr({})
+		if (eq(p.tok.kind, bait__token__TokenKind.lcur)) {
+			bait__parser__Parser_next(p)
+			while (!eq(p.tok.kind, bait__token__TokenKind.rcur)) {
+				const key = bait__parser__Parser_check_name(p)
+				bait__parser__Parser_check(p, bait__token__TokenKind.assign)
+				const expr = bait__parser__Parser_expr(p, 0)
+				if (eq(key, from_js_string("length"))) {
+					length_expr = expr
+				} else {
+					bait__parser__Parser_error(p, from_js_string(`invalid array init field: ${key.str}`))
+				}
 			}
+			bait__parser__Parser_check(p, bait__token__TokenKind.rcur)
 		}
-		bait__parser__Parser_check(p, bait__token__TokenKind.rbr)
+		return new bait__ast__ArrayInit({ typ: typ, elem_type: elem_type, length_expr: length_expr, pos: pos })
 	}
-	return new bait__ast__ArrayInit({ exprs: exprs, typ: typ, elem_type: elem_type, pos: pos })
+	let exprs = new array({ data: [], length: 0 })
+	while (!eq(p.tok.kind, bait__token__TokenKind.rbr)) {
+		array_push(exprs, bait__parser__Parser_expr(p, 0))
+		if (eq(p.tok.kind, bait__token__TokenKind.comma)) {
+			bait__parser__Parser_next(p)
+		}
+	}
+	bait__parser__Parser_check(p, bait__token__TokenKind.rbr)
+	return new bait__ast__ArrayInit({ exprs: exprs, pos: pos })
 }
 
 function bait__parser__Parser_as_cast(p, left) {
@@ -4512,20 +4527,27 @@ function bait__checker__Checker_anon_fun(c, node) {
 }
 
 function bait__checker__Checker_array_init(c, node) {
-	if (node.exprs.length > 0) {
-		for (let i = 0; i < node.exprs.length; i++) {
-			const e = array_get(node.exprs, i)
-			const typ = bait__checker__Checker_expr(c, e)
-			if (eq(i, 0)) {
-				node.elem_type = typ
-				c.expected_type = typ
-			}
-			if (!bait__checker__Checker_check_types(c, typ, node.elem_type)) {
-				bait__checker__Checker_error(c, from_js_string(`expected element type ${bait__ast__Table_type_name(c.table, node.elem_type).str}, got ${bait__ast__Table_type_name(c.table, typ).str}`), node.pos)
+	if (eq(node.exprs.length, 0)) {
+		if (!(node.length_expr instanceof bait__ast__EmptyExpr)) {
+			const typ = bait__checker__Checker_expr(c, node.length_expr)
+			if (!bait__checker__Checker_check_types(c, typ, bait__ast__I32_TYPE)) {
+				bait__checker__Checker_error(c, from_js_string(`expected i32, got ${bait__ast__Table_type_name(c.table, typ).str}`), node.pos)
 			}
 		}
-		node.typ = bait__ast__Table_find_or_register_array(c.table, node.elem_type)
+		return node.typ
 	}
+	for (let i = 0; i < node.exprs.length; i++) {
+		const e = array_get(node.exprs, i)
+		const typ = bait__checker__Checker_expr(c, e)
+		if (eq(i, 0)) {
+			node.elem_type = typ
+			c.expected_type = typ
+		}
+		if (!bait__checker__Checker_check_types(c, typ, node.elem_type)) {
+			bait__checker__Checker_error(c, from_js_string(`expected element type ${bait__ast__Table_type_name(c.table, node.elem_type).str}, got ${bait__ast__Table_type_name(c.table, typ).str}`), node.pos)
+		}
+	}
+	node.typ = bait__ast__Table_find_or_register_array(c.table, node.elem_type)
 	return node.typ
 }
 
@@ -5290,7 +5312,7 @@ function bait__util__shell_escape(s) {
 }
 
 
-const bait__util__VERSION = from_js_string(`0.0.4-dev ${from_js_string("3e10164").str}`)
+const bait__util__VERSION = from_js_string(`0.0.4-dev ${from_js_string("27587da").str}`)
 
 function bait__gen__js__Gen_expr(g, expr) {
 	if (expr instanceof bait__ast__AnonFun) {
@@ -5368,15 +5390,23 @@ function bait__gen__js__Gen_anon_fun(g, node) {
 }
 
 function bait__gen__js__Gen_array_init(g, node) {
-	bait__gen__js__Gen_write(g, from_js_string("new array({ data: ["))
-	for (let i = 0; i < node.exprs.length; i++) {
-		const expr = array_get(node.exprs, i)
-		bait__gen__js__Gen_expr(g, expr)
-		if (i < node.exprs.length - 1) {
-			bait__gen__js__Gen_write(g, from_js_string(", "))
+	bait__gen__js__Gen_write(g, from_js_string("new array({ data: "))
+	if (node.length_expr instanceof bait__ast__EmptyExpr) {
+		bait__gen__js__Gen_write(g, from_js_string("["))
+		for (let i = 0; i < node.exprs.length; i++) {
+			const expr = array_get(node.exprs, i)
+			bait__gen__js__Gen_expr(g, expr)
+			if (i < node.exprs.length - 1) {
+				bait__gen__js__Gen_write(g, from_js_string(", "))
+			}
 		}
+		bait__gen__js__Gen_write(g, from_js_string(`], length: ${i32_str(node.exprs.length).str} })`))
+		return
 	}
-	bait__gen__js__Gen_write(g, from_js_string(`], length: ${i32_str(node.exprs.length).str} })`))
+	const len = bait__gen__js__Gen_expr_string(g, node.length_expr)
+	bait__gen__js__Gen_write(g, from_js_string(`Array.from({ length: ${len.str} }, (v, i) => `))
+	bait__gen__js__Gen_write_default_value(g, node.elem_type)
+	bait__gen__js__Gen_write(g, from_js_string(`), length: ${len.str} })`))
 }
 
 function bait__gen__js__Gen_as_cast(g, node) {
@@ -6977,7 +7007,7 @@ function bait__builder__run_tests(prefs) {
 			})
 			array_push_many(files_to_test, t)
 		} else {
-			eprintln(from_js_string(`Unrecognized file or directory: "${a.str}"`).str)
+			eprintln(from_js_string(`Unrecognized test file or directory: "${a.str}"`).str)
 			exit(1)
 		}
 	}
