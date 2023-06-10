@@ -4930,7 +4930,7 @@ function bait__checker__Checker_method_call(c, node) {
 		}
 		return node.return_type
 	}
-	if (eq(left_sym.kind, bait__ast__TypeKind.array) && eq(node.name, from_js_string("concat"))) {
+	if (eq(left_sym.kind, bait__ast__TypeKind.array) && array_string_contains(new array({ data: [from_js_string("concat"), from_js_string("push_many")], length: 2 }), node.name)) {
 		const arg = array_get(node.args, 0)
 		c.expected_type = left_expr_type
 		arg.typ = bait__checker__Checker_expr(c, arg.expr)
@@ -4947,6 +4947,9 @@ function bait__checker__Checker_method_call(c, node) {
 		if (!bait__checker__Checker_check_types(c, arg.typ, param_type)) {
 			bait__checker__Checker_error(c, from_js_string(`type ${bait__ast__Table_type_name(c.table, arg.typ).str} not matches ${bait__ast__Table_type_name(c.table, param_type).str} in argument ${i32_str(i + 1).str}`), node.pos)
 		}
+	}
+	if (eq(left_sym.kind, bait__ast__TypeKind.array) && array_string_contains(new array({ data: [from_js_string("filter"), from_js_string("reverse"), from_js_string("slice"), from_js_string("copy"), from_js_string("from_js_arr")], length: 5 }), node.name)) {
+		return left_expr_type
 	}
 	return node.return_type
 }
@@ -5312,7 +5315,7 @@ function bait__util__shell_escape(s) {
 }
 
 
-const bait__util__VERSION = from_js_string(`0.0.4-dev ${from_js_string("27587da").str}`)
+const bait__util__VERSION = from_js_string(`0.0.4-dev ${from_js_string("6a7a5cd").str}`)
 
 function bait__gen__js__Gen_expr(g, expr) {
 	if (expr instanceof bait__ast__AnonFun) {
