@@ -438,10 +438,6 @@ function string_add(a, b) {
 	return from_js_string(a.str + b.str)
 }
 
-function string_eq(a, b) {
-	return eq(a.str, b.str)
-}
-
 function array_string_join(arr, sep) {
 	const js_arr = array_string_to_js_arr(arr)
 	return from_js_string(js_arr.join(sep.str))
@@ -1705,7 +1701,7 @@ function bait__errors__bold(s) {
 	if (eq(os__getenv(from_js_string("BAITCOLOR")), from_js_string("0"))) {
 		return s
 	}
-	return string_add(string_add(from_js_string("\033[1m"), s), from_js_string("\033[0m"))
+	return term__color__bold(s)
 }
 
 function bait__errors__format_title(k, title) {
@@ -5315,7 +5311,7 @@ function bait__util__shell_escape(s) {
 }
 
 
-const bait__util__VERSION = from_js_string(`0.0.4-dev ${from_js_string("6a7a5cd").str}`)
+const bait__util__VERSION = from_js_string(`0.0.4-dev ${from_js_string("364b63c").str}`)
 
 function bait__gen__js__Gen_expr(g, expr) {
 	if (expr instanceof bait__ast__AnonFun) {
