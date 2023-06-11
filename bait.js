@@ -4149,6 +4149,9 @@ function bait__parser__Parser_parse_type(p) {
 		return bait__parser__Parser_parse_fun_type(p)
 	}
 	const lang = bait__parser__Parser_parse_lang(p)
+	if (!eq(p.tok.pos.line, p.prev_tok.pos.line)) {
+		return bait__ast__PLACEHOLDER_TYPE
+	}
 	let name = bait__parser__Parser_prepend_lang(p, lang, bait__parser__Parser_check_name(p))
 	if (eq(name, from_js_string("map"))) {
 		return bait__parser__Parser_parse_map_type(p)
@@ -4608,6 +4611,10 @@ function bait__checker__Checker_anon_fun(c, node) {
 
 function bait__checker__Checker_array_init(c, node) {
 	if (eq(node.exprs.length, 0)) {
+		if (eq(node.elem_type, bait__ast__PLACEHOLDER_TYPE)) {
+			node.typ = c.expected_type
+			return node.typ
+		}
 		if (!(node.length_expr instanceof bait__ast__EmptyExpr)) {
 			const typ = bait__checker__Checker_expr(c, node.length_expr)
 			if (!bait__checker__Checker_check_types(c, typ, bait__ast__I32_TYPE)) {
@@ -5140,8 +5147,8 @@ function bait__checker__Checker_assign_stmt(c, node) {
 	}
 	c.is_lhs_assign = true
 	node.left_type = bait__checker__Checker_expr(c, node.left)
-	c.expected_type = node.left_type
 	c.is_lhs_assign = false
+	c.expected_type = node.left_type
 	node.right_type = bait__checker__Checker_expr(c, node.right)
 	if (eq(node.right_type, bait__ast__VOID_TYPE) && !(node.right instanceof bait__ast__CallExpr)) {
 		return
@@ -5368,7 +5375,7 @@ function bait__util__shell_escape(s) {
 }
 
 
-const bait__util__VERSION = from_js_string(`0.0.4-dev ${from_js_string("46b56fe").str}`)
+const bait__util__VERSION = from_js_string(`0.0.4-dev ${from_js_string("ef7f7bc").str}`)
 
 function bait__gen__js__Gen_expr(g, expr) {
 	if (expr instanceof bait__ast__AnonFun) {
