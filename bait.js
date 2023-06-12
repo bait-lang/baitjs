@@ -2044,10 +2044,11 @@ bait__ast__AnonFun.prototype = {
     pos = ${this.pos.toString()}
 }`}
 }
-function bait__ast__FunDecl({ is_pub = false, lang = 0, name = from_js_string(""), params = new array({ data: [], length: 0 }), stmts = new array({ data: [], length: 0 }), return_type = 0, is_method = false, is_test = false, attrs = new array({ data: [], length: 0 }), pos = new bait__token__Pos({}) }) {
+function bait__ast__FunDecl({ is_pub = false, lang = 0, name = from_js_string(""), pkg = from_js_string(""), params = new array({ data: [], length: 0 }), stmts = new array({ data: [], length: 0 }), return_type = 0, is_method = false, is_test = false, attrs = new array({ data: [], length: 0 }), pos = new bait__token__Pos({}) }) {
 	this.is_pub = is_pub
 	this.lang = lang
 	this.name = name
+	this.pkg = pkg
 	this.params = params
 	this.stmts = stmts
 	this.return_type = return_type
@@ -2062,6 +2063,7 @@ bait__ast__FunDecl.prototype = {
     is_pub = ${this.is_pub.toString()}
     lang = ${this.lang.toString()}
     name = ${this.name.toString()}
+    pkg = ${this.pkg.toString()}
     params = ${this.params.toString()}
     stmts = ${this.stmts.toString()}
     return_type = ${this.return_type.toString()}
@@ -2650,10 +2652,11 @@ bait__ast__Scope.prototype = {
     objects = ${this.objects.toString()}
 }`}
 }
-function bait__ast__ScopeObject({ kind = 0, typ = 0, is_pub = false, expr = undefined }) {
+function bait__ast__ScopeObject({ kind = 0, typ = 0, is_pub = false, pkg = from_js_string(""), expr = undefined }) {
 	this.kind = kind
 	this.typ = typ
 	this.is_pub = is_pub
+	this.pkg = pkg
 	this.expr = expr
 }
 bait__ast__ScopeObject.prototype = {
@@ -2662,6 +2665,7 @@ bait__ast__ScopeObject.prototype = {
     kind = ${this.kind.toString()}
     typ = ${this.typ.toString()}
     is_pub = ${this.is_pub.toString()}
+    pkg = ${this.pkg.toString()}
     expr = ${this.expr.toString()}
 }`}
 }
@@ -2996,7 +3000,7 @@ function bait__ast__Table_register_builtins(t) {
 	bait__ast__Table_register_sym(t, new bait__ast__TypeSymbol({ name: from_js_string("string"), kind: bait__ast__TypeKind.string }))
 	bait__ast__Table_register_sym(t, new bait__ast__TypeSymbol({ name: from_js_string("array"), kind: bait__ast__TypeKind.array }))
 	bait__ast__Table_register_sym(t, new bait__ast__TypeSymbol({ name: from_js_string("map"), kind: bait__ast__TypeKind.map }))
-	bait__ast__Table_register_sym(t, new bait__ast__TypeSymbol({ name: from_js_string("any"), kind: bait__ast__TypeKind.other }))
+	bait__ast__Table_register_sym(t, new bait__ast__TypeSymbol({ name: from_js_string("any") }))
 }
 
 
@@ -3757,11 +3761,6 @@ function bait__parser__Parser_pub_stmt(p) {
 				return bait__parser__Parser_struct_decl(p)
 				break
 			}
-		case bait__token__TokenKind.key_type:
-			{
-				return bait__parser__Parser_type_decl(p)
-				break
-			}
 		default:
 			{
 				bait__parser__Parser_error(p, from_js_string(`cannot use pub keyword before ${bait__token__TokenKind_str(p.next_tok.kind).str}`))
@@ -3852,7 +3851,7 @@ function bait__parser__Parser_const_decl(p) {
 	bait__parser__Parser_check(p, bait__token__TokenKind.decl_assign)
 	const expr = bait__parser__Parser_expr(p, 0)
 	const typ = bait__parser__Parser_infer_expr_type(p, expr)
-	bait__ast__Scope_register(p.table.global_scope, name, new bait__ast__ScopeObject({ typ: typ, kind: bait__ast__ObjectKind.constant, is_pub: is_pub, expr: expr }))
+	bait__ast__Scope_register(p.table.global_scope, name, new bait__ast__ScopeObject({ typ: typ, kind: bait__ast__ObjectKind.constant, is_pub: is_pub, pkg: p.pkg_name, expr: expr }))
 	return new bait__ast__ConstDecl({ name: name, expr: expr, pos: pos })
 }
 
@@ -3959,7 +3958,7 @@ function bait__parser__Parser_fun_decl(p) {
 	if (!eq(p.tok.kind, bait__token__TokenKind.lcur) && eq(pos.line, p.tok.pos.line)) {
 		return_type = bait__parser__Parser_parse_type(p)
 	}
-	let node = new bait__ast__FunDecl({ is_test: string_starts_with(name, from_js_string("test_")), is_pub: is_pub, name: name, params: params, return_type: return_type, attrs: p.attributes, lang: lang, pos: pos })
+	let node = new bait__ast__FunDecl({ is_test: string_starts_with(name, from_js_string("test_")), is_pub: is_pub, name: name, pkg: p.pkg_name, params: params, return_type: return_type, attrs: p.attributes, lang: lang, pos: pos })
 	p.attributes = new array({ data: [], length: 0 })
 	if (is_method) {
 		const sym = bait__ast__Table_get_sym(p.table, array_get(params, 0).typ)
@@ -4699,6 +4698,9 @@ function bait__checker__Checker_hash_expr(c, node) {
 
 function bait__checker__Checker_ident(c, node) {
 	let obj = bait__ast__Scope_get(c.scope, node.name)
+	if (eq(obj.kind, bait__ast__ObjectKind.constant) && !obj.is_pub && !eq(obj.pkg, c.pkg)) {
+		bait__checker__Checker_error(c, from_js_string(`const ${node.name.str} is private`), node.pos)
+	}
 	if (!eq(obj.typ, bait__ast__PLACEHOLDER_TYPE)) {
 		return obj.typ
 	}
@@ -4711,9 +4713,6 @@ function bait__checker__Checker_ident(c, node) {
 	}
 	if (eq(obj.typ, bait__ast__VOID_TYPE)) {
 		obj.typ = bait__checker__Checker_expr(c, obj.expr)
-	}
-	if (eq(obj.kind, bait__ast__ObjectKind.constant) && !obj.is_pub && !eq(node.pkg, c.pkg)) {
-		bait__checker__Checker_error(c, from_js_string(`const ${node.name.str} is private`), node.pos)
 	}
 	return obj.typ
 }
@@ -4909,11 +4908,11 @@ function bait__checker__Checker_fun_decl(c, node) {
 function bait__checker__Checker_fun_params(c, params) {
 	for (let _t23 = 0; _t23 < params.length; _t23++) {
 		const p = array_get(params, _t23)
-		const sym = bait__ast__Table_get_sym(c.table, p.typ)
 		if (bait__ast__Scope_is_known(c.scope, p.name)) {
 			bait__checker__Checker_error(c, from_js_string(`cannot shadow import "${p.name.str}"`), p.pos)
 			continue
 		}
+		const sym = bait__ast__Table_get_sym(c.table, p.typ)
 		if (eq(sym.kind, bait__ast__TypeKind.fun_)) {
 			bait__ast__Scope_register(c.scope, p.name, new bait__ast__ScopeObject({ typ: p.typ, kind: bait__ast__ObjectKind.function }))
 		} else {
@@ -4958,7 +4957,7 @@ function bait__checker__Checker_fun_call(c, node) {
 		return bait__ast__VOID_TYPE
 	}
 	const def = map_get_set(c.table.fun_decls, node.name, new bait__ast__FunDecl({}))
-	if (!def.is_pub && !eq(node.pkg, c.pkg)) {
+	if (!def.is_pub && !eq(def.pkg, c.pkg)) {
 		bait__checker__Checker_error(c, from_js_string(`function ${def.name.str} is private`), node.pos)
 	}
 	node.return_type = def.return_type
@@ -5291,6 +5290,10 @@ function bait__checker__Checker_struct_decl(c, node) {
 			continue
 		}
 		bait__checker__Checker_check_struct_field_attrs(c, node)
+		const sym = bait__ast__Table_get_sym(c.table, field.typ)
+		if (!bait__checker__Checker_does_type_exist(c, sym, field.pos)) {
+			continue
+		}
 		if (field.expr instanceof bait__ast__EmptyExpr) {
 			continue
 		}
@@ -5347,6 +5350,32 @@ function bait__checker__Checker_check_types(c, got, expected) {
 	return false
 }
 
+function bait__checker__Checker_does_type_exist(c, sym, pos) {
+	if (eq(sym.kind, bait__ast__TypeKind.other) || eq(sym.kind, bait__ast__TypeKind.string)) {
+		return true
+	}
+	if (sym.is_pub || eq(sym.pkg, c.pkg)) {
+		return true
+	}
+	if (eq(sym.kind, bait__ast__TypeKind.array)) {
+		const info = sym.info
+		const elem_sym = bait__ast__Table_get_sym(c.table, info.elem_type)
+		return bait__checker__Checker_does_type_exist(c, elem_sym, pos)
+	}
+	if (eq(sym.kind, bait__ast__TypeKind.map)) {
+		const info = sym.info
+		const key_sym = bait__ast__Table_get_sym(c.table, info.key_type)
+		const val_sym = bait__ast__Table_get_sym(c.table, info.val_type)
+		return bait__checker__Checker_does_type_exist(c, key_sym, pos) && bait__checker__Checker_does_type_exist(c, val_sym, pos)
+	}
+	if (eq(sym.kind, bait__ast__TypeKind.alias_type)) {
+		const parent_sym = bait__ast__Table_get_sym(c.table, sym.parent)
+		return bait__checker__Checker_does_type_exist(c, parent_sym, pos)
+	}
+	bait__checker__Checker_error(c, from_js_string(`type ${sym.name.str} is private`), pos)
+	return false
+}
+
 
 function bait__util__escape_char(s, esc_char) {
 	let res = from_js_string("")
@@ -5375,7 +5404,7 @@ function bait__util__shell_escape(s) {
 }
 
 
-const bait__util__VERSION = from_js_string(`0.0.4-dev ${from_js_string("ef7f7bc").str}`)
+const bait__util__VERSION = from_js_string(`0.0.4-dev ${from_js_string("71d07ea").str}`)
 
 function bait__gen__js__Gen_expr(g, expr) {
 	if (expr instanceof bait__ast__AnonFun) {
