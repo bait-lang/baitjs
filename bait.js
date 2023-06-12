@@ -1732,9 +1732,10 @@ const bait__preference__Backend = {
 	js: 0,
 	c: 1,
 }
-function bait__preference__Prefs({ command = from_js_string(""), args = new array({ data: [], length: 0 }), out_name = from_js_string(""), should_run = false, is_verbose = false, backend = 0, expected_pkg = from_js_string(""), is_test = false, is_script = false, is_library = false, hide_warnings = false, warn_is_error = false, baitexe = from_js_string(""), baitdir = from_js_string(""), baithash = from_js_string("") }) {
+function bait__preference__Prefs({ command = from_js_string(""), args = new array({ data: [], length: 0 }), build_options = new array({ data: [], length: 0 }), out_name = from_js_string(""), should_run = false, is_verbose = false, backend = 0, expected_pkg = from_js_string(""), is_test = false, is_script = false, is_library = false, hide_warnings = false, warn_is_error = false, baitexe = from_js_string(""), baitdir = from_js_string(""), baithash = from_js_string("") }) {
 	this.command = command
 	this.args = args
+	this.build_options = build_options
 	this.out_name = out_name
 	this.should_run = should_run
 	this.is_verbose = is_verbose
@@ -1754,6 +1755,7 @@ bait__preference__Prefs.prototype = {
 		return `bait__preference__Prefs{
     command = ${this.command.toString()}
     args = ${this.args.toString()}
+    build_options = ${this.build_options.toString()}
     out_name = ${this.out_name.toString()}
     should_run = ${this.should_run.toString()}
     is_verbose = ${this.is_verbose.toString()}
@@ -1790,15 +1792,15 @@ function bait__preference__parse_args(args) {
 				{
 					i += 1
 					p.out_name = array_get(args, i)
-					array_push(p.args, arg)
-					array_push(p.args, p.out_name)
+					array_push(p.build_options, arg)
+					array_push(p.build_options, p.out_name)
 					break
 				}
 			case from_js_string("-v").str:
 			case from_js_string("--verbose").str:
 				{
 					p.is_verbose = true
-					array_push(p.args, arg)
+					array_push(p.build_options, arg)
 					break
 				}
 			case from_js_string("--library").str:
@@ -1809,13 +1811,13 @@ function bait__preference__parse_args(args) {
 			case from_js_string("-w").str:
 				{
 					p.hide_warnings = true
-					array_push(p.args, arg)
+					array_push(p.build_options, arg)
 					break
 				}
 			case from_js_string("-W").str:
 				{
 					p.warn_is_error = true
-					array_push(p.args, arg)
+					array_push(p.build_options, arg)
 					break
 				}
 			case from_js_string("--nocolor").str:
@@ -1839,6 +1841,7 @@ function bait__preference__parse_args(args) {
 				}
 		}
 	}
+	array_push_many(p.build_options, p.args)
 	if (p.hide_warnings && p.warn_is_error) {
 		bait__errors__generic_error(from_js_string("Cannot use -w and -W together."))
 		exit(1)
@@ -5408,7 +5411,7 @@ function bait__util__shell_escape(s) {
 }
 
 
-const bait__util__VERSION = from_js_string(`0.0.4-dev ${from_js_string("c7d52c6").str}`)
+const bait__util__VERSION = from_js_string(`0.0.4-dev ${from_js_string("410d004").str}`)
 
 function bait__gen__js__Gen_expr(g, expr) {
 	if (expr instanceof bait__ast__AnonFun) {
@@ -7154,7 +7157,7 @@ function main() {
 	let prefs = bait__preference__parse_args(args)
 	bait__preference__Prefs_set_comptime_vars(prefs)
 	if (array_string_contains(TOOLS, prefs.command)) {
-		exit(launch_tool(prefs.command, prefs.args, prefs.is_verbose))
+		exit(launch_tool(prefs.command, prefs.build_options, prefs.is_verbose))
 	}
 	switch (prefs.command.str) {
 		case from_js_string("test").str:
