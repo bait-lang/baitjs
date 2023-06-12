@@ -4411,6 +4411,9 @@ function bait__checker__Checker_check_struct_field_attrs(c, node) {
 			if (!bait__checker__Checker_check_attribute(c, attr, bait__checker__STRUCT_FIELD_ATTRS)) {
 				continue
 			}
+			if (eq(attr.name, from_js_string("required")) && !(field.expr instanceof bait__ast__EmptyExpr)) {
+				bait__checker__Checker_error(c, from_js_string("@required on field with default value is redundant"), attr.pos)
+			}
 		}
 	}
 }
@@ -4435,7 +4438,7 @@ function bait__checker__Checker_check_struct_field_attrs_on_init(c, init, info) 
 				}
 			}
 			if (!is_present) {
-				bait__checker__Checker_error(c, from_js_string(`field "${def_field.name.str}" requires initialization`), init.pos)
+				bait__checker__Checker_error(c, from_js_string(`field "${init.name.str}.${def_field.name.str}" requires initialization`), init.pos)
 			}
 		}
 	}
@@ -4862,36 +4865,6 @@ function bait__checker__Checker_string_inter_literal(c, node) {
 	return bait__ast__STRING_TYPE
 }
 
-function bait__checker__Checker_struct_init(c, node) {
-	const sym = bait__ast__Table_get_sym(c.table, node.typ)
-	if (eq(sym.kind, bait__ast__TypeKind.placeholder)) {
-		bait__checker__Checker_error(c, from_js_string(`undefined struct ${node.name.str}`), node.pos)
-		return bait__ast__VOID_TYPE
-	}
-	if (!sym.is_pub && string_contains(sym.name, from_js_string(".")) && !eq(sym.pkg, c.pkg)) {
-		bait__checker__Checker_error(c, from_js_string(`struct ${sym.name.str} is private`), node.pos)
-		return bait__ast__VOID_TYPE
-	}
-	bait__checker__Checker_check_struct_field_attrs_on_init(c, node, sym.info)
-	node.name = sym.name
-	for (let _t22 = 0; _t22 < node.fields.length; _t22++) {
-		const field = array_get(node.fields, _t22)
-		const def = bait__ast__TypeSymbol_find_field(sym, field.name, c.table)
-		if (eq(def.name.length, 0)) {
-			bait__checker__Checker_error(c, from_js_string(`struct ${sym.name.str} has no field ${field.name.str}`), node.pos)
-		}
-		c.expected_type = def.typ
-		const expr_type = bait__checker__Checker_expr(c, field.expr)
-		if (eq(def.typ, bait__ast__PLACEHOLDER_TYPE)) {
-			continue
-		}
-		if (!bait__checker__Checker_check_types(c, expr_type, def.typ)) {
-			bait__checker__Checker_error(c, from_js_string(`cannot assign to field ${field.name.str}: expected ${bait__ast__Table_type_name(c.table, def.typ).str}, got ${bait__ast__Table_type_name(c.table, expr_type).str} `), node.pos)
-		}
-	}
-	return node.typ
-}
-
 function bait__checker__Checker_type_of(c, node) {
 	const typ = bait__checker__Checker_expr(c, node.expr)
 	node.typ = typ
@@ -4912,8 +4885,8 @@ function bait__checker__Checker_fun_decl(c, node) {
 }
 
 function bait__checker__Checker_fun_params(c, params) {
-	for (let _t23 = 0; _t23 < params.length; _t23++) {
-		const p = array_get(params, _t23)
+	for (let _t22 = 0; _t22 < params.length; _t22++) {
+		const p = array_get(params, _t22)
 		if (bait__ast__Scope_is_known(c.scope, p.name)) {
 			bait__checker__Checker_error(c, from_js_string(`cannot shadow import "${p.name.str}"`), p.pos)
 			continue
@@ -4928,8 +4901,8 @@ function bait__checker__Checker_fun_params(c, params) {
 }
 
 function bait__checker__Checker_check_main_fun(c, stmts) {
-	for (let _t24 = 0; _t24 < stmts.length; _t24++) {
-		const stmt = array_get(stmts, _t24)
+	for (let _t23 = 0; _t23 < stmts.length; _t23++) {
+		const stmt = array_get(stmts, _t23)
 		if (stmt instanceof bait__ast__FunDecl && eq(stmt.name, from_js_string("main"))) {
 			c.has_main_fun = true
 		}
@@ -4973,8 +4946,8 @@ function bait__checker__Checker_fun_call(c, node) {
 		return node.return_type
 	}
 	if (eq(node.name, from_js_string("println")) || eq(node.name, from_js_string("eprintln"))) {
-		for (let _t25 = 0; _t25 < node.args.length; _t25++) {
-			const arg = array_get(node.args, _t25)
+		for (let _t24 = 0; _t24 < node.args.length; _t24++) {
+			const arg = array_get(node.args, _t24)
 			arg.typ = bait__checker__Checker_expr(c, arg.expr)
 		}
 		return bait__ast__VOID_TYPE
@@ -5088,8 +5061,8 @@ function bait__checker__Checker_is_sumtype_variant_infix(c, node) {
 
 
 function bait__checker__Checker_stmts(c, stmts) {
-	for (let _t26 = 0; _t26 < stmts.length; _t26++) {
-		const stmt = array_get(stmts, _t26)
+	for (let _t25 = 0; _t25 < stmts.length; _t25++) {
+		const stmt = array_get(stmts, _t25)
 		bait__checker__Checker_stmt(c, stmt)
 	}
 }
@@ -5281,6 +5254,10 @@ function bait__checker__Checker_return_stmt(c, node) {
 	}
 }
 
+function bait__checker__Checker_type_decl(c, node) {
+}
+
+
 function bait__checker__Checker_struct_decl(c, node) {
 	for (let i = 0; i < node.fields.length; i++) {
 		const field = array_get(node.fields, i)
@@ -5310,7 +5287,34 @@ function bait__checker__Checker_struct_decl(c, node) {
 	}
 }
 
-function bait__checker__Checker_type_decl(c, node) {
+function bait__checker__Checker_struct_init(c, node) {
+	const sym = bait__ast__Table_get_sym(c.table, node.typ)
+	if (eq(sym.kind, bait__ast__TypeKind.placeholder)) {
+		bait__checker__Checker_error(c, from_js_string(`undefined struct ${node.name.str}`), node.pos)
+		return bait__ast__VOID_TYPE
+	}
+	if (!sym.is_pub && string_contains(sym.name, from_js_string(".")) && !eq(sym.pkg, c.pkg)) {
+		bait__checker__Checker_error(c, from_js_string(`struct ${sym.name.str} is private`), node.pos)
+		return bait__ast__VOID_TYPE
+	}
+	bait__checker__Checker_check_struct_field_attrs_on_init(c, node, sym.info)
+	node.name = sym.name
+	for (let _t26 = 0; _t26 < node.fields.length; _t26++) {
+		const field = array_get(node.fields, _t26)
+		const def = bait__ast__TypeSymbol_find_field(sym, field.name, c.table)
+		if (eq(def.name.length, 0)) {
+			bait__checker__Checker_error(c, from_js_string(`struct ${sym.name.str} has no field ${field.name.str}`), node.pos)
+		}
+		c.expected_type = def.typ
+		const expr_type = bait__checker__Checker_expr(c, field.expr)
+		if (eq(def.typ, bait__ast__PLACEHOLDER_TYPE)) {
+			continue
+		}
+		if (!bait__checker__Checker_check_types(c, expr_type, def.typ)) {
+			bait__checker__Checker_error(c, from_js_string(`cannot assign to field ${field.name.str}: expected ${bait__ast__Table_type_name(c.table, def.typ).str}, got ${bait__ast__Table_type_name(c.table, expr_type).str} `), node.pos)
+		}
+	}
+	return node.typ
 }
 
 
@@ -5425,7 +5429,7 @@ function bait__util__shell_escape(s) {
 }
 
 
-const bait__util__VERSION = from_js_string(`0.0.4-dev ${from_js_string("4c336a5").str}`)
+const bait__util__VERSION = from_js_string(`0.0.4-dev ${from_js_string("fb4efd4").str}`)
 
 function bait__gen__js__Gen_expr(g, expr) {
 	if (expr instanceof bait__ast__AnonFun) {
