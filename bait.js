@@ -5125,6 +5125,10 @@ function bait__checker__Checker_expr_stmt(c, node) {
 }
 
 function bait__checker__Checker_enum_decl(c, node) {
+	if (eq(node.fields.length, 0)) {
+		bait__checker__Checker_error(c, from_js_string("enum cannot be empty"), node.pos)
+		return
+	}
 	let cur_val = 0
 	for (let i = 0; i < node.fields.length; i++) {
 		const field = array_get(node.fields, i)
@@ -5434,7 +5438,7 @@ function bait__util__shell_escape(s) {
 }
 
 
-const bait__util__VERSION = from_js_string(`0.0.4-dev ${from_js_string("dcf07a0").str}`)
+const bait__util__VERSION = from_js_string(`0.0.4-dev ${from_js_string("c0657cf").str}`)
 
 function bait__gen__js__Gen_expr(g, expr) {
 	if (expr instanceof bait__ast__AnonFun) {
