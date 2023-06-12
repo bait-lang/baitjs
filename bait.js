@@ -5438,7 +5438,7 @@ function bait__util__shell_escape(s) {
 }
 
 
-const bait__util__VERSION = from_js_string(`0.0.4-dev ${from_js_string("c0657cf").str}`)
+const bait__util__VERSION = from_js_string(`0.0.4-dev ${from_js_string("5ec5b63").str}`)
 
 function bait__gen__js__Gen_expr(g, expr) {
 	if (expr instanceof bait__ast__AnonFun) {
@@ -6932,6 +6932,10 @@ function bait__builder__compile(prefs) {
 			b.prefs.expected_pkg = imp.name
 			const import_dir = bait__builder__resolve_import(string_replace(imp.name, from_js_string("."), from_js_string("/")))
 			let imp_paths = bait__builder__Builder_collect_bait_files(b, import_dir)
+			if (eq(imp_paths.length, 0)) {
+				bait__errors__generic_error(from_js_string(`package ${imp.name.str} contains no Bait files`))
+				continue
+			}
 			imp_paths = array_filter(imp_paths, function (p) {
 				return !array_string_contains(paths, p)
 			})
