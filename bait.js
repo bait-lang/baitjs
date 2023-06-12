@@ -1790,6 +1790,8 @@ function bait__preference__parse_args(args) {
 				{
 					i += 1
 					p.out_name = array_get(args, i)
+					array_push(p.args, arg)
+					array_push(p.args, p.out_name)
 					break
 				}
 			case from_js_string("-v").str:
@@ -1807,11 +1809,13 @@ function bait__preference__parse_args(args) {
 			case from_js_string("-w").str:
 				{
 					p.hide_warnings = true
+					array_push(p.args, arg)
 					break
 				}
 			case from_js_string("-W").str:
 				{
 					p.warn_is_error = true
+					array_push(p.args, arg)
 					break
 				}
 			case from_js_string("--nocolor").str:
@@ -5404,7 +5408,7 @@ function bait__util__shell_escape(s) {
 }
 
 
-const bait__util__VERSION = from_js_string(`0.0.4-dev ${from_js_string("71d07ea").str}`)
+const bait__util__VERSION = from_js_string(`0.0.4-dev ${from_js_string("c7d52c6").str}`)
 
 function bait__gen__js__Gen_expr(g, expr) {
 	if (expr instanceof bait__ast__AnonFun) {
