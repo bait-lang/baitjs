@@ -4297,23 +4297,8 @@ const bait__checker__AttrValue = {
 	optional: 1,
 	required: 2,
 }
-function bait__checker__build_fun_attrs() {
-	let attrs = new map({ data: new Map([]), length: 0 })
-	map_set(attrs, from_js_string("deprecated"), bait__checker__AttrValue.optional)
-	map_set(attrs, from_js_string("deprecated_after"), bait__checker__AttrValue.required)
-	map_set(attrs, from_js_string("export"), bait__checker__AttrValue.required)
-	map_set(attrs, from_js_string("overload"), bait__checker__AttrValue.required)
-	return attrs
-}
-
-function bait__checker__build_struct_field_attrs() {
-	let attrs = new map({ data: new Map([]), length: 0 })
-	map_set(attrs, from_js_string("required"), bait__checker__AttrValue.none)
-	return attrs
-}
-
-const bait__checker__FUN_ATTRS = bait__checker__build_fun_attrs()
-const bait__checker__STRUCT_FIELD_ATTRS = bait__checker__build_struct_field_attrs()
+const bait__checker__FUN_ATTRS = new map({ data: new Map([[from_js_string("deprecated").str, bait__checker__AttrValue.optional], [from_js_string("deprecated_after").str, bait__checker__AttrValue.required], [from_js_string("export").str, bait__checker__AttrValue.required], [from_js_string("overload").str, bait__checker__AttrValue.required]]), length: 4 })
+const bait__checker__STRUCT_FIELD_ATTRS = new map({ data: new Map([[from_js_string("required").str, bait__checker__AttrValue.none]]), length: 1 })
 function bait__checker__Checker_check_attribute(c, attr, known_list) {
 	if (!map_contains(known_list, attr.name)) {
 		bait__checker__Checker_warn(c, from_js_string(`unknown attribute "${attr.name.str}"`), attr.pos)
@@ -4736,23 +4721,35 @@ function bait__checker__Checker_index_expr(c, node) {
 }
 
 function bait__checker__Checker_map_init(c, node) {
-	if (node.keys.length > 0) {
-		for (let i = 0; i < node.keys.length; i++) {
-			const key = array_get(node.keys, i)
-			const key_type = bait__checker__Checker_expr(c, key)
-			const val_type = bait__checker__Checker_expr(c, array_get(node.vals, i))
-			if (eq(i, 0)) {
-				node.key_type = key_type
-				node.val_type = val_type
-			}
-		}
-		node.typ = bait__ast__Table_find_or_register_map(c.table, node.key_type, node.val_type)
-	} else {
+	if (eq(node.keys.length, 0)) {
 		const sym = bait__ast__Table_get_sym(c.table, node.typ)
 		const info = sym.info
 		node.key_type = info.key_type
 		node.val_type = info.val_type
+		return node.typ
 	}
+	for (let i = 0; i < node.keys.length; i++) {
+		const key = array_get(node.keys, i)
+		const key_type = bait__checker__Checker_expr(c, key)
+		if (i >= 1) {
+			c.expected_type = node.val_type
+		}
+		const val_type = bait__checker__Checker_expr(c, array_get(node.vals, i))
+		if (eq(i, 0)) {
+			node.key_type = key_type
+			node.val_type = val_type
+		} else {
+			if (!bait__checker__Checker_check_types(c, key_type, node.key_type)) {
+				const key_expr = key
+				bait__checker__Checker_error(c, from_js_string(`expected key type ${bait__ast__Table_type_name(c.table, node.key_type).str}, got ${bait__ast__Table_type_name(c.table, key_type).str}`), key_expr.pos)
+			}
+			if (!bait__checker__Checker_check_types(c, val_type, node.val_type)) {
+				const val_expr = array_get(node.vals, i)
+				bait__checker__Checker_error(c, from_js_string(`expected value type ${bait__ast__Table_type_name(c.table, node.val_type).str}, got ${bait__ast__Table_type_name(c.table, val_type).str}`), val_expr.pos)
+			}
+		}
+	}
+	node.typ = bait__ast__Table_find_or_register_map(c.table, node.key_type, node.val_type)
 	return node.typ
 }
 
@@ -5438,7 +5435,7 @@ function bait__util__shell_escape(s) {
 }
 
 
-const bait__util__VERSION = from_js_string(`0.0.4-dev ${from_js_string("cd79f6a").str}`)
+const bait__util__VERSION = from_js_string(`0.0.4-dev ${from_js_string("1fba74b").str}`)
 
 function bait__gen__js__Gen_expr(g, expr) {
 	if (expr instanceof bait__ast__AnonFun) {
