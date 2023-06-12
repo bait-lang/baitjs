@@ -2162,7 +2162,7 @@ bait__ast__StructDecl.prototype = {
     pos = ${this.pos.toString()}
 }`}
 }
-function bait__ast__StructField({ name = from_js_string(""), typ = 0, expr = undefined, pos = new bait__token__Pos({}), attrs = new array({ data: [], length: 0 }) }) {
+function bait__ast__StructField({ name = from_js_string(""), typ = 0, expr = new bait__ast__EmptyExpr({}), pos = new bait__token__Pos({}), attrs = new array({ data: [], length: 0 }) }) {
 	this.name = name
 	this.typ = typ
 	this.expr = expr
@@ -2235,7 +2235,7 @@ bait__ast__BoolLiteral.prototype = {
     pos = ${this.pos.toString()}
 }`}
 }
-function bait__ast__CallExpr({ lang = 0, name = from_js_string(""), args = new array({ data: [], length: 0 }), return_type = 0, is_method = false, left = undefined, left_type = 0, pkg = from_js_string(""), pos = new bait__token__Pos({}) }) {
+function bait__ast__CallExpr({ lang = 0, name = from_js_string(""), args = new array({ data: [], length: 0 }), return_type = 0, is_method = false, left = new bait__ast__EmptyExpr({}), left_type = 0, pkg = from_js_string(""), pos = new bait__token__Pos({}) }) {
 	this.lang = lang
 	this.name = name
 	this.args = args
@@ -2659,7 +2659,7 @@ bait__ast__Scope.prototype = {
     objects = ${this.objects.toString()}
 }`}
 }
-function bait__ast__ScopeObject({ kind = 0, typ = 0, is_pub = false, pkg = from_js_string(""), expr = undefined }) {
+function bait__ast__ScopeObject({ kind = 0, typ = 0, is_pub = false, pkg = from_js_string(""), expr = new bait__ast__EmptyExpr({}) }) {
 	this.kind = kind
 	this.typ = typ
 	this.is_pub = is_pub
@@ -2940,7 +2940,7 @@ const bait__ast__TypeKind = {
 	sum_type: 9,
 	fun_: 10,
 }
-function bait__ast__TypeSymbol({ name = from_js_string(""), kind = 0, info = undefined, methods = new array({ data: [], length: 0 }), parent = 0, overloads = new map({ data: new Map([]), length: 0 }), is_pub = false, pkg = from_js_string("") }) {
+function bait__ast__TypeSymbol({ name = from_js_string(""), kind = 0, info = new bait__ast__EmptyInfo({}), methods = new array({ data: [], length: 0 }), parent = 0, overloads = new map({ data: new Map([]), length: 0 }), is_pub = false, pkg = from_js_string("") }) {
 	this.name = name
 	this.kind = kind
 	this.info = info
@@ -4418,32 +4418,6 @@ function bait__checker__Checker_check_struct_field_attrs(c, node) {
 	}
 }
 
-function bait__checker__Checker_check_struct_field_attrs_on_init(c, init, info) {
-	for (let _t14 = 0; _t14 < info.fields.length; _t14++) {
-		const def_field = array_get(info.fields, _t14)
-		let is_required = false
-		for (let _t15 = 0; _t15 < def_field.attrs.length; _t15++) {
-			const attr = array_get(def_field.attrs, _t15)
-			if (eq(attr.name, from_js_string("required"))) {
-				is_required = true
-			}
-		}
-		let is_present = false
-		if (is_required) {
-			for (let _t16 = 0; _t16 < init.fields.length; _t16++) {
-				const inited = array_get(init.fields, _t16)
-				if (eq(inited.name, def_field.name)) {
-					is_present = true
-					break
-				}
-			}
-			if (!is_present) {
-				bait__checker__Checker_error(c, from_js_string(`field "${init.name.str}.${def_field.name.str}" requires initialization`), init.pos)
-			}
-		}
-	}
-}
-
 
 function bait__checker__Checker({ pref = new bait__preference__Prefs({}), table = new bait__ast__Table({}), scope = new bait__ast__Scope({}), path = from_js_string(""), pkg = from_js_string(""), has_main_pkg_files = false, has_main_fun = false, is_js_file = false, cur_fun = new bait__ast__FunDecl({}), expected_type = 0, is_lhs_assign = false, export_names = new array({ data: [], length: 0 }), infos = new array({ data: [], length: 0 }), warnings = new array({ data: [], length: 0 }), errors = new array({ data: [], length: 0 }) }) {
 	this.pref = pref
@@ -4487,8 +4461,8 @@ function bait__checker__new_checker(table, pref) {
 }
 
 function bait__checker__Checker_check_files(c, files) {
-	for (let _t17 = 0; _t17 < files.length; _t17++) {
-		const f = array_get(files, _t17)
+	for (let _t14 = 0; _t14 < files.length; _t14++) {
+		const f = array_get(files, _t14)
 		bait__checker__Checker_check(c, f)
 		f.infos = c.infos
 		f.warnings = c.warnings
@@ -4521,8 +4495,8 @@ function bait__checker__Checker_check(c, file) {
 }
 
 function bait__checker__Checker_check_imports(c, imports) {
-	for (let _t18 = 0; _t18 < imports.length; _t18++) {
-		const imp = array_get(imports, _t18)
+	for (let _t15 = 0; _t15 < imports.length; _t15++) {
+		const imp = array_get(imports, _t15)
 		bait__ast__Scope_register(c.scope, imp.alias, new bait__ast__ScopeObject({ kind: bait__ast__ObjectKind.package_ }))
 		if (!c.is_js_file && eq(imp.lang, bait__ast__Language.js)) {
 			bait__checker__Checker_warn(c, from_js_string("JS imports have to be in .js.bt files"), imp.pos)
@@ -4790,11 +4764,11 @@ function bait__checker__Checker_match_expr(c, node) {
 	}
 	const sym = bait__ast__Table_get_sym(c.table, node.cond_type)
 	node.is_sumtype = eq(sym.kind, bait__ast__TypeKind.sum_type)
-	for (let _t19 = 0; _t19 < node.branches.length; _t19++) {
-		const branch = array_get(node.branches, _t19)
+	for (let _t16 = 0; _t16 < node.branches.length; _t16++) {
+		const branch = array_get(node.branches, _t16)
 		bait__checker__Checker_open_scope(c)
-		for (let _t20 = 0; _t20 < branch.exprs.length; _t20++) {
-			const e = array_get(branch.exprs, _t20)
+		for (let _t17 = 0; _t17 < branch.exprs.length; _t17++) {
+			const e = array_get(branch.exprs, _t17)
 			if (node.is_sumtype) {
 				const expr = e
 				const variant = bait__ast__Table_get_idx(c.table, expr.name)
@@ -4857,8 +4831,8 @@ function bait__checker__Checker_string_literal(c, node) {
 }
 
 function bait__checker__Checker_string_inter_literal(c, node) {
-	for (let _t21 = 0; _t21 < node.exprs.length; _t21++) {
-		const e = array_get(node.exprs, _t21)
+	for (let _t18 = 0; _t18 < node.exprs.length; _t18++) {
+		const e = array_get(node.exprs, _t18)
 		const typ = bait__checker__Checker_expr(c, e)
 		array_push(node.expr_types, typ)
 	}
@@ -4885,8 +4859,8 @@ function bait__checker__Checker_fun_decl(c, node) {
 }
 
 function bait__checker__Checker_fun_params(c, params) {
-	for (let _t22 = 0; _t22 < params.length; _t22++) {
-		const p = array_get(params, _t22)
+	for (let _t19 = 0; _t19 < params.length; _t19++) {
+		const p = array_get(params, _t19)
 		if (bait__ast__Scope_is_known(c.scope, p.name)) {
 			bait__checker__Checker_error(c, from_js_string(`cannot shadow import "${p.name.str}"`), p.pos)
 			continue
@@ -4901,8 +4875,8 @@ function bait__checker__Checker_fun_params(c, params) {
 }
 
 function bait__checker__Checker_check_main_fun(c, stmts) {
-	for (let _t23 = 0; _t23 < stmts.length; _t23++) {
-		const stmt = array_get(stmts, _t23)
+	for (let _t20 = 0; _t20 < stmts.length; _t20++) {
+		const stmt = array_get(stmts, _t20)
 		if (stmt instanceof bait__ast__FunDecl && eq(stmt.name, from_js_string("main"))) {
 			c.has_main_fun = true
 		}
@@ -4946,8 +4920,8 @@ function bait__checker__Checker_fun_call(c, node) {
 		return node.return_type
 	}
 	if (eq(node.name, from_js_string("println")) || eq(node.name, from_js_string("eprintln"))) {
-		for (let _t24 = 0; _t24 < node.args.length; _t24++) {
-			const arg = array_get(node.args, _t24)
+		for (let _t21 = 0; _t21 < node.args.length; _t21++) {
+			const arg = array_get(node.args, _t21)
 			arg.typ = bait__checker__Checker_expr(c, arg.expr)
 		}
 		return bait__ast__VOID_TYPE
@@ -5061,8 +5035,8 @@ function bait__checker__Checker_is_sumtype_variant_infix(c, node) {
 
 
 function bait__checker__Checker_stmts(c, stmts) {
-	for (let _t25 = 0; _t25 < stmts.length; _t25++) {
-		const stmt = array_get(stmts, _t25)
+	for (let _t22 = 0; _t22 < stmts.length; _t22++) {
+		const stmt = array_get(stmts, _t22)
 		bait__checker__Checker_stmt(c, stmt)
 	}
 }
@@ -5297,10 +5271,10 @@ function bait__checker__Checker_struct_init(c, node) {
 		bait__checker__Checker_error(c, from_js_string(`struct ${sym.name.str} is private`), node.pos)
 		return bait__ast__VOID_TYPE
 	}
-	bait__checker__Checker_check_struct_field_attrs_on_init(c, node, sym.info)
+	bait__checker__Checker_check_init_field_values(c, node, sym.info)
 	node.name = sym.name
-	for (let _t26 = 0; _t26 < node.fields.length; _t26++) {
-		const field = array_get(node.fields, _t26)
+	for (let _t23 = 0; _t23 < node.fields.length; _t23++) {
+		const field = array_get(node.fields, _t23)
 		const def = bait__ast__TypeSymbol_find_field(sym, field.name, c.table)
 		if (eq(def.name.length, 0)) {
 			bait__checker__Checker_error(c, from_js_string(`struct ${sym.name.str} has no field ${field.name.str}`), node.pos)
@@ -5315,6 +5289,37 @@ function bait__checker__Checker_struct_init(c, node) {
 		}
 	}
 	return node.typ
+}
+
+function bait__checker__Checker_check_init_field_values(c, init, info) {
+	for (let _t24 = 0; _t24 < info.fields.length; _t24++) {
+		const def_field = array_get(info.fields, _t24)
+		const def_sym = bait__ast__Table_get_sym(c.table, def_field.typ)
+		let is_required = eq(def_sym.kind, bait__ast__TypeKind.sum_type)
+		for (let _t25 = 0; _t25 < def_field.attrs.length; _t25++) {
+			const attr = array_get(def_field.attrs, _t25)
+			if (eq(attr.name, from_js_string("required"))) {
+				is_required = true
+			}
+		}
+		if (!is_required) {
+			continue
+		}
+		if (!(def_field.expr instanceof bait__ast__EmptyExpr)) {
+			continue
+		}
+		let is_present = false
+		for (let _t26 = 0; _t26 < init.fields.length; _t26++) {
+			const inited = array_get(init.fields, _t26)
+			if (eq(inited.name, def_field.name)) {
+				is_present = true
+				break
+			}
+		}
+		if (!is_present) {
+			bait__checker__Checker_error(c, from_js_string(`field "${init.name.str}.${def_field.name.str}" requires initialization`), init.pos)
+		}
+	}
 }
 
 
@@ -5429,7 +5434,7 @@ function bait__util__shell_escape(s) {
 }
 
 
-const bait__util__VERSION = from_js_string(`0.0.4-dev ${from_js_string("fb4efd4").str}`)
+const bait__util__VERSION = from_js_string(`0.0.4-dev ${from_js_string("dcf07a0").str}`)
 
 function bait__gen__js__Gen_expr(g, expr) {
 	if (expr instanceof bait__ast__AnonFun) {
