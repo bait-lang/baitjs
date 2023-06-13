@@ -2667,10 +2667,11 @@ bait__ast__Scope.prototype = {
     objects = ${this.objects.toString()}
 }`}
 }
-function bait__ast__ScopeObject({ kind = 0, typ = 0, is_pub = false, pkg = from_js_string(""), expr = new bait__ast__EmptyExpr({}) }) {
+function bait__ast__ScopeObject({ kind = 0, typ = 0, is_pub = false, is_mut = false, pkg = from_js_string(""), expr = new bait__ast__EmptyExpr({}) }) {
 	this.kind = kind
 	this.typ = typ
 	this.is_pub = is_pub
+	this.is_mut = is_mut
 	this.pkg = pkg
 	this.expr = expr
 }
@@ -2680,6 +2681,7 @@ bait__ast__ScopeObject.prototype = {
     kind = ${this.kind.toString()}
     typ = ${this.typ.toString()}
     is_pub = ${this.is_pub.toString()}
+    is_mut = ${this.is_mut.toString()}
     pkg = ${this.pkg.toString()}
     expr = ${this.expr.toString()}
 }`}
@@ -3118,7 +3120,8 @@ function bait__parser__Parser_expr(p, precedence) {
 	return bait__parser__Parser_expr_with_left(p, node, precedence)
 }
 
-function bait__parser__Parser_expr_with_left(p, left, precedence) {
+function bait__parser__Parser_expr_with_left(p, left_, precedence) {
+	let left = left_
 	while (precedence < bait__token__Token_precedence(p.tok)) {
 		if (eq(p.tok.kind, bait__token__TokenKind.dot)) {
 			left = bait__parser__Parser_dot_expr(p, left)
@@ -4700,6 +4703,7 @@ function bait__checker__Checker_ident(c, node) {
 		bait__checker__Checker_error(c, from_js_string(`const ${node.name.str} is private`), node.pos)
 	}
 	if (!eq(obj.typ, bait__ast__PLACEHOLDER_TYPE)) {
+		node.is_mut = obj.is_mut
 		return obj.typ
 	}
 	if (!string_contains(node.name, from_js_string(".")) && !eq(node.pkg, from_js_string("builtin")) && !eq(node.pkg, from_js_string("main"))) {
@@ -4712,6 +4716,7 @@ function bait__checker__Checker_ident(c, node) {
 	if (eq(obj.typ, bait__ast__VOID_TYPE)) {
 		obj.typ = bait__checker__Checker_expr(c, obj.expr)
 	}
+	node.is_mut = obj.is_mut
 	return obj.typ
 }
 
@@ -5120,7 +5125,7 @@ function bait__checker__Checker_assign_stmt(c, node) {
 			bait__checker__Checker_error(c, from_js_string(`redefinition of ${left.name.str}`), node.pos)
 			return
 		}
-		bait__ast__Scope_register(c.scope, left.name, new bait__ast__ScopeObject({ kind: bait__ast__ObjectKind.variable, typ: typ }))
+		bait__ast__Scope_register(c.scope, left.name, new bait__ast__ScopeObject({ kind: bait__ast__ObjectKind.variable, typ: typ, is_mut: left.is_mut }))
 		bait__checker__Checker_expr(c, node.left)
 		return
 	}
@@ -5131,6 +5136,13 @@ function bait__checker__Checker_assign_stmt(c, node) {
 	node.right_type = bait__checker__Checker_expr(c, node.right)
 	if (eq(node.right_type, bait__ast__VOID_TYPE) && !(node.right instanceof bait__ast__CallExpr)) {
 		return
+	}
+	if (node.left instanceof bait__ast__Ident) {
+		const left = node.left
+		if (!left.is_mut) {
+			bait__checker__Checker_error(c, from_js_string(`cannot assign to immutable variable "${left.name.str}"`), left.pos)
+			return
+		}
 	}
 	if (!bait__checker__Checker_check_types(c, node.right_type, node.left_type)) {
 		bait__checker__Checker_error(c, from_js_string(`cannot assign type ${bait__ast__Table_type_name(c.table, node.right_type).str} to ${bait__ast__Table_type_name(c.table, node.left_type).str}`), node.pos)
@@ -5479,7 +5491,7 @@ function bait__util__shell_escape(s) {
 }
 
 
-const bait__util__VERSION = from_js_string(`0.0.4-dev ${from_js_string("d618f59").str}`)
+const bait__util__VERSION = from_js_string(`0.0.4-dev ${from_js_string("723bda5").str}`)
 
 function bait__gen__js__Gen_expr(g, expr) {
 	if (expr instanceof bait__ast__AnonFun) {
