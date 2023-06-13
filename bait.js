@@ -5157,18 +5157,14 @@ function bait__checker__Checker_enum_decl(c, node) {
 		return
 	}
 	let cur_val = 0
+	outer: 
 	for (let i = 0; i < node.fields.length; i++) {
 		const field = array_get(node.fields, i)
-		let should_continue = false
 		for (let j = 0; j < i; j += 1) {
 			if (eq(field.name, array_get(node.fields, j).name)) {
 				bait__checker__Checker_error(c, from_js_string(`duplicate field name ${field.name.str}`), field.pos)
-				should_continue = true
-				break
+				continue outer
 			}
-		}
-		if (should_continue) {
-			continue
 		}
 		if (field.expr instanceof bait__ast__EmptyExpr) {
 			field.expr = new bait__ast__IntegerLiteral({ val: from_js_string(`${i32_str(cur_val).str}`) })
@@ -5285,18 +5281,15 @@ function bait__checker__Checker_type_decl(c, node) {
 
 
 function bait__checker__Checker_struct_decl(c, node) {
+	outer: 
 	for (let i = 0; i < node.fields.length; i++) {
 		const field = array_get(node.fields, i)
 		let should_continue = false
 		for (let j = 0; j < i; j += 1) {
 			if (eq(field.name, array_get(node.fields, j).name)) {
 				bait__checker__Checker_error(c, from_js_string(`duplicate field name ${field.name.str}`), field.pos)
-				should_continue = true
-				break
+				continue outer
 			}
-		}
-		if (should_continue) {
-			continue
 		}
 		bait__checker__Checker_check_struct_field_attrs(c, node)
 		const sym = bait__ast__Table_get_sym(c.table, field.typ)
@@ -5486,7 +5479,7 @@ function bait__util__shell_escape(s) {
 }
 
 
-const bait__util__VERSION = from_js_string(`0.0.4-dev ${from_js_string("dc92639").str}`)
+const bait__util__VERSION = from_js_string(`0.0.4-dev ${from_js_string("d618f59").str}`)
 
 function bait__gen__js__Gen_expr(g, expr) {
 	if (expr instanceof bait__ast__AnonFun) {
