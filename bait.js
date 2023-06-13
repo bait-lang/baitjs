@@ -2170,13 +2170,14 @@ bait__ast__StructDecl.prototype = {
     pos = ${this.pos.toString()}
 }`}
 }
-function bait__ast__StructField({ name = from_js_string(""), typ = 0, expr = new bait__ast__EmptyExpr({}), pos = new bait__token__Pos({}), is_mut = false, is_pub = false, attrs = new array({ data: [], length: 0 }) }) {
+function bait__ast__StructField({ name = from_js_string(""), typ = 0, expr = new bait__ast__EmptyExpr({}), pos = new bait__token__Pos({}), is_mut = false, is_pub = false, is_global = false, attrs = new array({ data: [], length: 0 }) }) {
 	this.name = name
 	this.typ = typ
 	this.expr = expr
 	this.pos = pos
 	this.is_mut = is_mut
 	this.is_pub = is_pub
+	this.is_global = is_global
 	this.attrs = attrs
 }
 bait__ast__StructField.prototype = {
@@ -2188,6 +2189,7 @@ bait__ast__StructField.prototype = {
     pos = ${this.pos.toString()}
     is_mut = ${this.is_mut.toString()}
     is_pub = ${this.is_pub.toString()}
+    is_global = ${this.is_global.toString()}
     attrs = ${this.attrs.toString()}
 }`}
 }
@@ -4136,8 +4138,10 @@ function bait__parser__Parser_struct_decl(p) {
 	let mut_idx = -1
 	let pub_idx = -1
 	let pub_mut_idx = -1
+	let global_idx = -1
 	let field_is_mut = false
 	let field_is_pub = false
+	let field_is_global = false
 	let fields = new array({ data: [], length: 0 })
 	bait__parser__Parser_check(p, bait__token__TokenKind.lcur)
 	while (!eq(p.tok.kind, bait__token__TokenKind.rcur)) {
@@ -4151,6 +4155,7 @@ function bait__parser__Parser_struct_decl(p) {
 			mut_idx = fields.length
 			field_is_mut = true
 			field_is_pub = false
+			field_is_global = false
 		} else if (eq(p.tok.kind, bait__token__TokenKind.key_pub)) {
 			bait__parser__Parser_next(p)
 			if (eq(p.tok.kind, bait__token__TokenKind.key_mut)) {
@@ -4162,6 +4167,7 @@ function bait__parser__Parser_struct_decl(p) {
 				pub_mut_idx = fields.length
 				field_is_mut = true
 				field_is_pub = true
+				field_is_global = false
 			} else {
 				if (!eq(pub_idx, -1)) {
 					bait__parser__Parser_error(p, from_js_string("redefinition of \"pub\" section"))
@@ -4170,8 +4176,20 @@ function bait__parser__Parser_struct_decl(p) {
 				pub_idx = fields.length
 				field_is_mut = false
 				field_is_pub = true
+				field_is_global = false
 			}
 			bait__parser__Parser_check(p, bait__token__TokenKind.colon)
+		} else if (eq(p.tok.kind, bait__token__TokenKind.key_global)) {
+			if (!eq(global_idx, -1)) {
+				bait__parser__Parser_error(p, from_js_string("redefinition of \"global\" section"))
+				return new bait__ast__StructDecl({})
+			}
+			bait__parser__Parser_next(p)
+			bait__parser__Parser_check(p, bait__token__TokenKind.colon)
+			global_idx = fields.length
+			field_is_mut = true
+			field_is_pub = true
+			field_is_global = true
 		}
 		bait__parser__Parser_parse_attributes(p)
 		array_push(fields, bait__parser__Parser_struct_decl_field(p, field_is_mut, field_is_pub))
@@ -5532,7 +5550,7 @@ function bait__util__shell_escape(s) {
 }
 
 
-const bait__util__VERSION = from_js_string(`0.0.4-dev ${from_js_string("c5be85d").str}`)
+const bait__util__VERSION = from_js_string(`0.0.4-dev ${from_js_string("149ff3d").str}`)
 
 function bait__gen__js__Gen_expr(g, expr) {
 	if (expr instanceof bait__ast__AnonFun) {
