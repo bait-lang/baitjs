@@ -2170,11 +2170,13 @@ bait__ast__StructDecl.prototype = {
     pos = ${this.pos.toString()}
 }`}
 }
-function bait__ast__StructField({ name = from_js_string(""), typ = 0, expr = new bait__ast__EmptyExpr({}), pos = new bait__token__Pos({}), attrs = new array({ data: [], length: 0 }) }) {
+function bait__ast__StructField({ name = from_js_string(""), typ = 0, expr = new bait__ast__EmptyExpr({}), pos = new bait__token__Pos({}), is_mut = false, is_pub = false, attrs = new array({ data: [], length: 0 }) }) {
 	this.name = name
 	this.typ = typ
 	this.expr = expr
 	this.pos = pos
+	this.is_mut = is_mut
+	this.is_pub = is_pub
 	this.attrs = attrs
 }
 bait__ast__StructField.prototype = {
@@ -2184,6 +2186,8 @@ bait__ast__StructField.prototype = {
     typ = ${this.typ.toString()}
     expr = ${this.expr.toString()}
     pos = ${this.pos.toString()}
+    is_mut = ${this.is_mut.toString()}
+    is_pub = ${this.is_pub.toString()}
     attrs = ${this.attrs.toString()}
 }`}
 }
@@ -4129,11 +4133,48 @@ function bait__parser__Parser_struct_decl(p) {
 	const is_pub = bait__parser__Parser_check_pub(p)
 	bait__parser__Parser_check(p, bait__token__TokenKind.key_struct)
 	const name = bait__parser__Parser_prepend_pkg(p, bait__parser__Parser_check_name(p))
-	bait__parser__Parser_check(p, bait__token__TokenKind.lcur)
+	let mut_idx = -1
+	let pub_idx = -1
+	let pub_mut_idx = -1
+	let field_is_mut = false
+	let field_is_pub = false
 	let fields = new array({ data: [], length: 0 })
+	bait__parser__Parser_check(p, bait__token__TokenKind.lcur)
 	while (!eq(p.tok.kind, bait__token__TokenKind.rcur)) {
+		if (eq(p.tok.kind, bait__token__TokenKind.key_mut)) {
+			if (!eq(mut_idx, -1)) {
+				bait__parser__Parser_error(p, from_js_string("redefinition of \"mut\" section"))
+				return new bait__ast__StructDecl({})
+			}
+			bait__parser__Parser_next(p)
+			bait__parser__Parser_check(p, bait__token__TokenKind.colon)
+			mut_idx = fields.length
+			field_is_mut = true
+			field_is_pub = false
+		} else if (eq(p.tok.kind, bait__token__TokenKind.key_pub)) {
+			bait__parser__Parser_next(p)
+			if (eq(p.tok.kind, bait__token__TokenKind.key_mut)) {
+				if (!eq(pub_mut_idx, -1)) {
+					bait__parser__Parser_error(p, from_js_string("redefinition of \"pub mut\" section"))
+					return new bait__ast__StructDecl({})
+				}
+				bait__parser__Parser_next(p)
+				pub_mut_idx = fields.length
+				field_is_mut = true
+				field_is_pub = true
+			} else {
+				if (!eq(pub_idx, -1)) {
+					bait__parser__Parser_error(p, from_js_string("redefinition of \"pub\" section"))
+					return new bait__ast__StructDecl({})
+				}
+				pub_idx = fields.length
+				field_is_mut = false
+				field_is_pub = true
+			}
+			bait__parser__Parser_check(p, bait__token__TokenKind.colon)
+		}
 		bait__parser__Parser_parse_attributes(p)
-		array_push(fields, bait__parser__Parser_struct_decl_field(p))
+		array_push(fields, bait__parser__Parser_struct_decl_field(p, field_is_mut, field_is_pub))
 	}
 	bait__parser__Parser_check(p, bait__token__TokenKind.rcur)
 	const tsym = new bait__ast__TypeSymbol({ kind: bait__ast__TypeKind.struct_, name: name, is_pub: is_pub, pkg: p.pkg_name, info: new bait__ast__StructInfo({ fields: fields }) })
@@ -4141,7 +4182,7 @@ function bait__parser__Parser_struct_decl(p) {
 	return new bait__ast__StructDecl({ name: name, typ: typ, fields: fields, pos: pos })
 }
 
-function bait__parser__Parser_struct_decl_field(p) {
+function bait__parser__Parser_struct_decl_field(p, is_mut, is_pub) {
 	const pos = p.tok.pos
 	const fname = bait__parser__Parser_check_name(p)
 	const ftyp = bait__parser__Parser_parse_type(p)
@@ -4150,7 +4191,7 @@ function bait__parser__Parser_struct_decl_field(p) {
 		bait__parser__Parser_next(p)
 		expr = bait__parser__Parser_expr(p, 0)
 	}
-	const field = new bait__ast__StructField({ name: fname, typ: ftyp, expr: expr, pos: pos, attrs: p.attributes })
+	const field = new bait__ast__StructField({ name: fname, typ: ftyp, expr: expr, pos: pos, is_mut: is_mut, is_pub: is_pub, attrs: p.attributes })
 	p.attributes = new array({ data: [], length: 0 })
 	return field
 }
@@ -5491,7 +5532,7 @@ function bait__util__shell_escape(s) {
 }
 
 
-const bait__util__VERSION = from_js_string(`0.0.4-dev ${from_js_string("f6af70a").str}`)
+const bait__util__VERSION = from_js_string(`0.0.4-dev ${from_js_string("c5be85d").str}`)
 
 function bait__gen__js__Gen_expr(g, expr) {
 	if (expr instanceof bait__ast__AnonFun) {
