@@ -5184,6 +5184,10 @@ function bait__checker__Checker_assert_stmt(c, node) {
 function bait__checker__Checker_assign_stmt(c, node) {
 	if (eq(node.op, bait__token__TokenKind.decl_assign)) {
 		const typ = bait__checker__Checker_expr(c, node.right)
+		if (!(node.left instanceof bait__ast__Ident)) {
+			bait__checker__Checker_error(c, from_js_string("cannot declare a variable with a non-identifier"), node.pos)
+			return
+		}
 		const left = node.left
 		if (bait__ast__Scope_is_known(c.scope, left.name)) {
 			bait__checker__Checker_error(c, from_js_string(`redefinition of ${left.name.str}`), node.pos)
@@ -5564,7 +5568,7 @@ function bait__util__shell_escape(s) {
 }
 
 
-const bait__util__VERSION = from_js_string(`0.0.4-dev ${from_js_string("94034ac").str}`)
+const bait__util__VERSION = from_js_string(`0.0.4-dev ${from_js_string("44396fe").str}`)
 
 function bait__gen__js__Gen_expr(g, expr) {
 	if (expr instanceof bait__ast__AnonFun) {
