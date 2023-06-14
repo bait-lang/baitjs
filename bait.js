@@ -5,7 +5,6 @@ const JS__fs = require("fs")
 const JS__path = require("path")
 const JS__child_process = require("child_process")
 
-var test_runner = new TestRunner({})
 
 function array({ data = undefined, length = 0 }) {
 	this.data = data
@@ -122,67 +121,6 @@ function array_filter(a, fn) {
 
 function from_js_arr(a) {
 	return new array({ data: a, length: a.length })
-}
-
-
-function TestRunner({ passes = 0, fails = 0, file = from_js_string(""), fun_name = from_js_string(""), line = 0, expr_string = from_js_string(""), exp_val = from_js_string(""), got_val = from_js_string("") }) {
-	this.passes = passes
-	this.fails = fails
-	this.file = file
-	this.fun_name = fun_name
-	this.line = line
-	this.expr_string = expr_string
-	this.exp_val = exp_val
-	this.got_val = got_val
-}
-TestRunner.prototype = {
-	toString() {
-		return `TestRunner{
-    passes = ${this.passes.toString()}
-    fails = ${this.fails.toString()}
-    file = ${this.file.toString()}
-    fun_name = ${this.fun_name.toString()}
-    line = ${this.line.toString()}
-    expr_string = ${this.expr_string.toString()}
-    exp_val = ${this.exp_val.toString()}
-    got_val = ${this.got_val.toString()}
-}`}
-}
-function TestRunner_set_test_info(tr, file, name) {
-	tr.file = file
-	tr.fun_name = name
-}
-
-function TestRunner_set_assert_info(tr, line, expr_string, exp, got) {
-	tr.line = line
-	tr.expr_string = expr_string
-	tr.exp_val = exp
-	tr.got_val = got
-}
-
-function TestRunner_assert_pass(tr) {
-	tr.passes += 1
-}
-
-function TestRunner_assert_fail(tr) {
-	tr.fails += 1
-	eprintln(from_js_string(`${tr.file.str}:${i32_str(tr.line).str} ${tr.fun_name.str}`).str)
-	eprintln(tr.expr_string.str)
-}
-
-function TestRunner_assert_fail_infix(tr) {
-	tr.fails += 1
-	eprintln(from_js_string(`${tr.file.str}:${i32_str(tr.line).str} ${tr.fun_name.str}`).str)
-	eprintln(tr.expr_string.str)
-	eprintln(from_js_string(`  left:  ${tr.exp_val.str}`).str)
-	eprintln(from_js_string(`  right: ${tr.got_val.str}`).str)
-}
-
-function TestRunner_exit_code(tr) {
-	if (tr.fails > 0) {
-		return 1
-	}
-	return 0
 }
 
 
@@ -3483,6 +3421,18 @@ function bait__parser__Parser_typeof_expr(p) {
 }
 
 
+function bait__parser__Parser_add_builtin_imports(p) {
+	if (eq(p.pkg_name, from_js_string("builtin"))) {
+		return new array({ data: [], length: 0 })
+	}
+	let imports = new array({ data: [], length: 0 })
+	array_push(imports, new bait__ast__Import({ name: from_js_string("builtin"), alias: from_js_string("builtin") }))
+	if (p.pref.is_test && !eq(p.pkg_name, from_js_string("builtin.testing"))) {
+		array_push(imports, new bait__ast__Import({ name: from_js_string("builtin.testing"), alias: from_js_string("testing") }))
+	}
+	return imports
+}
+
 function bait__parser__Parser_js_import(p) {
 	const name = p.tok.val
 	bait__parser__Parser_next(p)
@@ -3511,7 +3461,7 @@ function bait__parser__Parser_bait_import(p) {
 }
 
 function bait__parser__Parser_import_stmts(p) {
-	let imports = new array({ data: [], length: 0 })
+	let imports = bait__parser__Parser_add_builtin_imports(p)
 	while (eq(p.tok.kind, bait__token__TokenKind.key_import)) {
 		const pos = p.tok.pos
 		bait__parser__Parser_next(p)
@@ -5568,7 +5518,7 @@ function bait__util__shell_escape(s) {
 }
 
 
-const bait__util__VERSION = from_js_string(`0.0.4-dev ${from_js_string("4193d59").str}`)
+const bait__util__VERSION = from_js_string(`0.0.4-dev ${from_js_string("81532b8").str}`)
 
 function bait__gen__js__Gen_expr(g, expr) {
 	if (expr instanceof bait__ast__AnonFun) {
@@ -6179,11 +6129,11 @@ function bait__gen__js__Gen_gen_test_main(g) {
 		if (func.is_test) {
 			nr_test_funs += 1
 			const name = bait__gen__js__js_name(func.name)
-			bait__gen__js__Gen_writeln(g, from_js_string(`TestRunner_set_test_info(test_runner, from_js_string("${g.path.str}"), from_js_string("${name.str}"))`))
+			bait__gen__js__Gen_writeln(g, from_js_string(`builtin__testing__TestRunner_set_test_info(builtin__testing__test_runner, from_js_string("${g.path.str}"), from_js_string("${name.str}"))`))
 			bait__gen__js__Gen_writeln(g, from_js_string(`${name.str}()`))
 		}
 	}
-	bait__gen__js__Gen_writeln(g, from_js_string("exit(TestRunner_exit_code(test_runner))"))
+	bait__gen__js__Gen_writeln(g, from_js_string("exit(builtin__testing__TestRunner_exit_code(builtin__testing__test_runner))"))
 	g.indent -= 1
 	bait__gen__js__Gen_writeln(g, from_js_string("}"))
 	if (eq(nr_test_funs, 0)) {
@@ -6307,11 +6257,11 @@ function bait__gen__js__Gen_assert_stmt(g, node) {
 	bait__gen__js__Gen_write(g, from_js_string("if ("))
 	bait__gen__js__Gen_expr(g, node.expr)
 	bait__gen__js__Gen_writeln(g, from_js_string(") {"))
-	bait__gen__js__Gen_writeln(g, from_js_string("\tTestRunner_assert_pass(test_runner)"))
+	bait__gen__js__Gen_writeln(g, from_js_string("\tbuiltin__testing__TestRunner_assert_pass(builtin__testing__test_runner)"))
 	bait__gen__js__Gen_writeln(g, from_js_string("} else {"))
 	if (node.expr instanceof bait__ast__InfixExpr) {
 		const expr = node.expr
-		bait__gen__js__Gen_write(g, from_js_string(`\tTestRunner_set_assert_info(test_runner, ${i32_str(node.pos.line).str}, from_js_string("assert `))
+		bait__gen__js__Gen_write(g, from_js_string(`\tbuiltin__testing__TestRunner_set_assert_info(builtin__testing__test_runner, ${i32_str(node.pos.line).str}, from_js_string("assert `))
 		bait__gen__js__Gen_assert_side_expr(g, expr.left)
 		bait__gen__js__Gen_write(g, from_js_string(` ${bait__token__TokenKind_js_repr(expr.op).str} `))
 		bait__gen__js__Gen_assert_side_expr(g, expr.right)
@@ -6320,12 +6270,12 @@ function bait__gen__js__Gen_assert_stmt(g, node) {
 		bait__gen__js__Gen_write(g, from_js_string("), from_js_string("))
 		bait__gen__js__Gen_expr_to_jsstring(g, expr.right, expr.right_type)
 		bait__gen__js__Gen_writeln(g, from_js_string("))"))
-		bait__gen__js__Gen_writeln(g, from_js_string("\tTestRunner_assert_fail_infix(test_runner)"))
+		bait__gen__js__Gen_writeln(g, from_js_string("\tbuiltin__testing__TestRunner_assert_fail_infix(builtin__testing__test_runner)"))
 	} else {
-		bait__gen__js__Gen_write(g, from_js_string(`\tTestRunner_set_assert_info(test_runner, ${i32_str(node.pos.line).str}, from_js_string("assert `))
+		bait__gen__js__Gen_write(g, from_js_string(`\tbuiltin__testing__TestRunner_set_assert_info(builtin__testing__test_runner, ${i32_str(node.pos.line).str}, from_js_string("assert `))
 		bait__gen__js__Gen_assert_side_expr(g, node.expr)
 		bait__gen__js__Gen_writeln(g, from_js_string("\"), from_js_string(\"\"), from_js_string(\"\"), from_js_string(\"\"))"))
-		bait__gen__js__Gen_writeln(g, from_js_string("\tTestRunner_assert_fail(test_runner)"))
+		bait__gen__js__Gen_writeln(g, from_js_string("\tbuiltin__testing__TestRunner_assert_fail(builtin__testing__test_runner)"))
 	}
 	bait__gen__js__Gen_writeln(g, from_js_string("}"))
 }
@@ -7058,8 +7008,7 @@ function bait__builder__Builder_parse_source_file(b, path) {
 
 function bait__builder__compile(prefs) {
 	let b = new bait__builder__Builder({ prefs: prefs, table: bait__ast__new_table() })
-	let paths = bait__builder__Builder_collect_bait_files(b, bait__builder__resolve_import(from_js_string("builtin")))
-	paths = array_concat(paths, bait__builder__Builder_get_user_files(b, prefs.command))
+	let paths = bait__builder__Builder_get_user_files(b, prefs.command)
 	let files = new array({ data: [], length: 0 })
 	for (let _t40 = 0; _t40 < paths.length; _t40++) {
 		const p = array_get(paths, _t40)
@@ -7099,9 +7048,6 @@ function bait__builder__compile(prefs) {
 	for (let _t43 = 0; _t43 < files.length; _t43++) {
 		const f = array_get(files, _t43)
 		const pkg_name = f.pkg_decl.full_name
-		if (!eq(pkg_name, from_js_string("builtin"))) {
-			array_push(map_get_set(deps, pkg_name, new array({ data: [], length: 0 })), from_js_string("builtin"))
-		}
 		for (let _t44 = 0; _t44 < f.imports.length; _t44++) {
 			const imp = array_get(f.imports, _t44)
 			if (!eq(imp.lang, bait__ast__Language.bait)) {
