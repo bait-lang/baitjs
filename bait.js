@@ -5605,7 +5605,7 @@ function bait__util__shell_escape(s) {
 }
 
 
-const bait__util__VERSION = from_js_string(`0.0.4-dev ${from_js_string("fef187d").str}`)
+const bait__util__VERSION = from_js_string(`0.0.4-dev ${from_js_string("6ac04aa").str}`)
 
 function bait__gen__js__Gen_expr(g, expr) {
 	if (expr instanceof bait__ast__AnonFun) {
@@ -6686,7 +6686,7 @@ function bait__gen__js__Gen_struct_init(g, node) {
 
 
 const bait__gen__c__C_RESERVED = new array({ data: [from_js_string("auto"), from_js_string("break"), from_js_string("case"), from_js_string("char"), from_js_string("const"), from_js_string("continue"), from_js_string("default"), from_js_string("do"), from_js_string("double"), from_js_string("else"), from_js_string("enum"), from_js_string("extern"), from_js_string("float"), from_js_string("for"), from_js_string("goto"), from_js_string("if"), from_js_string("inline"), from_js_string("int"), from_js_string("long"), from_js_string("register"), from_js_string("restrict"), from_js_string("return"), from_js_string("short"), from_js_string("signed"), from_js_string("sizeof"), from_js_string("static"), from_js_string("struct"), from_js_string("switch"), from_js_string("typedef"), from_js_string("union"), from_js_string("unsigned"), from_js_string("void"), from_js_string("volatile"), from_js_string("while"), from_js_string("main")], length: 35 })
-function bait__gen__c__Gen({ pref = new bait__preference__Prefs({}), table = new bait__ast__Table({}), path = from_js_string(""), pkg = from_js_string(""), main_inits_out = from_js_string(""), type_defs_out = from_js_string(""), fun_decls_out = from_js_string(""), type_impls_out = from_js_string(""), out = from_js_string(""), indent = -1, empty_line = true, foreign_imports = new array({ data: [], length: 0 }), generated_eq_funs = new array({ data: [], length: 0 }), is_lhs_assign = false, is_array_map_set = false, is_for_loop_head = false }) {
+function bait__gen__c__Gen({ pref = new bait__preference__Prefs({}), table = new bait__ast__Table({}), path = from_js_string(""), pkg = from_js_string(""), main_inits_out = from_js_string(""), type_defs_out = from_js_string(""), fun_decls_out = from_js_string(""), type_impls_out = from_js_string(""), out = from_js_string(""), indent = -1, empty_line = true, foreign_imports = new array({ data: [], length: 0 }), generated_eq_funs = new array({ data: [], length: 0 }), tmp_counter = 0, is_lhs_assign = false, is_array_map_set = false, is_for_loop_head = false }) {
 	this.pref = pref
 	this.table = table
 	this.path = path
@@ -6700,6 +6700,7 @@ function bait__gen__c__Gen({ pref = new bait__preference__Prefs({}), table = new
 	this.empty_line = empty_line
 	this.foreign_imports = foreign_imports
 	this.generated_eq_funs = generated_eq_funs
+	this.tmp_counter = tmp_counter
 	this.is_lhs_assign = is_lhs_assign
 	this.is_array_map_set = is_array_map_set
 	this.is_for_loop_head = is_for_loop_head
@@ -6720,6 +6721,7 @@ bait__gen__c__Gen.prototype = {
     empty_line = ${this.empty_line.toString()}
     foreign_imports = ${this.foreign_imports.toString()}
     generated_eq_funs = ${this.generated_eq_funs.toString()}
+    tmp_counter = ${this.tmp_counter.toString()}
     is_lhs_assign = ${this.is_lhs_assign.toString()}
     is_array_map_set = ${this.is_array_map_set.toString()}
     is_for_loop_head = ${this.is_for_loop_head.toString()}
@@ -6768,6 +6770,11 @@ function bait__gen__c__Gen_c_main(g) {
 	bait__gen__c__Gen_writeln(g, from_js_string("\tbait_main();"))
 	bait__gen__c__Gen_writeln(g, from_js_string("\treturn 0;"))
 	bait__gen__c__Gen_writeln(g, from_js_string("}"))
+}
+
+function bait__gen__c__Gen_new_temp_var(g) {
+	g.tmp_counter += 1
+	return from_js_string(`_t${i32_str(g.tmp_counter).str}`)
 }
 
 function bait__gen__c__Gen_write_indent(g) {
@@ -6840,6 +6847,8 @@ function bait__gen__c__Gen_expr(g, expr) {
 		bait__gen__c__Gen_integer_literal(g, expr)
 	} else if (expr instanceof bait__ast__ParExpr) {
 		bait__gen__c__Gen_par_expr(g, expr)
+	} else if (expr instanceof bait__ast__PrefixExpr) {
+		bait__gen__c__Gen_prefix_expr(g, expr)
 	} else if (expr instanceof bait__ast__SelectorExpr) {
 		bait__gen__c__Gen_selector_expr(g, expr)
 	} else if (expr instanceof bait__ast__StringLiteral) {
@@ -7064,6 +7073,11 @@ function bait__gen__c__Gen_par_expr(g, node) {
 	bait__gen__c__Gen_write(g, from_js_string(")"))
 }
 
+function bait__gen__c__Gen_prefix_expr(g, node) {
+	bait__gen__c__Gen_write(g, bait__token__TokenKind_c_repr(node.op))
+	bait__gen__c__Gen_expr(g, node.right)
+}
+
 function bait__gen__c__Gen_selector_expr(g, node) {
 	bait__gen__c__Gen_expr(g, node.expr)
 	if (bait__ast__Type_get_nr_amp(node.expr_type) > 0) {
@@ -7254,6 +7268,22 @@ function bait__gen__c__Gen_for_classic_loop(g, node) {
 }
 
 function bait__gen__c__Gen_for_in_loop(g, node) {
+	let i = node.idxvar
+	if (eq(i, from_js_string(""))) {
+		i = bait__gen__c__Gen_new_temp_var(g)
+	}
+	const sym = bait__ast__Table_get_sym(g.table, node.expr_type)
+	const container = bait__gen__c__Gen_expr_string(g, node.expr)
+	bait__gen__c__Gen_writeln(g, from_js_string(`for (i32 ${i.str} = 0; ${i.str} < ${container.str}.length; ${i.str}++) {`))
+	if (eq(sym.kind, bait__ast__TypeKind.array)) {
+		const info = sym.info
+		const typ = bait__gen__c__Gen_typ(g, info.elem_type)
+		bait__gen__c__Gen_writeln(g, from_js_string(`\t${typ.str} ${node.valvar.str} = (*(${typ.str}*)(array_get(${container.str}, ${i.str})));`))
+	} else if (eq(sym.kind, bait__ast__TypeKind.string)) {
+		bait__gen__c__Gen_writeln(g, from_js_string(`\tu8 ${node.valvar.str} = string_get(${container.str}, ${i.str});`))
+	}
+	bait__gen__c__Gen_stmts(g, node.stmts)
+	bait__gen__c__Gen_writeln(g, from_js_string("}"))
 }
 
 function bait__gen__c__Gen_fun_decl(g, node) {
