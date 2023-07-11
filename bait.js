@@ -5641,7 +5641,7 @@ function bait__util__shell_escape(s) {
 }
 
 
-const bait__util__VERSION = from_js_string(`0.0.4-dev ${from_js_string("d776cd8").str}`)
+const bait__util__VERSION = from_js_string(`0.0.4-dev ${from_js_string("4a242c2").str}`)
 
 function bait__gen__js__Gen_expr(g, expr) {
 	if (expr instanceof bait__ast__AnonFun) {
@@ -8157,19 +8157,19 @@ function bait__builder__run_tests(prefs) {
 }
 
 
-const TOOLS = new array({ data: [from_js_string("ast"), from_js_string("self"), from_js_string("up"), from_js_string("symlink"), from_js_string("doctor"), from_js_string("help"), from_js_string("test-all"), from_js_string("test-lib"), from_js_string("build-examples"), from_js_string("build-tools"), from_js_string("check-md"), from_js_string("gen-baitjs")], length: 12 })
-function launch_tool(name, args, is_verbose) {
+const bait__util__tools__VERBOSE = array_string_contains(os__ARGS, from_js_string("--verbose")) || array_string_contains(os__ARGS, from_js_string("-v"))
+function bait__util__tools__launch_tool(name, args) {
+	const base_path = os__join_path(from_js_string("/home/runner/work/bait/bait"), new array({ data: [from_js_string("cli"), from_js_string("tools"), name], length: 3 }))
+	const tool_source = bait__util__tools__get_tool_source(base_path)
+	const tool_exe = string_add(base_path, from_js_string(".js"))
 	const baitexe = os__executable()
-	const tool_base_path = os__resource_abs_path(os__join_path(from_js_string("cli"), new array({ data: [from_js_string("tools"), name], length: 2 })))
-	const tool_source = string_add(tool_base_path, from_js_string(".bt"))
-	const tool_exe = string_add(tool_base_path, from_js_string(".js"))
 	const comp_res = os__exec(from_js_string(`node ${baitexe.str} ${tool_source.str} -o ${tool_exe.str}`))
 	if (!eq(comp_res.code, 0)) {
 		eprintln(from_js_string(`Failed to compile tool "${name.str}" with error: ${comp_res.stderr.str}`).str)
 		return 1
 	}
 	const args_string = array_string_join(args, from_js_string(" "))
-	if (is_verbose) {
+	if (bait__util__tools__VERBOSE) {
 		println(from_js_string("launching tool").str)
 		println(from_js_string(`  bait:      ${baitexe.str}`).str)
 		println(from_js_string(`  source:    ${tool_source.str}`).str)
@@ -8178,25 +8178,28 @@ function launch_tool(name, args, is_verbose) {
 	return os__system(from_js_string(`node ${tool_exe.str} ${args_string.str}`))
 }
 
+function bait__util__tools__get_tool_source(base) {
+	if (os__exists(base) && os__is_dir(base)) {
+		return base
+	}
+	return string_add(base, from_js_string(".bt"))
+}
+
+
+const TOOLS = new array({ data: [from_js_string("ast"), from_js_string("self"), from_js_string("up"), from_js_string("symlink"), from_js_string("doctor"), from_js_string("help"), from_js_string("test-all"), from_js_string("test-lib"), from_js_string("build-examples"), from_js_string("build-tools"), from_js_string("check-md"), from_js_string("gen-baitjs")], length: 12 })
 function main() {
 	const args = array_slice(os__ARGS, 2, os__ARGS.length)
 	let prefs = bait__preference__parse_args(args)
 	bait__preference__Prefs_set_comptime_vars(prefs)
 	if (array_string_contains(TOOLS, prefs.command)) {
-		exit(launch_tool(prefs.command, prefs.build_options, prefs.is_verbose))
+		exit(bait__util__tools__launch_tool(prefs.command, prefs.build_options))
 	}
-	switch (prefs.command.str) {
-		case from_js_string("test").str:
-			{
-				exit(bait__builder__run_tests(prefs))
-				break
-			}
-		case from_js_string("version").str:
-			{
-				println(from_js_string(`Bait ${bait__util__VERSION.str}`).str)
-				return
-				break
-			}
+	if (eq(prefs.command, from_js_string("test"))) {
+		exit(bait__builder__run_tests(prefs))
+	}
+	if (eq(prefs.command, from_js_string("version"))) {
+		println(from_js_string(`Bait ${bait__util__VERSION.str}`).str)
+		return
 	}
 	if (os__exists(prefs.command)) {
 		exit(bait__builder__compile(prefs))
