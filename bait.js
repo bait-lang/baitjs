@@ -3548,6 +3548,96 @@ function bait__parser__Parser_for_in_loop(p, label) {
 }
 
 
+function bait__parser__Parser_fun_decl(p) {
+	const pos = p.tok.pos
+	const is_pub = bait__parser__Parser_check_pub(p)
+	bait__parser__Parser_check(p, bait__token__TokenKind.key_fun)
+	let lang = bait__ast__Language.bait
+	let is_method = false
+	let params = new array({ data: [], length: 0 })
+	if (eq(p.tok.kind, bait__token__TokenKind.lpar)) {
+		is_method = true
+		bait__parser__Parser_next(p)
+		let is_mut = false
+		if (eq(p.tok.kind, bait__token__TokenKind.key_mut)) {
+			is_mut = true
+			bait__parser__Parser_next(p)
+		}
+		const rec_name = bait__parser__Parser_check_name(p)
+		let rec_type = bait__parser__Parser_parse_type(p)
+		if (is_mut) {
+			rec_type = bait__ast__Type_set_nr_amp(rec_type, 1)
+		}
+		array_push(params, new bait__ast__Param({ is_mut: is_mut, name: rec_name, typ: rec_type }))
+		bait__parser__Parser_check(p, bait__token__TokenKind.rpar)
+	}
+	let name = from_js_string("")
+	if (eq(p.tok.kind, bait__token__TokenKind.hash)) {
+		lang = bait__parser__Parser_parse_lang(p)
+		name = bait__ast__Language_prepend_to(lang, name)
+		if (eq(lang, bait__ast__Language.js)) {
+			name = string_replace(name, from_js_string("."), from_js_string("__"))
+			name = string_add(name, string_add(bait__parser__Parser_check_name(p), from_js_string(".")))
+			bait__parser__Parser_check(p, bait__token__TokenKind.dot)
+		}
+	}
+	name = string_add(name, bait__parser__Parser_check_name(p))
+	if (!is_method && eq(lang, bait__ast__Language.bait)) {
+		name = bait__parser__Parser_prepend_pkg(p, name)
+	}
+	bait__parser__Parser_check(p, bait__token__TokenKind.lpar)
+	params = array_concat(params, bait__parser__Parser_fun_params(p))
+	bait__parser__Parser_check(p, bait__token__TokenKind.rpar)
+	let return_type = bait__ast__VOID_TYPE
+	if (!eq(p.tok.kind, bait__token__TokenKind.lcur) && eq(pos.line, p.tok.pos.line)) {
+		return_type = bait__parser__Parser_parse_type(p)
+	}
+	let node = new bait__ast__FunDecl({ is_test: string_starts_with(name, from_js_string("test_")), is_pub: is_pub, name: name, pkg: p.pkg_name, params: params, return_type: return_type, attrs: p.attributes, lang: lang, pos: pos })
+	p.attributes = new array({ data: [], length: 0 })
+	if (is_method) {
+		const sym = bait__ast__Table_get_sym(p.table, array_get(params, 0).typ)
+		if (bait__ast__TypeSymbol_has_method(sym, name)) {
+			bait__parser__Parser_error(p, from_js_string(`Method "${name.str}" already exists on type "${sym.name.str}"`))
+		}
+		array_push(sym.methods, node)
+	} else {
+		if (map_contains(p.table.fun_decls, name)) {
+			array_push(p.table.redefined_funs, name)
+		}
+		map_set(p.table.fun_decls, name, node)
+		let param_types = new array({ data: [], length: 0 })
+		for (let _t9 = 0; _t9 < params.length; _t9++) {
+			const param = array_get(params, _t9)
+			array_push(param_types, param.typ)
+		}
+		const typ = bait__ast__Table_find_or_register_fun(p.table, param_types, return_type)
+	}
+	if (eq(lang, bait__ast__Language.bait)) {
+		node.stmts = bait__parser__Parser_parse_block(p)
+	}
+	node.is_method = is_method
+	return node
+}
+
+function bait__parser__Parser_fun_params(p) {
+	let params = new array({ data: [], length: 0 })
+	while (!eq(p.tok.kind, bait__token__TokenKind.rpar)) {
+		const pos = p.tok.pos
+		let is_mut = false
+		if (eq(p.tok.kind, bait__token__TokenKind.key_mut)) {
+			is_mut = true
+			bait__parser__Parser_next(p)
+		}
+		const param = new bait__ast__Param({ is_mut: is_mut, name: bait__parser__Parser_check_name(p), typ: bait__parser__Parser_parse_type(p), pos: pos })
+		array_push(params, param)
+		if (!eq(p.tok.kind, bait__token__TokenKind.rpar)) {
+			bait__parser__Parser_check(p, bait__token__TokenKind.comma)
+		}
+	}
+	return params
+}
+
+
 function bait__parser__Parser_add_builtin_imports(p) {
 	if (eq(p.pkg_name, from_js_string("builtin"))) {
 		return new array({ data: [], length: 0 })
@@ -4011,92 +4101,6 @@ function bait__parser__Parser_enum_decl(p) {
 	bait__parser__Parser_check(p, bait__token__TokenKind.rcur)
 	bait__ast__Table_register_sym(p.table, new bait__ast__TypeSymbol({ name: name, is_pub: is_pub, pkg: p.pkg_name, kind: bait__ast__TypeKind.enum_, info: new bait__ast__EnumInfo({ vals: variants }) }))
 	return new bait__ast__EnumDecl({ name: name, fields: fields, pos: pos })
-}
-
-function bait__parser__Parser_fun_decl(p) {
-	const pos = p.tok.pos
-	const is_pub = bait__parser__Parser_check_pub(p)
-	bait__parser__Parser_check(p, bait__token__TokenKind.key_fun)
-	let lang = bait__ast__Language.bait
-	let is_method = false
-	let params = new array({ data: [], length: 0 })
-	if (eq(p.tok.kind, bait__token__TokenKind.lpar)) {
-		is_method = true
-		bait__parser__Parser_next(p)
-		let is_mut = false
-		if (eq(p.tok.kind, bait__token__TokenKind.key_mut)) {
-			is_mut = true
-			bait__parser__Parser_next(p)
-		}
-		const rec_name = bait__parser__Parser_check_name(p)
-		const rec_type = bait__parser__Parser_parse_type(p)
-		array_push(params, new bait__ast__Param({ is_mut: is_mut, name: rec_name, typ: rec_type }))
-		bait__parser__Parser_check(p, bait__token__TokenKind.rpar)
-	}
-	let name = from_js_string("")
-	if (eq(p.tok.kind, bait__token__TokenKind.hash)) {
-		lang = bait__parser__Parser_parse_lang(p)
-		name = bait__ast__Language_prepend_to(lang, name)
-		if (eq(lang, bait__ast__Language.js)) {
-			name = string_replace(name, from_js_string("."), from_js_string("__"))
-			name = string_add(name, string_add(bait__parser__Parser_check_name(p), from_js_string(".")))
-			bait__parser__Parser_check(p, bait__token__TokenKind.dot)
-		}
-	}
-	name = string_add(name, bait__parser__Parser_check_name(p))
-	if (!is_method && eq(lang, bait__ast__Language.bait)) {
-		name = bait__parser__Parser_prepend_pkg(p, name)
-	}
-	bait__parser__Parser_check(p, bait__token__TokenKind.lpar)
-	params = array_concat(params, bait__parser__Parser_fun_params(p))
-	bait__parser__Parser_check(p, bait__token__TokenKind.rpar)
-	let return_type = bait__ast__VOID_TYPE
-	if (!eq(p.tok.kind, bait__token__TokenKind.lcur) && eq(pos.line, p.tok.pos.line)) {
-		return_type = bait__parser__Parser_parse_type(p)
-	}
-	let node = new bait__ast__FunDecl({ is_test: string_starts_with(name, from_js_string("test_")), is_pub: is_pub, name: name, pkg: p.pkg_name, params: params, return_type: return_type, attrs: p.attributes, lang: lang, pos: pos })
-	p.attributes = new array({ data: [], length: 0 })
-	if (is_method) {
-		const sym = bait__ast__Table_get_sym(p.table, array_get(params, 0).typ)
-		if (bait__ast__TypeSymbol_has_method(sym, name)) {
-			bait__parser__Parser_error(p, from_js_string(`Method "${name.str}" already exists on type "${sym.name.str}"`))
-		}
-		array_push(sym.methods, node)
-	} else {
-		if (map_contains(p.table.fun_decls, name)) {
-			array_push(p.table.redefined_funs, name)
-		}
-		map_set(p.table.fun_decls, name, node)
-		let param_types = new array({ data: [], length: 0 })
-		for (let _t9 = 0; _t9 < params.length; _t9++) {
-			const param = array_get(params, _t9)
-			array_push(param_types, param.typ)
-		}
-		const typ = bait__ast__Table_find_or_register_fun(p.table, param_types, return_type)
-	}
-	if (eq(lang, bait__ast__Language.bait)) {
-		node.stmts = bait__parser__Parser_parse_block(p)
-	}
-	node.is_method = is_method
-	return node
-}
-
-function bait__parser__Parser_fun_params(p) {
-	let params = new array({ data: [], length: 0 })
-	while (!eq(p.tok.kind, bait__token__TokenKind.rpar)) {
-		const pos = p.tok.pos
-		let is_mut = false
-		if (eq(p.tok.kind, bait__token__TokenKind.key_mut)) {
-			is_mut = true
-			bait__parser__Parser_next(p)
-		}
-		const param = new bait__ast__Param({ is_mut: is_mut, name: bait__parser__Parser_check_name(p), typ: bait__parser__Parser_parse_type(p), pos: pos })
-		array_push(params, param)
-		if (!eq(p.tok.kind, bait__token__TokenKind.rpar)) {
-			bait__parser__Parser_check(p, bait__token__TokenKind.comma)
-		}
-	}
-	return params
 }
 
 function bait__parser__Parser_global_decl(p) {
@@ -5303,7 +5307,7 @@ function bait__checker__Checker_assign_stmt(c, node) {
 		if (left.expr instanceof bait__ast__Ident) {
 			const lident = left.expr
 			if (!lident.is_mut) {
-				bait__checker__Checker_warn(c, from_js_string(`cannot assign to field of immutable struct "${lident.name.str}.${left.field_name.str}"`), node.pos)
+				bait__checker__Checker_error(c, from_js_string(`cannot assign to field of immutable struct "${lident.name.str}.${left.field_name.str}"`), node.pos)
 				return
 			}
 		}
@@ -5671,7 +5675,7 @@ function bait__util__shell_escape(s) {
 
 
 const bait__util__VERSION = from_js_string("0.0.4-dev")
-const bait__util__FULL_VERSION = from_js_string(`${bait__util__VERSION.str} ${from_js_string("e360803").str}`)
+const bait__util__FULL_VERSION = from_js_string(`${bait__util__VERSION.str} ${from_js_string("081041b").str}`)
 
 function bait__gen__js__Gen_expr(g, expr) {
 	if (expr instanceof bait__ast__AnonFun) {
@@ -7402,9 +7406,9 @@ function bait__gen__c__Gen_for_in_loop(g, node) {
 	if (eq(sym.kind, bait__ast__TypeKind.array)) {
 		const info = sym.info
 		const typ = bait__gen__c__Gen_typ(g, info.elem_type)
-		bait__gen__c__Gen_writeln(g, from_js_string(`\t${typ.str} ${node.valvar.toString()} = (*(${typ.str}*)(array_get(${container.str}, ${i.str})));`))
+		bait__gen__c__Gen_writeln(g, from_js_string(`\t${typ.str} ${node.valvar.name.str} = (*(${typ.str}*)(array_get(${container.str}, ${i.str})));`))
 	} else if (eq(sym.kind, bait__ast__TypeKind.string)) {
-		bait__gen__c__Gen_writeln(g, from_js_string(`\tu8 ${node.valvar.toString()} = string_get(${container.str}, ${i.str});`))
+		bait__gen__c__Gen_writeln(g, from_js_string(`\tu8 ${node.valvar.name.str} = string_get(${container.str}, ${i.str});`))
 	}
 	bait__gen__c__Gen_stmts(g, node.stmts)
 	bait__gen__c__Gen_writeln(g, from_js_string("}"))
