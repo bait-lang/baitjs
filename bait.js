@@ -1720,7 +1720,7 @@ bait__preference__Prefs.prototype = {
 }`}
 }
 function bait__preference__parse_args(args) {
-	const p = new bait__preference__Prefs({ backend: bait__preference__Backend.js })
+	let p = new bait__preference__Prefs({ backend: bait__preference__Backend.js })
 	if (eq(args.length, 0)) {
 		p.command = from_js_string("help")
 		return p
@@ -1979,7 +1979,7 @@ bait__ast__ForClassicLoop.prototype = {
     pos = ${this.pos.toString()}
 }`}
 }
-function bait__ast__ForInLoop({ expr_type = 0, label = from_js_string(""), idxvar = from_js_string(""), valvar = from_js_string(""), expr = undefined, stmts = new array({ data: [], length: 0 }), pos = new bait__token__Pos({}) }) {
+function bait__ast__ForInLoop({ expr_type = 0, label = from_js_string(""), idxvar = from_js_string(""), valvar = new bait__ast__Param({}), expr = undefined, stmts = new array({ data: [], length: 0 }), pos = new bait__token__Pos({}) }) {
 	this.expr_type = expr_type
 	this.label = label
 	this.idxvar = idxvar
@@ -3496,6 +3496,57 @@ function bait__parser__Parser_typeof_expr(p) {
 }
 
 
+function bait__parser__Parser_for_loop(p, label) {
+	bait__parser__Parser_next(p)
+	if (eq(p.next_tok.kind, bait__token__TokenKind.decl_assign)) {
+		return bait__parser__Parser_for_classic_loop(p, label)
+	}
+	if (eq(p.next_tok.kind, bait__token__TokenKind.key_in) || eq(p.next_tok.kind, bait__token__TokenKind.comma)) {
+		return bait__parser__Parser_for_in_loop(p, label)
+	}
+	const pos = p.prev_tok.pos
+	p.is_struct_possible = false
+	const cond = bait__parser__Parser_expr(p, 0)
+	p.is_struct_possible = true
+	const stmts = bait__parser__Parser_parse_block(p)
+	return new bait__ast__ForLoop({ label: label, cond: cond, stmts: stmts, pos: pos })
+}
+
+function bait__parser__Parser_for_classic_loop(p, label) {
+	const pos = p.prev_tok.pos
+	p.is_for_init = true
+	const init = bait__parser__Parser_assign_stmt(p)
+	p.is_for_init = false
+	bait__parser__Parser_check(p, bait__token__TokenKind.semicolon)
+	const cond = bait__parser__Parser_expr(p, 0)
+	bait__parser__Parser_check(p, bait__token__TokenKind.semicolon)
+	const inc = bait__parser__Parser_stmt(p)
+	const stmts = bait__parser__Parser_parse_block(p)
+	return new bait__ast__ForClassicLoop({ label: label, init: init, cond: cond, inc: inc, stmts: stmts, pos: pos })
+}
+
+function bait__parser__Parser_for_in_loop(p, label) {
+	const pos = p.prev_tok.pos
+	let idxvar = from_js_string("")
+	if (eq(p.next_tok.kind, bait__token__TokenKind.comma)) {
+		idxvar = bait__parser__Parser_check_name(p)
+		bait__parser__Parser_next(p)
+	}
+	let is_mut = false
+	if (eq(p.tok.kind, bait__token__TokenKind.key_mut)) {
+		is_mut = true
+		bait__parser__Parser_next(p)
+	}
+	let valvar = new bait__ast__Param({ pos: p.tok.pos, name: bait__parser__Parser_check_name(p), is_mut: is_mut })
+	bait__parser__Parser_check(p, bait__token__TokenKind.key_in)
+	p.is_struct_possible = false
+	const expr = bait__parser__Parser_expr(p, 0)
+	p.is_struct_possible = true
+	const stmts = bait__parser__Parser_parse_block(p)
+	return new bait__ast__ForInLoop({ label: label, idxvar: idxvar, valvar: valvar, expr: expr, stmts: stmts, pos: pos })
+}
+
+
 function bait__parser__Parser_add_builtin_imports(p) {
 	if (eq(p.pkg_name, from_js_string("builtin"))) {
 		return new array({ data: [], length: 0 })
@@ -3961,41 +4012,6 @@ function bait__parser__Parser_enum_decl(p) {
 	return new bait__ast__EnumDecl({ name: name, fields: fields, pos: pos })
 }
 
-function bait__parser__Parser_for_loop(p, label) {
-	const pos = p.tok.pos
-	bait__parser__Parser_next(p)
-	if (eq(p.next_tok.kind, bait__token__TokenKind.decl_assign)) {
-		p.is_for_init = true
-		const init = bait__parser__Parser_assign_stmt(p)
-		p.is_for_init = false
-		bait__parser__Parser_check(p, bait__token__TokenKind.semicolon)
-		const cond = bait__parser__Parser_expr(p, 0)
-		bait__parser__Parser_check(p, bait__token__TokenKind.semicolon)
-		const inc = bait__parser__Parser_stmt(p)
-		const stmts = bait__parser__Parser_parse_block(p)
-		return new bait__ast__ForClassicLoop({ label: label, init: init, cond: cond, inc: inc, stmts: stmts, pos: pos })
-	}
-	if (eq(p.next_tok.kind, bait__token__TokenKind.key_in) || eq(p.next_tok.kind, bait__token__TokenKind.comma)) {
-		let idxvar = from_js_string("")
-		if (eq(p.next_tok.kind, bait__token__TokenKind.comma)) {
-			idxvar = bait__parser__Parser_check_name(p)
-			bait__parser__Parser_next(p)
-		}
-		const valvar = bait__parser__Parser_check_name(p)
-		bait__parser__Parser_check(p, bait__token__TokenKind.key_in)
-		p.is_struct_possible = false
-		const expr = bait__parser__Parser_expr(p, 0)
-		p.is_struct_possible = true
-		const stmts = bait__parser__Parser_parse_block(p)
-		return new bait__ast__ForInLoop({ label: label, idxvar: idxvar, valvar: valvar, expr: expr, stmts: stmts, pos: pos })
-	}
-	p.is_struct_possible = false
-	const cond = bait__parser__Parser_expr(p, 0)
-	p.is_struct_possible = true
-	const stmts = bait__parser__Parser_parse_block(p)
-	return new bait__ast__ForLoop({ label: label, cond: cond, stmts: stmts, pos: pos })
-}
-
 function bait__parser__Parser_fun_decl(p) {
 	const pos = p.tok.pos
 	const is_pub = bait__parser__Parser_check_pub(p)
@@ -4068,7 +4084,12 @@ function bait__parser__Parser_fun_params(p) {
 	let params = new array({ data: [], length: 0 })
 	while (!eq(p.tok.kind, bait__token__TokenKind.rpar)) {
 		const pos = p.tok.pos
-		const param = new bait__ast__Param({ name: bait__parser__Parser_check_name(p), typ: bait__parser__Parser_parse_type(p), pos: pos })
+		let is_mut = false
+		if (eq(p.tok.kind, bait__token__TokenKind.key_mut)) {
+			is_mut = true
+			bait__parser__Parser_next(p)
+		}
+		const param = new bait__ast__Param({ is_mut: is_mut, name: bait__parser__Parser_check_name(p), typ: bait__parser__Parser_parse_type(p), pos: pos })
 		array_push(params, param)
 		if (!eq(p.tok.kind, bait__token__TokenKind.rpar)) {
 			bait__parser__Parser_check(p, bait__token__TokenKind.comma)
@@ -5278,6 +5299,13 @@ function bait__checker__Checker_assign_stmt(c, node) {
 	}
 	if (node.left instanceof bait__ast__SelectorExpr) {
 		const left = node.left
+		if (left.expr instanceof bait__ast__Ident) {
+			const lident = left.expr
+			if (!lident.is_mut) {
+				bait__checker__Checker_warn(c, from_js_string(`cannot assign to field of immutable struct "${lident.name.str}.${left.field_name.str}"`), node.pos)
+				return
+			}
+		}
 		const sym = bait__ast__Table_get_sym(c.table, left.expr_type)
 		const field = bait__ast__TypeSymbol_find_field(sym, left.field_name, c.table)
 		if ((!field.is_mut || !eq(sym.pkg, c.pkg)) && !field.is_global) {
@@ -5389,7 +5417,7 @@ function bait__checker__Checker_for_in_loop(c, node) {
 	if (node.idxvar.length > 0) {
 		bait__ast__Scope_register(c.scope, node.idxvar, new bait__ast__ScopeObject({ typ: idx_type }))
 	}
-	bait__ast__Scope_register(c.scope, node.valvar, new bait__ast__ScopeObject({ typ: val_type }))
+	bait__ast__Scope_register(c.scope, node.valvar.name, new bait__ast__ScopeObject({ typ: val_type, is_mut: node.valvar.is_mut }))
 	bait__checker__Checker_stmts(c, node.stmts)
 	bait__checker__Checker_close_scope(c)
 }
@@ -5641,7 +5669,8 @@ function bait__util__shell_escape(s) {
 }
 
 
-const bait__util__VERSION = from_js_string(`0.0.4-dev ${from_js_string("4a242c2").str}`)
+const bait__util__VERSION = from_js_string("0.0.4-dev")
+const bait__util__FULL_VERSION = from_js_string(`${bait__util__VERSION.str} ${from_js_string("722c259").str}`)
 
 function bait__gen__js__Gen_expr(g, expr) {
 	if (expr instanceof bait__ast__AnonFun) {
@@ -6580,11 +6609,11 @@ function bait__gen__js__Gen_for_in_loop(g, node) {
 	const container = bait__gen__js__Gen_expr_string(g, node.expr)
 	bait__gen__js__Gen_writeln(g, from_js_string(`for (let ${i.str} = 0; ${i.str} < ${container.str}.length; ${i.str}++) {`))
 	if (eq(sym.kind, bait__ast__TypeKind.array)) {
-		bait__gen__js__Gen_writeln(g, from_js_string(`\tconst ${node.valvar.str} = array_get(${container.str}, ${i.str})`))
+		bait__gen__js__Gen_writeln(g, from_js_string(`\tconst ${node.valvar.name.str} = array_get(${container.str}, ${i.str})`))
 	} else if (eq(sym.kind, bait__ast__TypeKind.string)) {
-		bait__gen__js__Gen_writeln(g, from_js_string(`\tconst ${node.valvar.str} = string_get(${container.str}, ${i.str})`))
+		bait__gen__js__Gen_writeln(g, from_js_string(`\tconst ${node.valvar.name.str} = string_get(${container.str}, ${i.str})`))
 	} else {
-		bait__gen__js__Gen_writeln(g, from_js_string(`\tconst ${node.valvar.str} = ${container.str}[${i.str}]`))
+		bait__gen__js__Gen_writeln(g, from_js_string(`\tconst ${node.valvar.name.str} = ${container.str}[${i.str}]`))
 	}
 	bait__gen__js__Gen_stmts(g, node.stmts)
 	bait__gen__js__Gen_writeln(g, from_js_string("}"))
@@ -6597,7 +6626,7 @@ function bait__gen__js__Gen_for_in_map(g, node) {
 	const i = bait__gen__js__Gen_new_temp_var(g)
 	bait__gen__js__Gen_writeln(g, from_js_string(`for (let ${i.str} = 0; ${i.str} < ${keys_var.str}.length; ${i.str}++) {`))
 	bait__gen__js__Gen_writeln(g, from_js_string(`\tconst ${node.idxvar.str} = array_get(${keys_var.str}, ${i.str})`))
-	bait__gen__js__Gen_writeln(g, from_js_string(`\tconst ${node.valvar.str} = map_get(${container.str}, ${node.idxvar.str})`))
+	bait__gen__js__Gen_writeln(g, from_js_string(`\tconst ${node.valvar.name.str} = map_get(${container.str}, ${node.idxvar.str})`))
 	bait__gen__js__Gen_stmts(g, node.stmts)
 	bait__gen__js__Gen_writeln(g, from_js_string("}"))
 }
@@ -7372,9 +7401,9 @@ function bait__gen__c__Gen_for_in_loop(g, node) {
 	if (eq(sym.kind, bait__ast__TypeKind.array)) {
 		const info = sym.info
 		const typ = bait__gen__c__Gen_typ(g, info.elem_type)
-		bait__gen__c__Gen_writeln(g, from_js_string(`\t${typ.str} ${node.valvar.str} = (*(${typ.str}*)(array_get(${container.str}, ${i.str})));`))
+		bait__gen__c__Gen_writeln(g, from_js_string(`\t${typ.str} ${node.valvar.toString()} = (*(${typ.str}*)(array_get(${container.str}, ${i.str})));`))
 	} else if (eq(sym.kind, bait__ast__TypeKind.string)) {
-		bait__gen__c__Gen_writeln(g, from_js_string(`\tu8 ${node.valvar.str} = string_get(${container.str}, ${i.str});`))
+		bait__gen__c__Gen_writeln(g, from_js_string(`\tu8 ${node.valvar.toString()} = string_get(${container.str}, ${i.str});`))
 	}
 	bait__gen__c__Gen_stmts(g, node.stmts)
 	bait__gen__c__Gen_writeln(g, from_js_string("}"))
@@ -8160,7 +8189,7 @@ function bait__builder__run_tests(prefs) {
 const bait__util__tools__VERBOSE = array_string_contains(os__ARGS, from_js_string("--verbose")) || array_string_contains(os__ARGS, from_js_string("-v"))
 function bait__util__tools__launch_tool(name, args) {
 	const base_path = os__join_path(from_js_string("/home/runner/work/bait/bait"), new array({ data: [from_js_string("cli"), from_js_string("tools"), name], length: 3 }))
-	const tool_source = bait__util__tools__get_tool_source(base_path)
+	const tool_source = bait__util__tools__find_tool_source(base_path)
 	const tool_exe = string_add(base_path, from_js_string(".js"))
 	const baitexe = os__executable()
 	const comp_res = os__exec(from_js_string(`node ${baitexe.str} ${tool_source.str} -o ${tool_exe.str}`))
@@ -8171,14 +8200,14 @@ function bait__util__tools__launch_tool(name, args) {
 	const args_string = array_string_join(args, from_js_string(" "))
 	if (bait__util__tools__VERBOSE) {
 		println(from_js_string("launching tool").str)
-		println(from_js_string(`  bait:      ${baitexe.str}`).str)
-		println(from_js_string(`  source:    ${tool_source.str}`).str)
-		println(from_js_string(`  args:      ${args_string.str}`).str)
+		println(from_js_string(`  source: ${tool_source.str}`).str)
+		println(from_js_string(`  exe:    ${tool_exe.str}`).str)
+		println(from_js_string(`  args:   ${args_string.str}`).str)
 	}
 	return os__system(from_js_string(`node ${tool_exe.str} ${args_string.str}`))
 }
 
-function bait__util__tools__get_tool_source(base) {
+function bait__util__tools__find_tool_source(base) {
 	if (os__exists(base) && os__is_dir(base)) {
 		return base
 	}
@@ -8198,7 +8227,7 @@ function main() {
 		exit(bait__builder__run_tests(prefs))
 	}
 	if (eq(prefs.command, from_js_string("version"))) {
-		println(from_js_string(`Bait ${bait__util__VERSION.str}`).str)
+		println(from_js_string(`Bait ${bait__util__FULL_VERSION.str}`).str)
 		return
 	}
 	if (os__exists(prefs.command)) {
