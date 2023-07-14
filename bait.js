@@ -5142,7 +5142,7 @@ function bait__checker__Checker_method_call(c, node) {
 	bait__checker__Checker_check_fun_attrs_on_call(c, node, def)
 	if (array_get(def.params, 0).is_mut) {
 		if (node.left instanceof bait__ast__Ident && !(node.left).is_mut) {
-			bait__checker__Checker_warn(c, from_js_string("method requires an mutable receiver"), node.pos)
+			bait__checker__Checker_error(c, from_js_string("method requires an mutable receiver"), node.pos)
 		}
 	}
 	if (!eq(node.args.length + 1, def.params.length)) {
@@ -5680,7 +5680,7 @@ function bait__util__shell_escape(s) {
 
 
 const bait__util__VERSION = from_js_string("0.0.4-dev")
-const bait__util__FULL_VERSION = from_js_string(`${bait__util__VERSION.str} ${from_js_string("e73aa44").str}`)
+const bait__util__FULL_VERSION = from_js_string(`${bait__util__VERSION.str} ${from_js_string("0ce3824").str}`)
 
 function bait__gen__js__Gen_expr(g, expr) {
 	if (expr instanceof bait__ast__AnonFun) {
