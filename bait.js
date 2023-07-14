@@ -3261,35 +3261,6 @@ function bait__parser__Parser_dot_expr(p, left) {
 	return new bait__ast__SelectorExpr({ expr: left, field_name: name, pos: pos })
 }
 
-function bait__parser__Parser_fun_call(p, lang) {
-	const pos = p.tok.pos
-	const name = bait__parser__Parser_prepend_expr_pkg(p, bait__parser__Parser_check_name(p))
-	bait__parser__Parser_check(p, bait__token__TokenKind.lpar)
-	const args = bait__parser__Parser_call_args(p)
-	bait__parser__Parser_check(p, bait__token__TokenKind.rpar)
-	return new bait__ast__CallExpr({ name: name, args: args, pkg: p.pkg_name, pos: pos, lang: lang })
-}
-
-function bait__parser__Parser_method_call(p, left) {
-	const pos = p.tok.pos
-	const name = bait__parser__Parser_check_name(p)
-	bait__parser__Parser_check(p, bait__token__TokenKind.lpar)
-	const args = bait__parser__Parser_call_args(p)
-	bait__parser__Parser_check(p, bait__token__TokenKind.rpar)
-	return new bait__ast__CallExpr({ is_method: true, left: left, name: name, args: args, pos: pos })
-}
-
-function bait__parser__Parser_call_args(p) {
-	let args = new array({ data: [], length: 0 })
-	while (!eq(p.tok.kind, bait__token__TokenKind.rpar)) {
-		array_push(args, new bait__ast__CallArg({ expr: bait__parser__Parser_expr(p, 0) }))
-		if (!eq(p.tok.kind, bait__token__TokenKind.rpar)) {
-			bait__parser__Parser_check(p, bait__token__TokenKind.comma)
-		}
-	}
-	return args
-}
-
 function bait__parser__Parser_enum_val(p, has_name) {
 	const pos = p.tok.pos
 	let name = from_js_string("")
@@ -3635,6 +3606,35 @@ function bait__parser__Parser_fun_params(p) {
 		}
 	}
 	return params
+}
+
+function bait__parser__Parser_fun_call(p, lang) {
+	const pos = p.tok.pos
+	const name = bait__parser__Parser_prepend_expr_pkg(p, bait__parser__Parser_check_name(p))
+	bait__parser__Parser_check(p, bait__token__TokenKind.lpar)
+	const args = bait__parser__Parser_call_args(p)
+	bait__parser__Parser_check(p, bait__token__TokenKind.rpar)
+	return new bait__ast__CallExpr({ name: name, args: args, pkg: p.pkg_name, pos: pos, lang: lang })
+}
+
+function bait__parser__Parser_method_call(p, left) {
+	const pos = p.tok.pos
+	const name = bait__parser__Parser_check_name(p)
+	bait__parser__Parser_check(p, bait__token__TokenKind.lpar)
+	const args = bait__parser__Parser_call_args(p)
+	bait__parser__Parser_check(p, bait__token__TokenKind.rpar)
+	return new bait__ast__CallExpr({ is_method: true, left: left, name: name, args: args, pos: pos })
+}
+
+function bait__parser__Parser_call_args(p) {
+	let args = new array({ data: [], length: 0 })
+	while (!eq(p.tok.kind, bait__token__TokenKind.rpar)) {
+		array_push(args, new bait__ast__CallArg({ expr: bait__parser__Parser_expr(p, 0) }))
+		if (!eq(p.tok.kind, bait__token__TokenKind.rpar)) {
+			bait__parser__Parser_check(p, bait__token__TokenKind.comma)
+		}
+	}
+	return args
 }
 
 
@@ -5140,6 +5140,11 @@ function bait__checker__Checker_method_call(c, node) {
 	}
 	node.return_type = def.return_type
 	bait__checker__Checker_check_fun_attrs_on_call(c, node, def)
+	if (array_get(def.params, 0).is_mut) {
+		if (node.left instanceof bait__ast__Ident && !(node.left).is_mut) {
+			bait__checker__Checker_warn(c, from_js_string("method requires an mutable receiver"), node.pos)
+		}
+	}
 	if (!eq(node.args.length + 1, def.params.length)) {
 		bait__checker__Checker_error(c, from_js_string(`expected ${i32_str(def.params.length - 1).str} arguments but got ${i32_str(node.args.length).str}`), node.pos)
 		return node.return_type
@@ -5675,7 +5680,7 @@ function bait__util__shell_escape(s) {
 
 
 const bait__util__VERSION = from_js_string("0.0.4-dev")
-const bait__util__FULL_VERSION = from_js_string(`${bait__util__VERSION.str} ${from_js_string("081041b").str}`)
+const bait__util__FULL_VERSION = from_js_string(`${bait__util__VERSION.str} ${from_js_string("e73aa44").str}`)
 
 function bait__gen__js__Gen_expr(g, expr) {
 	if (expr instanceof bait__ast__AnonFun) {
@@ -7917,7 +7922,7 @@ function bait__builder__Builder_get_user_files(b, path) {
 
 function bait__builder__Builder_parse_source_file(b, path) {
 	const text = os__read_file(path)
-	const t = bait__tokenizer__new_tokenizer(text, path)
+	let t = bait__tokenizer__new_tokenizer(text, path)
 	const tokens = bait__tokenizer__Tokenizer_tokenize(t)
 	array_bait__errors__Message_print_and_exit(t.errors)
 	return bait__parser__parse(tokens, path, b.table, b.prefs)
