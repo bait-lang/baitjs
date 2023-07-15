@@ -1017,10 +1017,22 @@ function bait__token__TokenKind_js_repr(kind) {
 				return from_js_string("||")
 				break
 			}
+		default:
+			{
+				return from_js_string("")
+				break
+			}
 	}
 }
 
 function bait__token__TokenKind_c_repr(kind) {
+	switch (kind) {
+		case bait__token__TokenKind.amp:
+			{
+				return from_js_string("&")
+				break
+			}
+	}
 	return bait__token__TokenKind_js_repr(kind)
 }
 
@@ -2209,14 +2221,14 @@ bait__ast__BoolLiteral.prototype = {
     pos = ${this.pos.toString()}
 }`}
 }
-function bait__ast__CallExpr({ lang = 0, name = from_js_string(""), return_type = 0, left_type = 0, args = new array({ data: [], length: 0 }), is_method = false, left = new bait__ast__EmptyExpr({}), pkg = from_js_string(""), pos = new bait__token__Pos({}) }) {
+function bait__ast__CallExpr({ lang = 0, name = from_js_string(""), return_type = 0, left_type = 0, left = new bait__ast__EmptyExpr({}), args = new array({ data: [], length: 0 }), is_method = false, pkg = from_js_string(""), pos = new bait__token__Pos({}) }) {
 	this.lang = lang
 	this.name = name
 	this.return_type = return_type
 	this.left_type = left_type
+	this.left = left
 	this.args = args
 	this.is_method = is_method
-	this.left = left
 	this.pkg = pkg
 	this.pos = pos
 }
@@ -2227,9 +2239,9 @@ bait__ast__CallExpr.prototype = {
     name = ${this.name.toString()}
     return_type = ${this.return_type.toString()}
     left_type = ${this.left_type.toString()}
+    left = ${this.left.toString()}
     args = ${this.args.toString()}
     is_method = ${this.is_method.toString()}
-    left = ${this.left.toString()}
     pkg = ${this.pkg.toString()}
     pos = ${this.pos.toString()}
 }`}
@@ -5134,17 +5146,21 @@ function bait__checker__Checker_method_call(c, node) {
 		bait__checker__Checker_error(c, from_js_string(`method ${def.name.str} is private`), node.pos)
 	}
 	node.lang = def.lang
+	node.return_type = def.return_type
+	if (array_get(def.params, 0).is_mut) {
+		if (node.left instanceof bait__ast__Ident && !(node.left).is_mut) {
+			bait__checker__Checker_error(c, from_js_string("method requires an mutable receiver"), node.pos)
+			return node.return_type
+		}
+	}
+	if (bait__ast__Type_get_nr_amp(left_expr_type) < bait__ast__Type_get_nr_amp(array_get(def.params, 0).typ)) {
+		node.left = new bait__ast__PrefixExpr({ op: bait__token__TokenKind.amp, right: node.left })
+	}
 	node.left_type = array_get(def.params, 0).typ
 	if (eq(final_sym.kind, bait__ast__TypeKind.array) && array_string_contains(new array({ data: [from_js_string("push"), from_js_string("push_many_with_len"), from_js_string("push_many")], length: 3 }), node.name)) {
 		node.left_type = left_expr_type
 	}
-	node.return_type = def.return_type
 	bait__checker__Checker_check_fun_attrs_on_call(c, node, def)
-	if (array_get(def.params, 0).is_mut) {
-		if (node.left instanceof bait__ast__Ident && !(node.left).is_mut) {
-			bait__checker__Checker_error(c, from_js_string("method requires an mutable receiver"), node.pos)
-		}
-	}
 	if (!eq(node.args.length + 1, def.params.length)) {
 		bait__checker__Checker_error(c, from_js_string(`expected ${i32_str(def.params.length - 1).str} arguments but got ${i32_str(node.args.length).str}`), node.pos)
 		return node.return_type
@@ -5680,7 +5696,7 @@ function bait__util__shell_escape(s) {
 
 
 const bait__util__VERSION = from_js_string("0.0.4-dev")
-const bait__util__FULL_VERSION = from_js_string(`${bait__util__VERSION.str} ${from_js_string("0ce3824").str}`)
+const bait__util__FULL_VERSION = from_js_string(`${bait__util__VERSION.str} ${from_js_string("e939093").str}`)
 
 function bait__gen__js__Gen_expr(g, expr) {
 	if (expr instanceof bait__ast__AnonFun) {
@@ -7058,7 +7074,10 @@ function bait__gen__c__Gen_call_args(g, args) {
 }
 
 function bait__gen__c__Gen_gen_array_method(g, name, node, sym, cast) {
-	bait__gen__c__Gen_write(g, from_js_string(`array_${name.str}(&`))
+	bait__gen__c__Gen_write(g, from_js_string(`array_${name.str}(`))
+	if (eq(bait__ast__Type_get_nr_amp(node.left_type), 0)) {
+		bait__gen__c__Gen_write(g, from_js_string("&"))
+	}
 	bait__gen__c__Gen_expr(g, node.left)
 	if (cast) {
 		const info = sym.info
@@ -7078,7 +7097,10 @@ function bait__gen__c__Gen_gen_array_method(g, name, node, sym, cast) {
 }
 
 function bait__gen__c__Gen_gen_array_push_many(g, node) {
-	bait__gen__c__Gen_write(g, from_js_string("array_push_many(&"))
+	bait__gen__c__Gen_write(g, from_js_string("array_push_many("))
+	if (eq(bait__ast__Type_get_nr_amp(node.left_type), 0)) {
+		bait__gen__c__Gen_write(g, from_js_string("&"))
+	}
 	bait__gen__c__Gen_expr(g, node.left)
 	bait__gen__c__Gen_write(g, from_js_string(", &"))
 	bait__gen__c__Gen_expr(g, array_get(node.args, 0).expr)
@@ -7316,6 +7338,8 @@ function bait__gen__c__Gen_assign_stmt(g, node) {
 	if (eq(node.op, bait__token__TokenKind.decl_assign)) {
 		const type_str = bait__gen__c__Gen_typ(g, node.right_type)
 		bait__gen__c__Gen_write(g, from_js_string(`${type_str.str} `))
+	} else if (bait__ast__Type_get_nr_amp(node.left_type) > 0 && node.left instanceof bait__ast__Ident) {
+		bait__gen__c__Gen_write(g, from_js_string("*"))
 	}
 	g.is_lhs_assign = true
 	bait__gen__c__Gen_expr(g, node.left)
