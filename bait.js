@@ -5695,8 +5695,8 @@ function bait__util__shell_escape(s) {
 }
 
 
-const bait__util__VERSION = from_js_string("0.0.4")
-const bait__util__FULL_VERSION = from_js_string(`${bait__util__VERSION.str} ${from_js_string("34d19a4").str}`)
+const bait__util__VERSION = from_js_string("0.0.5-dev")
+const bait__util__FULL_VERSION = from_js_string(`${bait__util__VERSION.str} ${from_js_string("cc9a150").str}`)
 
 function bait__gen__js__Gen_expr(g, expr) {
 	if (expr instanceof bait__ast__AnonFun) {
@@ -7243,6 +7243,19 @@ function bait__gen__c__Gen_string_literal(g, node) {
 }
 
 function bait__gen__c__Gen_string_inter_literal(g, node) {
+	const len = node.vals.length + node.exprs.length
+	bait__gen__c__Gen_write(g, from_js_string(`interpolate(new_array_from_c(${i32_str(len).str}, ${i32_str(len).str}, sizeof(string), (string[]){`))
+	for (let i = 0; i < node.vals.length; i++) {
+		const val = array_get(node.vals, i)
+		const esc_val = bait__util__escape_char(string_replace(val, from_js_string("\n"), from_js_string("\\n")), new u8("\""))
+		bait__gen__c__Gen_write(g, from_js_string(`from_c_string("${esc_val.str}")`))
+		bait__gen__c__Gen_write(g, from_js_string(", "))
+		if (i < node.exprs.length) {
+			bait__gen__c__Gen_expr_to_string(g, array_get(node.exprs, i), array_get(node.expr_types, i))
+			bait__gen__c__Gen_write(g, from_js_string(", "))
+		}
+	}
+	bait__gen__c__Gen_write(g, from_js_string("}))"))
 }
 
 function bait__gen__c__Gen_struct_init(g, node) {
@@ -8002,8 +8015,9 @@ function bait__builder__compile(prefs) {
 			array_push(map_get_set(deps, pkg_name, new array({ data: [], length: 0 })), imp.name)
 		}
 	}
+	let looked = new array({ data: [], length: 0 })
 	let pkg_order = new array({ data: [], length: 0 })
-	bait__builder__order_pkgs(pkg_order, root_pkg, deps)
+	bait__builder__order_pkgs(pkg_order, root_pkg, deps, looked)
 	let sorted_files = new array({ data: [], length: 0 })
 	for (let _t54 = 0; _t54 < pkg_order.length; _t54++) {
 		const pkg = array_get(pkg_order, _t54)
@@ -8104,10 +8118,14 @@ function bait__builder__resolve_import(pkg) {
 	return os__join_path(os__getwd(), new array({ data: [from_js_string("lib"), pkg], length: 2 }))
 }
 
-function bait__builder__order_pkgs(ordered, pkg, deps) {
+function bait__builder__order_pkgs(ordered, pkg, deps, looked) {
+	array_push(looked, pkg)
 	for (let _t62 = 0; _t62 < map_get_set(deps, pkg, new array({ data: [], length: 0 })).length; _t62++) {
 		const d = array_get(map_get_set(deps, pkg, new array({ data: [], length: 0 })), _t62)
-		bait__builder__order_pkgs(ordered, d, deps)
+		if (array_string_contains(looked, d)) {
+			continue
+		}
+		bait__builder__order_pkgs(ordered, d, deps, looked)
 	}
 	if (!array_string_contains(ordered, pkg)) {
 		array_push(ordered, pkg)
