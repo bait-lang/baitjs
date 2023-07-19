@@ -35,46 +35,18 @@ function array_push_many(a, b) {
 	a.length += b.length
 }
 
-function array_index(a, el) {
-	return a.data.indexOf(el)
-}
-
-function array_u8_index(a, c) {
-	for (let i = 0; i < a.length; i++) {
-		const el = array_get(a, i)
-		if (eq(el, c)) {
+function array_index(a, val) {
+	for (let i = 0; i < a.length; i += 1) {
+		if (eq(a.data[i], val)) {
 			return i
 		}
 	}
 	return -1
 }
 
-function array_string_index(a, s) {
-	for (let i = 0; i < a.length; i++) {
-		const el = array_get(a, i)
-		if (eq(el, s)) {
-			return i
-		}
-	}
-	return -1
-}
-
-function array_last_index(a, el) {
-	return a.data.lastIndexOf(el)
-}
-
-function array_u8_last_index(a, c) {
+function array_last_index(a, val) {
 	for (let i = a.length - 1; i >= 0; i -= 1) {
-		if (eq(array_get(a, i), c)) {
-			return i
-		}
-	}
-	return -1
-}
-
-function array_string_last_index(a, s) {
-	for (let i = a.length - 1; i >= 0; i -= 1) {
-		if (eq(array_get(a, i), s)) {
+		if (eq(a.data[i], val)) {
 			return i
 		}
 	}
@@ -86,11 +58,11 @@ function array_contains(a, el) {
 }
 
 function array_u8_contains(a, c) {
-	return array_u8_index(a, c) >= 0
+	return array_index(a, c) >= 0
 }
 
 function array_string_contains(a, s) {
-	return array_string_index(a, s) >= 0
+	return array_index(a, s) >= 0
 }
 
 function array_slice(a, start, end) {
@@ -5729,7 +5701,7 @@ function bait__util__shell_escape(s) {
 
 
 const bait__util__VERSION = from_js_string("0.0.5-dev")
-const bait__util__FULL_VERSION = from_js_string(`${bait__util__VERSION.str} ${from_js_string("626b4c8").str}`)
+const bait__util__FULL_VERSION = from_js_string(`${bait__util__VERSION.str} ${from_js_string("c3746f1").str}`)
 
 function bait__gen__js__Gen_expr(g, expr) {
 	if (expr instanceof bait__ast__AnonFun) {
@@ -7304,7 +7276,7 @@ function bait__gen__c__Gen_struct_init(g, node) {
 		const field = array_get(info.fields, i)
 		const name = bait__gen__c__c_name(field.name)
 		bait__gen__c__Gen_write(g, from_js_string(`.${name.str} = `))
-		const init_idx = array_string_index(inited_fields, field.name)
+		const init_idx = array_index(inited_fields, field.name)
 		if (eq(init_idx, -1)) {
 			bait__gen__c__Gen_write(g, from_js_string("0"))
 		} else {
