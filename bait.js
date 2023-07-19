@@ -2978,6 +2978,7 @@ const bait__ast__TypeKind = {
 	alias_type: 8,
 	sum_type: 9,
 	fun_: 10,
+	generic: 11,
 }
 function bait__ast__TypeSymbol({ name = from_js_string(""), kind = 0, methods = new array({ data: [], length: 0 }), parent = 0, overloads = new map({ data: new Map([]), length: 0 }), is_pub = false, pkg = from_js_string(""), info = new bait__ast__EmptyInfo({}) }) {
 	this.name = name
@@ -3568,6 +3569,7 @@ function bait__parser__Parser_fun_decl(p) {
 	if (!is_method && eq(lang, bait__ast__Language.bait)) {
 		name = bait__parser__Parser_prepend_pkg(p, name)
 	}
+	const generic_names = bait__parser__Parser_generic_type_names(p)
 	bait__parser__Parser_check(p, bait__token__TokenKind.lpar)
 	params = array_concat(params, bait__parser__Parser_fun_params(p))
 	bait__parser__Parser_check(p, bait__token__TokenKind.rpar)
@@ -4449,6 +4451,34 @@ function bait__parser__Parser_parse_map_type(p) {
 	bait__parser__Parser_check(p, bait__token__TokenKind.rbr)
 	const val_type = bait__parser__Parser_parse_type(p)
 	return bait__ast__Table_find_or_register_map(p.table, key_type, val_type)
+}
+
+function bait__parser__Parser_generic_type_names(p) {
+	if (!eq(p.tok.kind, bait__token__TokenKind.lbr)) {
+		return new array({ data: [], length: 0 })
+	}
+	bait__parser__Parser_next(p)
+	let names = new array({ data: [], length: 0 })
+	while (true) {
+		const name = bait__parser__Parser_check_name(p)
+		if (name.length > 1) {
+			bait__parser__Parser_error(p, from_js_string("generic types names have to be exactly one character"))
+		}
+		if (!u8_is_capital(string_get(name, 0))) {
+			bait__parser__Parser_error(p, from_js_string("generic type names have to be capital letters"))
+		}
+		array_push(names, name)
+		const idx = bait__ast__Table_get_idx(p.table, name)
+		if (eq(idx, 0)) {
+			bait__ast__Table_register_sym(p.table, new bait__ast__TypeSymbol({ name: name, pkg: p.pkg_name, kind: bait__ast__TypeKind.generic }))
+		}
+		if (eq(p.tok.kind, bait__token__TokenKind.rbr)) {
+			break
+		}
+		bait__parser__Parser_check(p, bait__token__TokenKind.comma)
+	}
+	bait__parser__Parser_next(p)
+	return names
 }
 
 function bait__parser__Parser_infer_expr_type(p, expr) {
@@ -5590,6 +5620,9 @@ function bait__checker__Checker_check_types(c, got, expected) {
 	}
 	const got_sym = bait__ast__Table_get_sym(c.table, got)
 	const exp_sym = bait__ast__Table_get_sym(c.table, expected)
+	if (eq(exp_sym.kind, bait__ast__TypeKind.generic) && !eq(got_sym.kind, bait__ast__TypeKind.generic)) {
+		return true
+	}
 	if (eq(bait__ast__Type_idx(exp_sym.parent), bait__ast__Type_idx(got))) {
 		return true
 	}
@@ -5696,7 +5729,7 @@ function bait__util__shell_escape(s) {
 
 
 const bait__util__VERSION = from_js_string("0.0.5-dev")
-const bait__util__FULL_VERSION = from_js_string(`${bait__util__VERSION.str} ${from_js_string("f1958a6").str}`)
+const bait__util__FULL_VERSION = from_js_string(`${bait__util__VERSION.str} ${from_js_string("626b4c8").str}`)
 
 function bait__gen__js__Gen_expr(g, expr) {
 	if (expr instanceof bait__ast__AnonFun) {
