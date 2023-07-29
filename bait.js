@@ -4492,6 +4492,76 @@ function bait__parser__Parser_infer_expr_type(p, expr) {
 }
 
 
+function bait__checker__Checker_decl_assign(c, node) {
+	const typ = bait__checker__Checker_expr(c, node.right)
+	if (!(node.left instanceof bait__ast__Ident)) {
+		bait__checker__Checker_error(c, from_js_string("cannot declare a variable with a non-identifier"), node.pos)
+		return
+	}
+	const left = node.left
+	if (bait__ast__Scope_is_known(c.scope, left.name)) {
+		bait__checker__Checker_error(c, from_js_string(`redefinition of ${left.name.str}`), node.pos)
+		return
+	}
+	bait__ast__Scope_register(c.scope, left.name, new bait__ast__ScopeObject({ kind: bait__ast__ObjectKind.variable, typ: typ, is_mut: left.is_mut }))
+	node.left_type = bait__checker__Checker_expr(c, node.left)
+	node.right_type = node.left_type
+}
+
+function bait__checker__Checker_assign_stmt(c, node) {
+	if (eq(node.op, bait__token__TokenKind.decl_assign)) {
+		bait__checker__Checker_decl_assign(c, node)
+		return
+	}
+	c.is_lhs_assign = true
+	node.left_type = bait__checker__Checker_expr(c, node.left)
+	c.is_lhs_assign = false
+	c.expected_type = node.left_type
+	node.right_type = bait__checker__Checker_expr(c, node.right)
+	if (eq(node.right_type, bait__ast__VOID_TYPE) && !(node.right instanceof bait__ast__CallExpr)) {
+		return
+	}
+	if (node.left instanceof bait__ast__Ident) {
+		const left = node.left
+		if (!left.is_mut) {
+			bait__checker__Checker_error(c, from_js_string(`cannot assign to immutable variable "${left.name.str}"`), left.pos)
+			return
+		}
+	} else if (node.left instanceof bait__ast__SelectorExpr) {
+		let left = node.left
+		if (!bait__checker__Checker_is_field_mutable(c, left)) {
+			return
+		}
+		while (left.expr instanceof bait__ast__SelectorExpr) {
+			left = left.expr
+			if (!bait__checker__Checker_is_field_mutable(c, left)) {
+				return
+			}
+		}
+		if (left.expr instanceof bait__ast__Ident) {
+			const lident = left.expr
+			if (!lident.is_mut) {
+				bait__checker__Checker_error(c, from_js_string(`cannot assign to field of immutable variable \`${lident.name.str}\``), node.pos)
+				return
+			}
+		}
+	}
+	if (!bait__checker__Checker_check_types(c, node.right_type, node.left_type)) {
+		bait__checker__Checker_error(c, from_js_string(`cannot assign type ${bait__ast__Table_type_name(c.table, node.right_type).str} to ${bait__ast__Table_type_name(c.table, node.left_type).str}`), node.pos)
+	}
+}
+
+function bait__checker__Checker_is_field_mutable(c, left) {
+	const sym = bait__ast__Table_get_sym(c.table, left.expr_type)
+	const field = bait__ast__TypeSymbol_find_field(sym, left.field_name, c.table)
+	if ((!field.is_mut || !eq(sym.pkg, c.pkg)) && !field.is_global) {
+		bait__checker__Checker_error(c, from_js_string(`field \`${sym.name.str}.${left.field_name.str}\` is immutable`), left.pos)
+		return false
+	}
+	return true
+}
+
+
 const bait__checker__AttrValue = {
 	none: 0,
 	optional: 1,
@@ -5314,59 +5384,6 @@ function bait__checker__Checker_assert_stmt(c, node) {
 	}
 }
 
-function bait__checker__Checker_assign_stmt(c, node) {
-	if (eq(node.op, bait__token__TokenKind.decl_assign)) {
-		const typ = bait__checker__Checker_expr(c, node.right)
-		if (!(node.left instanceof bait__ast__Ident)) {
-			bait__checker__Checker_error(c, from_js_string("cannot declare a variable with a non-identifier"), node.pos)
-			return
-		}
-		const left = node.left
-		if (bait__ast__Scope_is_known(c.scope, left.name)) {
-			bait__checker__Checker_error(c, from_js_string(`redefinition of ${left.name.str}`), node.pos)
-			return
-		}
-		bait__ast__Scope_register(c.scope, left.name, new bait__ast__ScopeObject({ kind: bait__ast__ObjectKind.variable, typ: typ, is_mut: left.is_mut }))
-		node.left_type = bait__checker__Checker_expr(c, node.left)
-		node.right_type = node.left_type
-		return
-	}
-	c.is_lhs_assign = true
-	node.left_type = bait__checker__Checker_expr(c, node.left)
-	c.is_lhs_assign = false
-	c.expected_type = node.left_type
-	node.right_type = bait__checker__Checker_expr(c, node.right)
-	if (eq(node.right_type, bait__ast__VOID_TYPE) && !(node.right instanceof bait__ast__CallExpr)) {
-		return
-	}
-	if (node.left instanceof bait__ast__Ident) {
-		const left = node.left
-		if (!left.is_mut) {
-			bait__checker__Checker_error(c, from_js_string(`cannot assign to immutable variable "${left.name.str}"`), left.pos)
-			return
-		}
-	}
-	if (node.left instanceof bait__ast__SelectorExpr) {
-		const left = node.left
-		if (left.expr instanceof bait__ast__Ident) {
-			const lident = left.expr
-			if (!lident.is_mut) {
-				bait__checker__Checker_error(c, from_js_string(`cannot assign to field of immutable struct "${lident.name.str}.${left.field_name.str}"`), node.pos)
-				return
-			}
-		}
-		const sym = bait__ast__Table_get_sym(c.table, left.expr_type)
-		const field = bait__ast__TypeSymbol_find_field(sym, left.field_name, c.table)
-		if ((!field.is_mut || !eq(sym.pkg, c.pkg)) && !field.is_global) {
-			bait__checker__Checker_error(c, from_js_string(`cannot assign to immutable field ${sym.name.str}.${left.field_name.str}`), node.pos)
-			return
-		}
-	}
-	if (!bait__checker__Checker_check_types(c, node.right_type, node.left_type)) {
-		bait__checker__Checker_error(c, from_js_string(`cannot assign type ${bait__ast__Table_type_name(c.table, node.right_type).str} to ${bait__ast__Table_type_name(c.table, node.left_type).str}`), node.pos)
-	}
-}
-
 function bait__checker__Checker_const_decl(c, node) {
 	node.typ = bait__checker__Checker_expr(c, node.expr)
 	bait__ast__Scope_update_type(c.table.global_scope, node.name, node.typ)
@@ -5722,7 +5739,7 @@ function bait__util__shell_escape(s) {
 
 
 const bait__util__VERSION = from_js_string("0.0.5-dev")
-const bait__util__FULL_VERSION = from_js_string(`${bait__util__VERSION.str} ${from_js_string("d868e05").str}`)
+const bait__util__FULL_VERSION = from_js_string(`${bait__util__VERSION.str} ${from_js_string("68e0fdf").str}`)
 
 function bait__gen__js__Gen_expr(g, expr) {
 	if (expr instanceof bait__ast__AnonFun) {
@@ -7938,17 +7955,17 @@ function bait__tokenizer__is_digit(c) {
 }
 
 
-function bait__builder__Builder({ prefs = new bait__preference__Prefs({}), table = new bait__ast__Table({}), parsed_files = new array({ data: [], length: 0 }), checker = new bait__checker__Checker({}) }) {
-	this.prefs = prefs
+function bait__builder__Builder({ table = new bait__ast__Table({}), prefs = new bait__preference__Prefs({}), parsed_files = new array({ data: [], length: 0 }), checker = new bait__checker__Checker({}) }) {
 	this.table = table
+	this.prefs = prefs
 	this.parsed_files = parsed_files
 	this.checker = checker
 }
 bait__builder__Builder.prototype = {
 	toString() {
 		return `bait__builder__Builder{
-    prefs = ${this.prefs.toString()}
     table = ${this.table.toString()}
+    prefs = ${this.prefs.toString()}
     parsed_files = ${this.parsed_files.toString()}
     checker = ${this.checker.toString()}
 }`}
