@@ -5739,7 +5739,7 @@ function bait__util__shell_escape(s) {
 
 
 const bait__util__VERSION = from_js_string("0.0.5-dev")
-const bait__util__FULL_VERSION = from_js_string(`${bait__util__VERSION.str} ${from_js_string("68e0fdf").str}`)
+const bait__util__FULL_VERSION = from_js_string(`${bait__util__VERSION.str} ${from_js_string("008a869").str}`)
 
 function bait__gen__js__Gen_expr(g, expr) {
 	if (expr instanceof bait__ast__AnonFun) {
@@ -6951,7 +6951,7 @@ function bait__gen__c__Gen_gen_equality_funs(g) {
 
 function bait__gen__c__Gen_equality_fun(g, typ) {
 	const sym = bait__ast__Table_get_sym(g.table, typ)
-	if (eq(sym.kind, bait__ast__TypeKind.other)) {
+	if (eq(sym.kind, bait__ast__TypeKind.number) || eq(sym.kind, bait__ast__TypeKind.other)) {
 		return from_js_string("")
 	}
 	if (map_contains(sym.overloads, from_js_string("=="))) {
