@@ -1684,7 +1684,7 @@ const bait__preference__Backend = {
 	js: 0,
 	c: 1,
 }
-function bait__preference__Prefs({ command = from_js_string(""), out_name = from_js_string(""), expected_pkg = from_js_string(""), args = new array({ data: [], length: 0 }), build_options = new array({ data: [], length: 0 }), should_run = false, is_verbose = false, backend = 0, is_test = false, is_script = false, is_library = false, hide_warnings = false, warn_is_error = false, baitexe = from_js_string(""), baitdir = from_js_string(""), baithash = from_js_string("") }) {
+function bait__preference__Prefs({ command = from_js_string(""), out_name = from_js_string(""), expected_pkg = from_js_string(""), args = new array({ data: [], length: 0 }), build_options = new array({ data: [], length: 0 }), should_run = false, is_verbose = false, backend = 0, is_test = false, is_script = false, is_library = false, keep_exe = false, hide_warnings = false, warn_is_error = false, baitexe = from_js_string(""), baitdir = from_js_string(""), baithash = from_js_string("") }) {
 	this.command = command
 	this.out_name = out_name
 	this.expected_pkg = expected_pkg
@@ -1696,6 +1696,7 @@ function bait__preference__Prefs({ command = from_js_string(""), out_name = from
 	this.is_test = is_test
 	this.is_script = is_script
 	this.is_library = is_library
+	this.keep_exe = keep_exe
 	this.hide_warnings = hide_warnings
 	this.warn_is_error = warn_is_error
 	this.baitexe = baitexe
@@ -1716,6 +1717,7 @@ bait__preference__Prefs.prototype = {
     is_test = ${this.is_test.toString()}
     is_script = ${this.is_script.toString()}
     is_library = ${this.is_library.toString()}
+    keep_exe = ${this.keep_exe.toString()}
     hide_warnings = ${this.hide_warnings.toString()}
     warn_is_error = ${this.warn_is_error.toString()}
     baitexe = ${this.baitexe.toString()}
@@ -1753,6 +1755,12 @@ function bait__preference__parse_args(args) {
 				{
 					p.is_verbose = true
 					array_push(p.build_options, arg)
+					break
+				}
+			case from_js_string("-k").str:
+			case from_js_string("--keep").str:
+				{
+					p.keep_exe = true
 					break
 				}
 			case from_js_string("--library").str:
@@ -1817,7 +1825,7 @@ function bait__preference__parse_args(args) {
 		if (string_ends_with(p.command, from_js_string(".bt"))) {
 			p.out_name = string_replace(p.command, from_js_string(".bt"), ext)
 		} else {
-			p.out_name = string_add(p.command, ext)
+			p.out_name = string_add(string_all_after_last(os__abs_path(p.command), from_js_string("/")), ext)
 		}
 	}
 	return p
@@ -5743,7 +5751,7 @@ function bait__util__shell_escape(s) {
 
 
 const bait__util__VERSION = from_js_string("0.0.5-dev")
-const bait__util__FULL_VERSION = from_js_string(`${bait__util__VERSION.str} ${from_js_string("d890e45").str}`)
+const bait__util__FULL_VERSION = from_js_string(`${bait__util__VERSION.str} ${from_js_string("9489045").str}`)
 
 function bait__gen__js__Gen_expr(g, expr) {
 	if (expr instanceof bait__ast__AnonFun) {
@@ -8088,6 +8096,9 @@ function bait__builder__Builder_code_gen_js(b) {
 	os__write_file(b.prefs.out_name, res)
 	if (b.prefs.should_run) {
 		const run_res = os__system(from_js_string(`node ${b.prefs.out_name.str}`))
+		if (!b.prefs.keep_exe) {
+			os__rm(b.prefs.out_name)
+		}
 		return run_res
 	}
 	return 0
@@ -8107,6 +8118,9 @@ function bait__builder__Builder_code_gen_c(b) {
 	}
 	if (b.prefs.should_run) {
 		const run_res = os__system(from_js_string(`./${b.prefs.out_name.str}`))
+		if (!b.prefs.keep_exe) {
+			os__rm(b.prefs.out_name)
+		}
 		return run_res
 	}
 	return 0
