@@ -393,6 +393,10 @@ function array_string_to_js_arr(arr) {
 
 
 const os__ARGS = from_js_string_arr(JS__process.argv)
+function os__user_args() {
+	return array_slice(os__ARGS, 2, os__ARGS.length)
+}
+
 function os__ls(dir) {
 	return from_js_string_arr(JS__fs.readdirSync(dir.str))
 }
@@ -5739,7 +5743,7 @@ function bait__util__shell_escape(s) {
 
 
 const bait__util__VERSION = from_js_string("0.0.5-dev")
-const bait__util__FULL_VERSION = from_js_string(`${bait__util__VERSION.str} ${from_js_string("ddac60d").str}`)
+const bait__util__FULL_VERSION = from_js_string(`${bait__util__VERSION.str} ${from_js_string("d890e45").str}`)
 
 function bait__gen__js__Gen_expr(g, expr) {
 	if (expr instanceof bait__ast__AnonFun) {
@@ -7429,7 +7433,7 @@ function bait__gen__c__Gen_const_decl(g, node) {
 	if (node.expr instanceof bait__ast__ArrayInit || node.expr instanceof bait__ast__CallExpr || node.expr instanceof bait__ast__MapInit) {
 		const typ = bait__gen__c__Gen_typ(g, node.typ)
 		g.type_defs_out = string_add(g.type_defs_out, from_js_string(`${typ.str} ${name.str};\n`))
-		g.main_inits_out = string_add(g.main_inits_out, from_js_string(`${name.str} = ${val.str};\n`))
+		g.main_inits_out = string_add(g.main_inits_out, from_js_string(`\t${name.str} = ${val.str};\n`))
 	} else {
 		g.type_impls_out = string_add(g.type_impls_out, from_js_string(`#define ${name.str} ${val.str}\n`))
 	}
