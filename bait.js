@@ -1815,6 +1815,7 @@ function bait__preference__parse_args(args) {
 	}
 	if (eq(p.command, from_js_string("test"))) {
 		p.should_run = true
+		p.keep_exe = true
 		p.is_test = true
 	}
 	if (eq(p.out_name.length, 0)) {
@@ -5751,7 +5752,7 @@ function bait__util__shell_escape(s) {
 
 
 const bait__util__VERSION = from_js_string("0.0.5-dev")
-const bait__util__FULL_VERSION = from_js_string(`${bait__util__VERSION.str} ${from_js_string("9489045").str}`)
+const bait__util__FULL_VERSION = from_js_string(`${bait__util__VERSION.str} ${from_js_string("4421f38").str}`)
 
 function bait__gen__js__Gen_expr(g, expr) {
 	if (expr instanceof bait__ast__AnonFun) {
