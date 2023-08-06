@@ -25,6 +25,10 @@ function array_set(a, i, val) {
 	a.data[i] = val
 }
 
+function array_last(a) {
+	return array_get(a, i32(a.length - 1))
+}
+
 function array_push(a, el) {
 	a.data.push(el)
 	a.length += 1
@@ -3142,6 +3146,12 @@ function bait__parser__Parser_expr(p, precedence) {
 				node = bait__parser__Parser_typeof_expr(p)
 				break
 			}
+		case bait__token__TokenKind.eof:
+			{
+				p.should_abort = true
+				return node
+				break
+			}
 		default:
 			{
 				let msg = from_js_string(`invalid expression: kind = ${bait__token__TokenKind_str(p.tok.kind).str}`)
@@ -3648,9 +3658,9 @@ function bait__parser__Parser_method_call(p, left) {
 
 function bait__parser__Parser_call_args(p) {
 	let args = new array({ data: [], length: 0 })
-	while (!eq(p.tok.kind, bait__token__TokenKind.rpar)) {
+	while (!eq(p.tok.kind, bait__token__TokenKind.rpar) && !p.should_abort) {
 		array_push(args, new bait__ast__CallArg({ expr: bait__parser__Parser_expr(p, 0) }))
-		if (!eq(p.tok.kind, bait__token__TokenKind.rpar)) {
+		if (!eq(p.tok.kind, bait__token__TokenKind.rpar) && !eq(p.tok.kind, bait__token__TokenKind.eof)) {
 			bait__parser__Parser_check(p, bait__token__TokenKind.comma)
 		}
 	}
@@ -3719,11 +3729,12 @@ function bait__parser__Parser_import_stmts(p) {
 }
 
 
-function bait__parser__Parser({ pref = new bait__preference__Prefs({}), path = from_js_string(""), table = new bait__ast__Table({}), tokens = new array({ data: [], length: 0 }), idx = 0, prev_tok = new bait__token__Token({}), tok = new bait__token__Token({}), next_tok = new bait__token__Token({}), pkg_name = from_js_string(""), import_aliases = new map({ data: new Map([]), length: 0 }), attributes = new array({ data: [], length: 0 }), expr_pkg = from_js_string(""), is_for_init = false, is_struct_possible = false, should_abort = false, warnings = new array({ data: [], length: 0 }), errors = new array({ data: [], length: 0 }) }) {
+function bait__parser__Parser({ pref = new bait__preference__Prefs({}), path = from_js_string(""), table = new bait__ast__Table({}), tokens = new array({ data: [], length: 0 }), eofs = 0, idx = 0, prev_tok = new bait__token__Token({}), tok = new bait__token__Token({}), next_tok = new bait__token__Token({}), pkg_name = from_js_string(""), import_aliases = new map({ data: new Map([]), length: 0 }), attributes = new array({ data: [], length: 0 }), expr_pkg = from_js_string(""), is_for_init = false, is_struct_possible = false, should_abort = false, warnings = new array({ data: [], length: 0 }), errors = new array({ data: [], length: 0 }) }) {
 	this.pref = pref
 	this.path = path
 	this.table = table
 	this.tokens = tokens
+	this.eofs = eofs
 	this.idx = idx
 	this.prev_tok = prev_tok
 	this.tok = tok
@@ -3745,6 +3756,7 @@ bait__parser__Parser.prototype = {
     path = ${this.path.toString()}
     table = ${this.table.toString()}
     tokens = ${this.tokens.toString()}
+    eofs = ${this.eofs.toString()}
     idx = ${this.idx.toString()}
     prev_tok = ${this.prev_tok.toString()}
     tok = ${this.tok.toString()}
@@ -3873,8 +3885,16 @@ function bait__parser__Parser_prepend_expr_pkg(p, val) {
 function bait__parser__Parser_next(p) {
 	p.prev_tok = p.tok
 	p.tok = p.next_tok
-	p.next_tok = array_get(p.tokens, p.idx)
-	p.idx += 1
+	if (i32(p.idx < p.tokens.length)) {
+		p.next_tok = array_get(p.tokens, p.idx)
+		p.idx += 1
+	} else {
+		p.eofs += 1
+		if (i32(p.eofs > 10)) {
+			panic(from_js_string(`parser is stuck at end of file ${p.path.str}`))
+		}
+		p.next_tok = array_last(p.tokens)
+	}
 }
 
 function bait__parser__Parser_warn(p, msg) {
@@ -5752,7 +5772,7 @@ function bait__util__shell_escape(s) {
 
 
 const bait__util__VERSION = from_js_string("0.0.5-dev")
-const bait__util__FULL_VERSION = from_js_string(`${bait__util__VERSION.str} ${from_js_string("4421f38").str}`)
+const bait__util__FULL_VERSION = from_js_string(`${bait__util__VERSION.str} ${from_js_string("d7bf9ce").str}`)
 
 function bait__gen__js__Gen_expr(g, expr) {
 	if (expr instanceof bait__ast__AnonFun) {
