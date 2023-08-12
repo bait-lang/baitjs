@@ -5381,21 +5381,24 @@ function bait__checker__Checker_infix_expr(c, node) {
 function bait__checker__Checker_is_sumtype_variant_infix(c, node) {
 	if (node.left instanceof bait__ast__Ident) {
 		let right = node.right
-		if (!string_contains(right.name, from_js_string("."))) {
+		if (!string_contains(right.name, from_js_string(".")) && !eq(right.pkg, from_js_string("main"))) {
 			right.name = string_add(string_add(right.pkg, from_js_string(".")), right.name)
 		}
 		node.right_type = bait__ast__Table_get_idx(c.table, right.name)
 		const left = node.left
 		bait__ast__Scope_update_type(c.scope, left.name, node.right_type)
-	} else if (node.left instanceof bait__ast__SelectorExpr) {
+		return bait__ast__BOOL_TYPE
+	}
+	if (node.left instanceof bait__ast__SelectorExpr) {
 		let right = node.right
-		if (!string_contains(right.name, from_js_string("."))) {
+		if (!string_contains(right.name, from_js_string(".")) && !eq(right.pkg, from_js_string("main"))) {
 			right.name = string_add(string_add(right.pkg, from_js_string(".")), right.name)
 		}
 		node.right_type = bait__ast__Table_get_idx(c.table, right.name)
 		const left = node.left
 		const name = string_add(string_add((left.expr).name, from_js_string(".")), left.field_name)
 		bait__ast__Scope_update_type(c.scope, name, node.right_type)
+		return bait__ast__BOOL_TYPE
 	}
 	return bait__ast__BOOL_TYPE
 }
@@ -5807,7 +5810,7 @@ function bait__util__shell_escape(s) {
 
 
 const bait__util__VERSION = from_js_string("0.0.5-dev")
-const bait__util__FULL_VERSION = from_js_string(`${bait__util__VERSION.str} ${from_js_string("67e4623").str}`)
+const bait__util__FULL_VERSION = from_js_string(`${bait__util__VERSION.str} ${from_js_string("9d85cc3").str}`)
 
 function bait__gen__js__Gen_expr(g, expr) {
 	if (expr instanceof bait__ast__AnonFun) {
