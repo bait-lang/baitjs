@@ -4211,27 +4211,35 @@ function bait__parser__Parser_interface_decl(p) {
 		if (eq(p.tok.kind, bait__token__TokenKind.key_fun)) {
 			bait__parser__Parser_next(p)
 			const fun_name = bait__parser__Parser_check_name(p)
-			bait__parser__Parser_check(p, bait__token__TokenKind.lpar)
-			let params = new array({ data: [new bait__ast__Param({ name: from_js_string("_"), typ: typ })], length: 1 })
-			params = array_concat(params, bait__parser__Parser_fun_params(p))
-			bait__parser__Parser_check(p, bait__token__TokenKind.rpar)
-			let return_type = bait__ast__VOID_TYPE
-			if (eq(p.tok.pos.line, p.prev_tok.pos.line)) {
-				return_type = bait__parser__Parser_parse_type(p)
-			}
-			const m = new bait__ast__FunDecl({ lang: bait__ast__Language.js, name: fun_name, params: params, return_type: return_type, is_pub: true, is_method: true })
+			const m = bait__parser__Parser_interface_method(p, fun_name, typ)
 			array_push(methods, m)
 			array_push(tsym.methods, m)
 			continue
 		}
-		if (eq(p.tok.kind, bait__token__TokenKind.name)) {
-			array_push(fields, new bait__ast__StructField({ name: bait__parser__Parser_check_name(p), typ: bait__parser__Parser_parse_type(p) }))
+		const fname = bait__parser__Parser_check_name(p)
+		if (eq(p.tok.kind, bait__token__TokenKind.lpar)) {
+			const m = bait__parser__Parser_interface_method(p, fname, typ)
+			array_push(methods, m)
+			array_push(tsym.methods, m)
 			continue
 		}
+		array_push(fields, new bait__ast__StructField({ name: fname, typ: bait__parser__Parser_parse_type(p) }))
 	}
 	bait__parser__Parser_next(p)
 	tsym.info = new bait__ast__StructInfo({ fields: fields })
 	return new bait__ast__InterfaceDecl({ lang: lang, name: name, typ: typ, methods: methods, fields: fields, pos: pos })
+}
+
+function bait__parser__Parser_interface_method(p, name, rec_type) {
+	bait__parser__Parser_check(p, bait__token__TokenKind.lpar)
+	let params = new array({ data: [new bait__ast__Param({ name: from_js_string("_"), typ: rec_type })], length: 1 })
+	params = array_concat(params, bait__parser__Parser_fun_params(p))
+	bait__parser__Parser_check(p, bait__token__TokenKind.rpar)
+	let return_type = bait__ast__VOID_TYPE
+	if (eq(p.tok.pos.line, p.prev_tok.pos.line)) {
+		return_type = bait__parser__Parser_parse_type(p)
+	}
+	return new bait__ast__FunDecl({ lang: bait__ast__Language.js, name: name, params: params, return_type: return_type, is_pub: true, is_method: true })
 }
 
 function bait__parser__Parser_return_stmt(p) {
@@ -5820,7 +5828,7 @@ function bait__util__shell_escape(s) {
 
 
 const bait__util__VERSION = from_js_string("0.0.5-dev")
-const bait__util__FULL_VERSION = from_js_string(`${bait__util__VERSION.str} ${from_js_string("398a4aa").str}`)
+const bait__util__FULL_VERSION = from_js_string(`${bait__util__VERSION.str} ${from_js_string("372d8f3").str}`)
 
 function bait__gen__js__Gen_expr(g, expr) {
 	if (expr instanceof bait__ast__AnonFun) {
