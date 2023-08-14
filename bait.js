@@ -4208,14 +4208,6 @@ function bait__parser__Parser_interface_decl(p) {
 	let fields = new array({ data: [], length: 0 })
 	bait__parser__Parser_check(p, bait__token__TokenKind.lcur)
 	while (!eq(p.tok.kind, bait__token__TokenKind.rcur)) {
-		if (eq(p.tok.kind, bait__token__TokenKind.key_fun)) {
-			bait__parser__Parser_next(p)
-			const fun_name = bait__parser__Parser_check_name(p)
-			const m = bait__parser__Parser_interface_method(p, fun_name, typ)
-			array_push(methods, m)
-			array_push(tsym.methods, m)
-			continue
-		}
 		const fname = bait__parser__Parser_check_name(p)
 		if (eq(p.tok.kind, bait__token__TokenKind.lpar)) {
 			const m = bait__parser__Parser_interface_method(p, fname, typ)
@@ -5828,7 +5820,7 @@ function bait__util__shell_escape(s) {
 
 
 const bait__util__VERSION = from_js_string("0.0.5-dev")
-const bait__util__FULL_VERSION = from_js_string(`${bait__util__VERSION.str} ${from_js_string("372d8f3").str}`)
+const bait__util__FULL_VERSION = from_js_string(`${bait__util__VERSION.str} ${from_js_string("db35c3a").str}`)
 
 function bait__gen__js__Gen_expr(g, expr) {
 	if (expr instanceof bait__ast__AnonFun) {
