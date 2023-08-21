@@ -1,16 +1,10 @@
 const JS = {}
 JS.console = require("console")
-JS__console = require("console")
 JS.process = require("process")
-JS__process = require("process")
 JS.os = require("os")
-JS__os = require("os")
 JS.fs = require("fs")
-JS__fs = require("fs")
 JS.path = require("path")
-JS__path = require("path")
 JS.child_process = require("child_process")
-JS__child_process = require("child_process")
 
 
 function array({ data = undefined, length = 0 }) {
@@ -428,7 +422,8 @@ function array_string_to_js_arr(arr) {
 
 
 
-const os__ARGS = from_js_string_arr(JS__process.argv)
+const os__ARGS = from_js_string_arr(JS.process.argv)
+const os__PATH_SEP = from_js_string(JS.path.sep)
 function os__user_args() {
 	return array_slice(os__ARGS, 2, os__ARGS.length)
 }
@@ -453,7 +448,7 @@ function os__walk_ext(dir, ext) {
 }
 
 function os__cp(src, dest) {
-	JS__fs.cpSync(src.str, dest.str, { recursive: true })
+	JS.fs.cpSync(src.str, dest.str, { recursive: true })
 }
 
 function os__exists(path) {
@@ -465,7 +460,7 @@ function os__file_name(path) {
 }
 
 function os__file_mod_time(path) {
-	return JS__fs.lstatSync(path.str).mtimeMs
+	return JS.fs.lstatSync(path.str).mtimeMs
 }
 
 function os__symlink(src, dest) {
@@ -485,7 +480,7 @@ function os__dir(path) {
 }
 
 function os__is_dir(path) {
-	return JS__fs.lstatSync(path.str).isDirectory()
+	return JS.fs.lstatSync(path.str).isDirectory()
 }
 
 function os__mkdir(dir) {
@@ -493,7 +488,7 @@ function os__mkdir(dir) {
 }
 
 function os__mkdir_all(dir) {
-	JS__fs.mkdirSync(dir.str, { recursive: true })
+	JS.fs.mkdirSync(dir.str, { recursive: true })
 }
 
 function os__rm(path) {
@@ -505,11 +500,11 @@ function os__rmdir(dir) {
 }
 
 function os__rmdir_all(dir) {
-	JS__fs.rmdirSync(dir.str, { recursive: true })
+	JS.fs.rmdirSync(dir.str, { recursive: true })
 }
 
 function os__read_file(path) {
-	return from_js_string(JS__fs.readFileSync(path.str).toString())
+	return from_js_string(JS.fs.readFileSync(path.str).toString())
 }
 
 function os__read_lines(path) {
@@ -527,7 +522,7 @@ function os__getwd() {
 
 function os__join_path(base, dirs) {
 	const js_dirs = array_string_to_js_arr(dirs)
-	return from_js_string(JS__path.join(base.str, ...js_dirs))
+	return from_js_string(JS.path.join(base.str, ...js_dirs))
 }
 
 function os__executable() {
@@ -544,18 +539,18 @@ function os__resource_abs_path(path) {
 }
 
 function os__getenv(key) {
-	if (JS__process.env[key.str]) {
-		return from_js_string(JS__process.env[key.str])
+	if (JS.process.env[key.str]) {
+		return from_js_string(JS.process.env[key.str])
 	}
 	return from_js_string("")
 }
 
 function os__setenv(key, value) {
-	JS__process.env[key.str] = value.str
+	JS.process.env[key.str] = value.str
 }
 
 function os__user_os() {
-	return from_js_string(JS__process.platform)
+	return from_js_string(JS.process.platform)
 }
 
 function os__arch() {
@@ -578,7 +573,7 @@ os__Result.prototype = {
 function os__exec(cmd) {
 	let res = new os__Result({})
 	const commands = cmd.str.split(" ")
-	const out = JS__child_process.spawnSync(commands[0], commands.slice(1))
+	const out = JS.child_process.spawnSync(commands[0], commands.slice(1))
 	res.code = out.status
 	res.stdout = from_js_string(out.stdout.toString())
 	res.stderr = from_js_string(out.stderr.toString())
@@ -587,7 +582,7 @@ function os__exec(cmd) {
 
 function os__system(cmd) {
 	try {
-		JS__child_process.execSync(cmd.str, { stdio: "inherit" })
+		JS.child_process.execSync(cmd.str, { stdio: "inherit" })
 	} catch (e) {
 		return e.status
 	}
@@ -5836,7 +5831,7 @@ function bait__util__shell_escape(s) {
 
 
 const bait__util__VERSION = from_js_string("0.0.5-dev")
-const bait__util__FULL_VERSION = from_js_string(`${bait__util__VERSION.str} ${from_js_string("c418fc4").str}`)
+const bait__util__FULL_VERSION = from_js_string(`${bait__util__VERSION.str} ${from_js_string("c797083").str}`)
 
 function bait__gen__js__Gen_expr(g, expr) {
 	if (expr instanceof bait__ast__AnonFun) {
@@ -6419,9 +6414,7 @@ function bait__gen__js__Gen_headers(g) {
 	for (let _t33 = 0; _t33 < _t32.length; _t33++) {
 		const alias = array_get(_t32, _t33)
 		const name = map_get(g.foreign_imports, alias)
-		const js_alias = bait__gen__js__js_name(alias)
 		headers = string_add(headers, from_js_string(`${alias.str} = require("${name.str}")\n`))
-		headers = string_add(headers, from_js_string(`${js_alias.str} = require("${name.str}")\n`))
 	}
 	return string_add(headers, from_js_string("\n"))
 }
