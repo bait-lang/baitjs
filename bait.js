@@ -1,9 +1,16 @@
-const JS__console = require("console")
-const JS__process = require("process")
-const JS__os = require("os")
-const JS__fs = require("fs")
-const JS__path = require("path")
-const JS__child_process = require("child_process")
+const JS = {}
+JS.console = require("console")
+JS__console = require("console")
+JS.process = require("process")
+JS__process = require("process")
+JS.os = require("os")
+JS__os = require("os")
+JS.fs = require("fs")
+JS__fs = require("fs")
+JS.path = require("path")
+JS__path = require("path")
+JS.child_process = require("child_process")
+JS__child_process = require("child_process")
 
 
 function array({ data = undefined, length = 0 }) {
@@ -4131,7 +4138,15 @@ function bait__parser__Parser_const_decl(p) {
 	const is_pub = bait__parser__Parser_check_pub(p)
 	bait__parser__Parser_next(p)
 	const lang = bait__parser__Parser_parse_lang(p)
-	const name = bait__parser__Parser_prepend_pkg(p, bait__parser__Parser_check_name(p))
+	let name = from_js_string("")
+	if (eq(lang, bait__ast__Language.js) && eq(p.next_tok.kind, bait__token__TokenKind.dot)) {
+		name = string_add(string_add(from_js_string("JS__"), bait__parser__Parser_check_name(p)), from_js_string("."))
+		bait__parser__Parser_next(p)
+	}
+	name = string_add(name, bait__parser__Parser_check_name(p))
+	if (eq(lang, bait__ast__Language.bait)) {
+		name = bait__parser__Parser_prepend_pkg(p, name)
+	}
 	bait__parser__Parser_check(p, bait__token__TokenKind.decl_assign)
 	let expr = new bait__ast__EmptyExpr({})
 	let typ = bait__ast__PLACEHOLDER_TYPE
@@ -4141,7 +4156,11 @@ function bait__parser__Parser_const_decl(p) {
 	} else {
 		typ = bait__parser__Parser_parse_type(p)
 	}
-	bait__ast__Scope_register(p.table.global_scope, bait__ast__Language_prepend_to(lang, name), new bait__ast__ScopeObject({ typ: typ, kind: bait__ast__ObjectKind.constant, is_pub: is_pub, pkg: p.pkg_name, expr: expr }))
+	let rname = name
+	if (!string_starts_with(name, from_js_string("JS__"))) {
+		rname = bait__ast__Language_prepend_to(lang, name)
+	}
+	bait__ast__Scope_register(p.table.global_scope, rname, new bait__ast__ScopeObject({ typ: typ, kind: bait__ast__ObjectKind.constant, is_pub: is_pub, pkg: p.pkg_name, expr: expr }))
 	return new bait__ast__ConstDecl({ name: name, expr: expr, typ: typ, pos: pos, lang: lang })
 }
 
@@ -5820,7 +5839,7 @@ function bait__util__shell_escape(s) {
 
 
 const bait__util__VERSION = from_js_string("0.0.5-dev")
-const bait__util__FULL_VERSION = from_js_string(`${bait__util__VERSION.str} ${from_js_string("db35c3a").str}`)
+const bait__util__FULL_VERSION = from_js_string(`${bait__util__VERSION.str} ${from_js_string("9c4df67").str}`)
 
 function bait__gen__js__Gen_expr(g, expr) {
 	if (expr instanceof bait__ast__AnonFun) {
@@ -6060,6 +6079,10 @@ function bait__gen__js__Gen_hash_expr(g, node) {
 }
 
 function bait__gen__js__Gen_ident(g, node) {
+	if (eq(node.lang, bait__ast__Language.js)) {
+		bait__gen__js__Gen_write(g, node.name)
+		return
+	}
 	bait__gen__js__Gen_write(g, bait__gen__js__js_name(node.name))
 }
 
@@ -6394,13 +6417,14 @@ function bait__gen__js__Gen_process_imports(g, imports) {
 }
 
 function bait__gen__js__Gen_headers(g) {
-	let headers = from_js_string("")
+	let headers = from_js_string("const JS = {}\n")
 	const _t32 = map_keys(g.foreign_imports)
 	for (let _t33 = 0; _t33 < _t32.length; _t33++) {
 		const alias = array_get(_t32, _t33)
 		const name = map_get(g.foreign_imports, alias)
 		const js_alias = bait__gen__js__js_name(alias)
-		headers = string_add(headers, from_js_string(`const ${js_alias.str} = require("${name.str}")\n`))
+		headers = string_add(headers, from_js_string(`${alias.str} = require("${name.str}")\n`))
+		headers = string_add(headers, from_js_string(`${js_alias.str} = require("${name.str}")\n`))
 	}
 	return string_add(headers, from_js_string("\n"))
 }
