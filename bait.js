@@ -1867,7 +1867,7 @@ function bait__preference__parse_args(args) {
 		if (string_ends_with(p.command, from_js_string(".bt"))) {
 			p.out_name = string_replace(p.command, from_js_string(".bt"), ext)
 		} else {
-			p.out_name = string_add(string_all_after_last(os__abs_path(p.command), from_js_string("/")), ext)
+			p.out_name = string_add(string_all_after_last(os__abs_path(p.command), os__PATH_SEP), ext)
 		}
 	}
 	return p
@@ -3837,9 +3837,10 @@ function bait__parser__Parser_package_decl(p) {
 	bait__parser__Parser_next(p)
 	const name = bait__parser__Parser_check_name(p)
 	let full_name = name
-	if (!eq(full_name, from_js_string("main")) && string_contains(p.path, from_js_string("lib/"))) {
-		const rel_path = string_substr(p.path, i32(string_index(p.path, from_js_string("lib/")) + 4), p.path.length)
-		full_name = string_replace(string_substr(rel_path, 0, string_last_index(rel_path, from_js_string("/"))), from_js_string("/"), from_js_string("."))
+	const lib_part = string_add(string_add(os__PATH_SEP, from_js_string("lib")), os__PATH_SEP)
+	if (!eq(full_name, from_js_string("main")) && string_contains(p.path, lib_part)) {
+		const rel_path = string_substr(p.path, i32(string_index(p.path, lib_part) + lib_part.length), p.path.length)
+		full_name = string_replace(string_substr(rel_path, 0, string_last_index(rel_path, os__PATH_SEP)), os__PATH_SEP, from_js_string("."))
 	}
 	p.pkg_name = full_name
 	return new bait__ast__PackageDecl({ name: name, full_name: full_name })
@@ -4150,9 +4151,7 @@ function bait__parser__Parser_const_decl(p) {
 	} else {
 		typ = bait__parser__Parser_parse_type(p)
 	}
-	let rname = name
-	rname = bait__ast__Language_prepend_to(lang, name)
-	bait__ast__Scope_register(p.table.global_scope, rname, new bait__ast__ScopeObject({ typ: typ, kind: bait__ast__ObjectKind.constant, is_pub: is_pub, pkg: p.pkg_name, expr: expr }))
+	bait__ast__Scope_register(p.table.global_scope, bait__ast__Language_prepend_to(lang, name), new bait__ast__ScopeObject({ typ: typ, kind: bait__ast__ObjectKind.constant, is_pub: is_pub, pkg: p.pkg_name, expr: expr }))
 	return new bait__ast__ConstDecl({ name: name, expr: expr, typ: typ, pos: pos, lang: lang })
 }
 
@@ -5831,7 +5830,7 @@ function bait__util__shell_escape(s) {
 
 
 const bait__util__VERSION = from_js_string("0.0.5-dev")
-const bait__util__FULL_VERSION = from_js_string(`${bait__util__VERSION.str} ${from_js_string("c797083").str}`)
+const bait__util__FULL_VERSION = from_js_string(`${bait__util__VERSION.str} ${from_js_string("a75376f").str}`)
 
 function bait__gen__js__Gen_expr(g, expr) {
 	if (expr instanceof bait__ast__AnonFun) {
@@ -8115,7 +8114,7 @@ function bait__builder__compile(prefs) {
 				continue
 			}
 			b.prefs.expected_pkg = imp.name
-			const import_dir = bait__builder__resolve_import(string_replace(imp.name, from_js_string("."), from_js_string("/")))
+			const import_dir = bait__builder__resolve_import(string_replace(imp.name, from_js_string("."), os__PATH_SEP))
 			let imp_paths = bait__builder__Builder_collect_bait_files(b, import_dir)
 			if (eq(imp_paths.length, 0)) {
 				bait__errors__generic_error(from_js_string(`package ${imp.name.str} contains no Bait files`))
