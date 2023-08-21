@@ -100,15 +100,15 @@ function from_js_arr(a) {
 
 
 function println(msg) {
-	JS__console.log(msg)
+	JS.console.log(msg)
 }
 
 function eprintln(msg) {
-	JS__console.error(msg)
+	JS.console.error(msg)
 }
 
 function exit(code) {
-	JS__process.exit(code)
+	JS.process.exit(code)
 }
 
 function panic(msg) {
@@ -434,7 +434,7 @@ function os__user_args() {
 }
 
 function os__ls(dir) {
-	return from_js_string_arr(JS__fs.readdirSync(dir.str))
+	return from_js_string_arr(JS.fs.readdirSync(dir.str))
 }
 
 function os__walk_ext(dir, ext) {
@@ -457,11 +457,11 @@ function os__cp(src, dest) {
 }
 
 function os__exists(path) {
-	return JS__fs.existsSync(path.str)
+	return JS.fs.existsSync(path.str)
 }
 
 function os__file_name(path) {
-	return from_js_string(JS__path.basename(path.str))
+	return from_js_string(JS.path.basename(path.str))
 }
 
 function os__file_mod_time(path) {
@@ -469,19 +469,19 @@ function os__file_mod_time(path) {
 }
 
 function os__symlink(src, dest) {
-	JS__fs.symlinkSync(src.str, dest.str)
+	JS.fs.symlinkSync(src.str, dest.str)
 }
 
 function os__chdir(dir) {
-	JS__process.chdir(dir.str)
+	JS.process.chdir(dir.str)
 }
 
 function os__home_dir() {
-	return from_js_string(JS__os.homedir())
+	return from_js_string(JS.os.homedir())
 }
 
 function os__dir(path) {
-	return from_js_string(JS__path.dirname(path.str))
+	return from_js_string(JS.path.dirname(path.str))
 }
 
 function os__is_dir(path) {
@@ -489,7 +489,7 @@ function os__is_dir(path) {
 }
 
 function os__mkdir(dir) {
-	JS__fs.mkdirSync(dir.str)
+	JS.fs.mkdirSync(dir.str)
 }
 
 function os__mkdir_all(dir) {
@@ -497,11 +497,11 @@ function os__mkdir_all(dir) {
 }
 
 function os__rm(path) {
-	JS__fs.rmSync(path.str)
+	JS.fs.rmSync(path.str)
 }
 
 function os__rmdir(dir) {
-	JS__fs.rmdirSync(dir.str)
+	JS.fs.rmdirSync(dir.str)
 }
 
 function os__rmdir_all(dir) {
@@ -518,11 +518,11 @@ function os__read_lines(path) {
 }
 
 function os__write_file(path, text) {
-	JS__fs.writeFileSync(path.str, text.str)
+	JS.fs.writeFileSync(path.str, text.str)
 }
 
 function os__getwd() {
-	return from_js_string(JS__process.cwd())
+	return from_js_string(JS.process.cwd())
 }
 
 function os__join_path(base, dirs) {
@@ -536,7 +536,7 @@ function os__executable() {
 
 function os__abs_path(path) {
 	const wd = os__getwd()
-	return from_js_string(JS__path.resolve(wd.str, path.str))
+	return from_js_string(JS.path.resolve(wd.str, path.str))
 }
 
 function os__resource_abs_path(path) {
@@ -559,7 +559,7 @@ function os__user_os() {
 }
 
 function os__arch() {
-	return from_js_string(JS__os.arch())
+	return from_js_string(JS.os.arch())
 }
 
 function os__Result({ code = 0, stdout = from_js_string(""), stderr = from_js_string("") }) {
@@ -3445,7 +3445,7 @@ function bait__parser__Parser_match_expr(p) {
 
 function bait__parser__Parser_name_expr(p, lang) {
 	if (eq(lang, bait__ast__Language.js) && eq(p.next_tok.kind, bait__token__TokenKind.dot)) {
-		p.expr_pkg = string_add(p.expr_pkg, string_add(from_js_string("__"), bait__parser__Parser_check_name(p)))
+		p.expr_pkg = string_add(p.expr_pkg, string_add(from_js_string("."), bait__parser__Parser_check_name(p)))
 		bait__parser__Parser_check(p, bait__token__TokenKind.dot)
 	} else if (eq(p.next_tok.kind, bait__token__TokenKind.dot) && map_contains(p.import_aliases, p.tok.val)) {
 		p.expr_pkg = map_get_set(p.import_aliases, p.tok.val, from_js_string(""))
@@ -3599,7 +3599,6 @@ function bait__parser__Parser_fun_decl(p) {
 		lang = bait__parser__Parser_parse_lang(p)
 		name = bait__ast__Language_prepend_to(lang, name)
 		if (eq(lang, bait__ast__Language.js)) {
-			name = string_replace(name, from_js_string("."), from_js_string("__"))
 			name = string_add(name, string_add(bait__parser__Parser_check_name(p), from_js_string(".")))
 			bait__parser__Parser_check(p, bait__token__TokenKind.dot)
 		}
@@ -4140,7 +4139,7 @@ function bait__parser__Parser_const_decl(p) {
 	const lang = bait__parser__Parser_parse_lang(p)
 	let name = from_js_string("")
 	if (eq(lang, bait__ast__Language.js) && eq(p.next_tok.kind, bait__token__TokenKind.dot)) {
-		name = string_add(string_add(from_js_string("JS__"), bait__parser__Parser_check_name(p)), from_js_string("."))
+		name = string_add(bait__parser__Parser_check_name(p), from_js_string("."))
 		bait__parser__Parser_next(p)
 	}
 	name = string_add(name, bait__parser__Parser_check_name(p))
@@ -4157,9 +4156,7 @@ function bait__parser__Parser_const_decl(p) {
 		typ = bait__parser__Parser_parse_type(p)
 	}
 	let rname = name
-	if (!string_starts_with(name, from_js_string("JS__"))) {
-		rname = bait__ast__Language_prepend_to(lang, name)
-	}
+	rname = bait__ast__Language_prepend_to(lang, name)
 	bait__ast__Scope_register(p.table.global_scope, rname, new bait__ast__ScopeObject({ typ: typ, kind: bait__ast__ObjectKind.constant, is_pub: is_pub, pkg: p.pkg_name, expr: expr }))
 	return new bait__ast__ConstDecl({ name: name, expr: expr, typ: typ, pos: pos, lang: lang })
 }
@@ -5839,7 +5836,7 @@ function bait__util__shell_escape(s) {
 
 
 const bait__util__VERSION = from_js_string("0.0.5-dev")
-const bait__util__FULL_VERSION = from_js_string(`${bait__util__VERSION.str} ${from_js_string("9c4df67").str}`)
+const bait__util__FULL_VERSION = from_js_string(`${bait__util__VERSION.str} ${from_js_string("c418fc4").str}`)
 
 function bait__gen__js__Gen_expr(g, expr) {
 	if (expr instanceof bait__ast__AnonFun) {
