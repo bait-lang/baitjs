@@ -476,7 +476,19 @@ function os__home_dir() {
 }
 
 function os__dir(path) {
-	return from_js_string(JS.path.dirname(path.str))
+	let other_sep = from_js_string("\\")
+	if (!eq(os__PATH_SEP, from_js_string("/"))) {
+		other_sep = from_js_string("/")
+	}
+	const p = string_replace(path, other_sep, os__PATH_SEP)
+	const pos = string_last_index(p, os__PATH_SEP)
+	if (eq(pos, -1)) {
+		return from_js_string(".")
+	}
+	if (eq(pos, 0) && eq(os__PATH_SEP, from_js_string("/"))) {
+		return from_js_string("/")
+	}
+	return string_substr(path, 0, pos)
 }
 
 function os__is_dir(path) {
@@ -5830,7 +5842,7 @@ function bait__util__shell_escape(s) {
 
 
 const bait__util__VERSION = from_js_string("0.0.5-dev")
-const bait__util__FULL_VERSION = from_js_string(`${bait__util__VERSION.str} ${from_js_string("a75376f").str}`)
+const bait__util__FULL_VERSION = from_js_string(`${bait__util__VERSION.str} ${from_js_string("09b1b08").str}`)
 
 function bait__gen__js__Gen_expr(g, expr) {
 	if (expr instanceof bait__ast__AnonFun) {
