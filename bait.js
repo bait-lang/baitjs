@@ -1924,8 +1924,8 @@ function bait__preference__parse_args(args) {
 }
 
 function bait__preference__Prefs_set_comptime_vars(p) {
-	p.baitexe = os__executable()
-	p.baitdir = os__dir(p.baitexe)
+	p.baitexe = string_replace(os__executable(), from_js_string("\\"), from_js_string("\\\\"))
+	p.baitdir = string_trim_right(os__dir(p.baitexe), from_js_string("\\"))
 	p.baithash = string_trim_space(os__exec(from_js_string("git rev-parse --short HEAD")).stdout)
 }
 
@@ -5880,7 +5880,7 @@ function bait__util__shell_escape(s) {
 
 
 const bait__util__VERSION = from_js_string("0.0.5-dev")
-const bait__util__FULL_VERSION = from_js_string(`${bait__util__VERSION.str} ${from_js_string("2d03617").str}`)
+const bait__util__FULL_VERSION = from_js_string(`${bait__util__VERSION.str} ${from_js_string("68b635c").str}`)
 
 function bait__gen__js__Gen_expr(g, expr) {
 	if (expr instanceof bait__ast__AnonFun) {
