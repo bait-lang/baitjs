@@ -607,6 +607,10 @@ function os__arch() {
 	return from_js_string(JS.os.arch())
 }
 
+function os__platform() {
+	return from_js_string(JS.process.platform)
+}
+
 function os__Result({ code = 0, stdout = from_js_string(""), stderr = from_js_string("") }) {
 	this.code = code
 	this.stdout = stdout
@@ -5880,7 +5884,7 @@ function bait__util__shell_escape(s) {
 
 
 const bait__util__VERSION = from_js_string("0.0.5-dev")
-const bait__util__FULL_VERSION = from_js_string(`${bait__util__VERSION.str} ${from_js_string("68b635c").str}`)
+const bait__util__FULL_VERSION = from_js_string(`${bait__util__VERSION.str} ${from_js_string("dabe33f").str}`)
 
 function bait__gen__js__Gen_expr(g, expr) {
 	if (expr instanceof bait__ast__AnonFun) {
@@ -6074,7 +6078,7 @@ function bait__gen__js__Gen_comp_time_var(g, node) {
 			}
 		case from_js_string("ABS_FILE").str:
 			{
-				bait__gen__js__Gen_write(g, os__abs_path(g.path))
+				bait__gen__js__Gen_write(g, string_replace(os__abs_path(g.path), from_js_string("\\"), from_js_string("\\\\")))
 				break
 			}
 		case from_js_string("LINE").str:
@@ -6084,7 +6088,7 @@ function bait__gen__js__Gen_comp_time_var(g, node) {
 			}
 		case from_js_string("FILE_LINE").str:
 			{
-				bait__gen__js__Gen_write(g, from_js_string(`${g.path.str}:${i32_str(node.pos.line).str}`))
+				bait__gen__js__Gen_write(g, from_js_string(`${string_replace(g.path, from_js_string("\\"), from_js_string("\\\\")).str}:${i32_str(node.pos.line).str}`))
 				break
 			}
 		case from_js_string("FUN").str:
