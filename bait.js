@@ -513,6 +513,10 @@ function os__home_dir() {
 	return from_js_string(JS.os.homedir())
 }
 
+function os__tmp_dir() {
+	return from_js_string(JS.os.tmpdir())
+}
+
 function os__dir(path) {
 	let other_sep = from_js_string("\\")
 	if (!eq(os__PATH_SEP, from_js_string("/"))) {
@@ -558,7 +562,7 @@ function os__read_file(path) {
 }
 
 function os__read_lines(path) {
-	const text = os__read_file(path)
+	const text = string_replace(os__read_file(path), from_js_string("\r\n"), from_js_string("\n"))
 	return string_split_lines(text)
 }
 
@@ -5886,7 +5890,7 @@ function bait__util__shell_escape(s) {
 
 
 const bait__util__VERSION = from_js_string("0.0.5-dev")
-const bait__util__FULL_VERSION = from_js_string(`${bait__util__VERSION.str} ${from_js_string("142ba50").str}`)
+const bait__util__FULL_VERSION = from_js_string(`${bait__util__VERSION.str} ${from_js_string("9b8c6df").str}`)
 
 function bait__gen__js__Gen_expr(g, expr) {
 	if (expr instanceof bait__ast__AnonFun) {
@@ -6075,7 +6079,7 @@ function bait__gen__js__Gen_comp_time_var(g, node) {
 			}
 		case from_js_string("FILE").str:
 			{
-				bait__gen__js__Gen_write(g, g.path)
+				bait__gen__js__Gen_write(g, string_replace(g.path, from_js_string("\\"), from_js_string("\\\\")))
 				break
 			}
 		case from_js_string("ABS_FILE").str:
@@ -6508,7 +6512,8 @@ function bait__gen__js__Gen_gen_test_main(g) {
 		if (func.is_test) {
 			nr_test_funs += 1
 			const name = bait__gen__js__js_name(func.name)
-			bait__gen__js__Gen_writeln(g, from_js_string(`builtin__testing__TestRunner_set_test_info(builtin__testing__test_runner, from_js_string("${g.path.str}"), from_js_string("${name.str}"))`))
+			const esc_path = string_replace(g.path, from_js_string("\\"), from_js_string("\\\\"))
+			bait__gen__js__Gen_writeln(g, from_js_string(`builtin__testing__TestRunner_set_test_info(builtin__testing__test_runner, from_js_string("${esc_path.str}"), from_js_string("${name.str}"))`))
 			bait__gen__js__Gen_writeln(g, from_js_string(`${name.str}()`))
 		}
 	}
@@ -8252,7 +8257,7 @@ function bait__builder__Builder_code_gen_c(b) {
 		b.prefs.out_name = string_add(b.prefs.out_name, from_js_string(".exe"))
 	}
 	bait__builder__ensure_dir_exists(os__dir(b.prefs.out_name))
-	const tmp_c_path = string_add(string_add(from_js_string("/tmp/"), os__file_name(b.prefs.out_name)), from_js_string(".c"))
+	const tmp_c_path = os__join_path(os__tmp_dir(), new array({ data: [string_add(os__file_name(b.prefs.out_name), from_js_string(".c"))], length: 1 }))
 	os__write_file(tmp_c_path, res)
 	const comp_res = os__system(from_js_string(`cc ${tmp_c_path.str} -o ${b.prefs.out_name.str}`))
 	if (!eq(comp_res, 0)) {
@@ -8418,7 +8423,7 @@ function bait__builder__run_tests(prefs) {
 	for (let i = 0; i < files_to_test.length; i++) {
 		const file = array_get(files_to_test, i)
 		test_prefs.command = file
-		test_prefs.out_name = from_js_string(`/tmp/test_${i32_str(i).str}.js`)
+		test_prefs.out_name = os__join_path(os__tmp_dir(), new array({ data: [from_js_string(`test_${i32_str(i).str}.js`)], length: 1 }))
 		const res = bait__builder__compile(test_prefs)
 		if (eq(res, 0)) {
 			println(from_js_string(`OK ${file.str}`).str)
