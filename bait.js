@@ -630,8 +630,7 @@ os__Result.prototype = {
 }
 function os__exec(cmd) {
 	let res = new os__Result({})
-	const commands = cmd.str.split(" ")
-	const out = JS.child_process.spawnSync(commands[0], commands.slice(1))
+	const out = JS.child_process.spawnSync(cmd.str, { shell: true })
 	res.code = out.status
 	res.stdout = from_js_string(out.stdout.toString())
 	res.stderr = from_js_string(out.stderr.toString())
@@ -5890,7 +5889,7 @@ function bait__util__shell_escape(s) {
 
 
 const bait__util__VERSION = from_js_string("0.0.5-dev")
-const bait__util__FULL_VERSION = from_js_string(`${bait__util__VERSION.str} ${from_js_string("45e17dc").str}`)
+const bait__util__FULL_VERSION = from_js_string(`${bait__util__VERSION.str} ${from_js_string("cd11a5b").str}`)
 
 function bait__gen__js__Gen_expr(g, expr) {
 	if (expr instanceof bait__ast__AnonFun) {
