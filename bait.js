@@ -2226,7 +2226,8 @@ bait__ast__ReturnStmt.prototype = {
     pos = ${this.pos.toString()}
 }`}
 }
-function bait__ast__StructDecl({ name = from_js_string(""), typ = 0, fields = new array({ data: [], length: 0 }), pos = new bait__token__Pos({}) }) {
+function bait__ast__StructDecl({ lang = 0, name = from_js_string(""), typ = 0, fields = new array({ data: [], length: 0 }), pos = new bait__token__Pos({}) }) {
+	this.lang = lang
 	this.name = name
 	this.typ = typ
 	this.fields = fields
@@ -2235,6 +2236,7 @@ function bait__ast__StructDecl({ name = from_js_string(""), typ = 0, fields = ne
 bait__ast__StructDecl.prototype = {
 	toString() {
 		return `bait__ast__StructDecl{
+    lang = ${this.lang.toString()}
     name = ${this.name.toString()}
     typ = ${this.typ.toString()}
     fields = ${this.fields.toString()}
@@ -4344,7 +4346,13 @@ function bait__parser__Parser_struct_decl(p) {
 	const pos = p.tok.pos
 	const is_pub = bait__parser__Parser_check_pub(p)
 	bait__parser__Parser_check(p, bait__token__TokenKind.key_struct)
-	const name = bait__parser__Parser_prepend_pkg(p, bait__parser__Parser_check_name(p))
+	const lang = bait__parser__Parser_parse_lang(p)
+	let name = bait__parser__Parser_check_name(p)
+	if (eq(lang, bait__ast__Language.bait)) {
+		name = bait__parser__Parser_prepend_pkg(p, name)
+	} else {
+		name = bait__ast__Language_prepend_to(lang, name)
+	}
 	let mut_idx = -1
 	let pub_idx = -1
 	let pub_mut_idx = -1
@@ -4407,7 +4415,7 @@ function bait__parser__Parser_struct_decl(p) {
 	bait__parser__Parser_check(p, bait__token__TokenKind.rcur)
 	const tsym = new bait__ast__TypeSymbol({ kind: bait__ast__TypeKind.struct_, name: name, is_pub: is_pub, pkg: p.pkg_name, info: new bait__ast__StructInfo({ fields: fields }) })
 	const typ = bait__ast__Table_register_sym(p.table, tsym)
-	return new bait__ast__StructDecl({ name: name, typ: typ, fields: fields, pos: pos })
+	return new bait__ast__StructDecl({ lang: lang, name: name, typ: typ, fields: fields, pos: pos })
 }
 
 function bait__parser__Parser_struct_decl_field(p, is_mut, is_pub, is_global) {
@@ -5889,7 +5897,7 @@ function bait__util__shell_escape(s) {
 
 
 const bait__util__VERSION = from_js_string("0.0.5")
-const bait__util__FULL_VERSION = from_js_string(`${bait__util__VERSION.str} ${from_js_string("81022cd").str}`)
+const bait__util__FULL_VERSION = from_js_string(`${bait__util__VERSION.str} ${from_js_string("097e751").str}`)
 
 function bait__gen__js__Gen_expr(g, expr) {
 	if (expr instanceof bait__ast__AnonFun) {
@@ -6918,6 +6926,9 @@ function bait__gen__js__Gen_type_decl(g, node) {
 
 
 function bait__gen__js__Gen_struct_decl(g, node) {
+	if (!eq(node.lang, bait__ast__Language.bait)) {
+		return
+	}
 	bait__gen__js__Gen_write(g, from_js_string("function "))
 	const jsname = bait__gen__js__js_name(node.name)
 	bait__gen__js__Gen_write(g, jsname)
