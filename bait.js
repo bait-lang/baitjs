@@ -3643,7 +3643,13 @@ function bait__parser__Parser_fun_decl(p) {
 			bait__parser__Parser_next(p)
 		}
 		const rec_name = bait__parser__Parser_check_name(p)
-		let rec_type = bait__parser__Parser_parse_type(p)
+		lang = bait__parser__Parser_parse_lang(p)
+		let rec_type = bait__ast__PLACEHOLDER_TYPE
+		if (!eq(lang, bait__ast__Language.bait)) {
+			rec_type = bait__parser__Parser_parse_name_type(p, lang)
+		} else {
+			rec_type = bait__parser__Parser_parse_type(p)
+		}
 		if (is_mut) {
 			rec_type = bait__ast__Type_set_nr_amp(rec_type, 1)
 		}
@@ -3675,7 +3681,7 @@ function bait__parser__Parser_fun_decl(p) {
 	p.attributes = new array({ data: [], length: 0 })
 	if (is_method) {
 		const sym = bait__ast__Table_get_sym(p.table, array_get(params, 0).typ)
-		if (bait__ast__TypeSymbol_has_method(sym, name)) {
+		if (eq(lang, bait__ast__Language.bait) && bait__ast__TypeSymbol_has_method(sym, name)) {
 			bait__parser__Parser_error(p, from_js_string(`Method "${name.str}" already exists on type "${sym.name.str}"`))
 		}
 		array_push(sym.methods, node)
@@ -4469,14 +4475,23 @@ function bait__parser__Parser_parse_type(p) {
 	if (eq(p.tok.kind, bait__token__TokenKind.key_fun)) {
 		return bait__parser__Parser_parse_fun_type(p)
 	}
-	const lang = bait__parser__Parser_parse_lang(p)
+	if (eq(p.tok.val, from_js_string("map"))) {
+		bait__parser__Parser_next(p)
+		return bait__parser__Parser_parse_map_type(p)
+	}
 	if (!eq(p.tok.pos.line, p.prev_tok.pos.line)) {
 		return bait__ast__PLACEHOLDER_TYPE
 	}
-	let name = bait__ast__Language_prepend_to(lang, bait__parser__Parser_check_name(p))
-	if (eq(name, from_js_string("map"))) {
-		return bait__parser__Parser_parse_map_type(p)
+	const lang = bait__parser__Parser_parse_lang(p)
+	let typ = bait__parser__Parser_parse_name_type(p, lang)
+	if (i32(nr_amp > 0)) {
+		typ = bait__ast__Type_set_nr_amp(typ, nr_amp)
 	}
+	return typ
+}
+
+function bait__parser__Parser_parse_name_type(p, lang) {
+	let name = bait__ast__Language_prepend_to(lang, bait__parser__Parser_check_name(p))
 	if (eq(p.tok.kind, bait__token__TokenKind.dot)) {
 		const pkg = map_get_set(p.import_aliases, name, from_js_string(""))
 		bait__parser__Parser_next(p)
@@ -4486,83 +4501,78 @@ function bait__parser__Parser_parse_type(p) {
 	} else if (!string_contains(name, from_js_string(".")) && !map_contains(p.table.type_idxs, name)) {
 		name = bait__parser__Parser_prepend_pkg(p, name)
 	}
-	let typ = bait__ast__PLACEHOLDER_TYPE
 	switch (name.str) {
 		case from_js_string("i8").str:
 			{
-				typ = bait__ast__I8_TYPE
+				return bait__ast__I8_TYPE
 				break
 			}
 		case from_js_string("i16").str:
 			{
-				typ = bait__ast__I16_TYPE
+				return bait__ast__I16_TYPE
 				break
 			}
 		case from_js_string("i32").str:
 			{
-				typ = bait__ast__I32_TYPE
+				return bait__ast__I32_TYPE
 				break
 			}
 		case from_js_string("i64").str:
 			{
-				typ = bait__ast__I64_TYPE
+				return bait__ast__I64_TYPE
 				break
 			}
 		case from_js_string("u8").str:
 			{
-				typ = bait__ast__U8_TYPE
+				return bait__ast__U8_TYPE
 				break
 			}
 		case from_js_string("u16").str:
 			{
-				typ = bait__ast__U16_TYPE
+				return bait__ast__U16_TYPE
 				break
 			}
 		case from_js_string("u32").str:
 			{
-				typ = bait__ast__U32_TYPE
+				return bait__ast__U32_TYPE
 				break
 			}
 		case from_js_string("u64").str:
 			{
-				typ = bait__ast__U64_TYPE
+				return bait__ast__U64_TYPE
 				break
 			}
 		case from_js_string("f32").str:
 			{
-				typ = bait__ast__F32_TYPE
+				return bait__ast__F32_TYPE
 				break
 			}
 		case from_js_string("f64").str:
 			{
-				typ = bait__ast__F64_TYPE
+				return bait__ast__F64_TYPE
 				break
 			}
 		case from_js_string("bool").str:
 			{
-				typ = bait__ast__BOOL_TYPE
+				return bait__ast__BOOL_TYPE
 				break
 			}
 		case from_js_string("string").str:
 			{
-				typ = bait__ast__STRING_TYPE
+				return bait__ast__STRING_TYPE
 				break
 			}
 		case from_js_string("any").str:
 			{
-				typ = bait__ast__ANY_TYPE
+				return bait__ast__ANY_TYPE
 				break
 			}
 		default:
 			{
-				typ = bait__ast__Table_find_type_or_add_placeholder(p.table, name)
 				break
 			}
 	}
-	if (i32(nr_amp > 0)) {
-		typ = bait__ast__Type_set_nr_amp(typ, nr_amp)
-	}
-	return typ
+	return bait__ast__Table_find_type_or_add_placeholder(p.table, name)
 }
 
 function bait__parser__Parser_parse_fun_type(p) {
@@ -5897,7 +5907,7 @@ function bait__util__shell_escape(s) {
 
 
 const bait__util__VERSION = from_js_string("0.0.5")
-const bait__util__FULL_VERSION = from_js_string(`${bait__util__VERSION.str} ${from_js_string("097e751").str}`)
+const bait__util__FULL_VERSION = from_js_string(`${bait__util__VERSION.str} ${from_js_string("c065fc7").str}`)
 
 function bait__gen__js__Gen_expr(g, expr) {
 	if (expr instanceof bait__ast__AnonFun) {
