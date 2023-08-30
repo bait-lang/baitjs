@@ -2023,7 +2023,8 @@ bait__ast__ConstDecl.prototype = {
     typ = ${this.typ.toString()}
 }`}
 }
-function bait__ast__EnumDecl({ name = from_js_string(""), fields = new array({ data: [], length: 0 }), pos = new bait__token__Pos({}) }) {
+function bait__ast__EnumDecl({ lang = 0, name = from_js_string(""), fields = new array({ data: [], length: 0 }), pos = new bait__token__Pos({}) }) {
+	this.lang = lang
 	this.name = name
 	this.fields = fields
 	this.pos = pos
@@ -2031,6 +2032,7 @@ function bait__ast__EnumDecl({ name = from_js_string(""), fields = new array({ d
 bait__ast__EnumDecl.prototype = {
 	toString() {
 		return `bait__ast__EnumDecl{
+    lang = ${this.lang.toString()}
     name = ${this.name.toString()}
     fields = ${this.fields.toString()}
     pos = ${this.pos.toString()}
@@ -4242,7 +4244,13 @@ function bait__parser__Parser_enum_decl(p) {
 	const pos = p.tok.pos
 	const is_pub = bait__parser__Parser_check_pub(p)
 	bait__parser__Parser_next(p)
-	const name = bait__parser__Parser_prepend_pkg(p, bait__parser__Parser_check_name(p))
+	const lang = bait__parser__Parser_parse_lang(p)
+	let name = bait__parser__Parser_check_name(p)
+	if (eq(lang, bait__ast__Language.bait)) {
+		name = bait__parser__Parser_prepend_pkg(p, name)
+	} else {
+		name = bait__ast__Language_prepend_to(lang, name)
+	}
 	bait__parser__Parser_check(p, bait__token__TokenKind.lcur)
 	let variants = new array({ data: [], length: 0 })
 	let fields = new array({ data: [], length: 0 })
@@ -4259,7 +4267,7 @@ function bait__parser__Parser_enum_decl(p) {
 	}
 	bait__parser__Parser_check(p, bait__token__TokenKind.rcur)
 	bait__ast__Table_register_sym(p.table, new bait__ast__TypeSymbol({ name: name, is_pub: is_pub, pkg: p.pkg_name, kind: bait__ast__TypeKind.enum_, info: new bait__ast__EnumInfo({ vals: variants }) }))
-	return new bait__ast__EnumDecl({ name: name, fields: fields, pos: pos })
+	return new bait__ast__EnumDecl({ lang: lang, name: name, fields: fields, pos: pos })
 }
 
 function bait__parser__Parser_global_decl(p) {
@@ -5567,6 +5575,9 @@ function bait__checker__Checker_expr_stmt(c, node) {
 }
 
 function bait__checker__Checker_enum_decl(c, node) {
+	if (!eq(node.lang, bait__ast__Language.bait)) {
+		return
+	}
 	if (eq(node.fields.length, 0)) {
 		bait__checker__Checker_error(c, from_js_string("enum cannot be empty"), node.pos)
 		return
@@ -5907,7 +5918,7 @@ function bait__util__shell_escape(s) {
 
 
 const bait__util__VERSION = from_js_string("0.0.5")
-const bait__util__FULL_VERSION = from_js_string(`${bait__util__VERSION.str} ${from_js_string("c065fc7").str}`)
+const bait__util__FULL_VERSION = from_js_string(`${bait__util__VERSION.str} ${from_js_string("cd5ceaf").str}`)
 
 function bait__gen__js__Gen_expr(g, expr) {
 	if (expr instanceof bait__ast__AnonFun) {
@@ -6780,6 +6791,9 @@ function bait__gen__js__Gen_const_decl(g, node) {
 }
 
 function bait__gen__js__Gen_enum_decl(g, node) {
+	if (!eq(node.lang, bait__ast__Language.bait)) {
+		return
+	}
 	bait__gen__js__Gen_writeln(g, string_add(string_add(from_js_string("const "), bait__gen__js__js_name(node.name)), from_js_string(" = {")))
 	g.indent += 1
 	for (let _t39 = 0; _t39 < node.fields.length; _t39++) {
