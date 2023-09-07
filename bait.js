@@ -264,6 +264,11 @@ string.prototype = {
     length = ${this.length.toString()}
 }`}
 }
+string.prototype = {
+	toString: function() {
+		return this.str
+	}
+}
 function string_get(s, i) {
 	return u8(s.str.charCodeAt(i))
 }
@@ -5921,7 +5926,7 @@ function bait__util__shell_escape(s) {
 
 
 const bait__util__VERSION = from_js_string("0.0.5")
-const bait__util__FULL_VERSION = from_js_string(`${bait__util__VERSION.str} ${from_js_string("7583c9a").str}`)
+const bait__util__FULL_VERSION = from_js_string(`${bait__util__VERSION.str} ${from_js_string("890653d").str}`)
 
 function bait__gen__js__Gen_expr(g, expr) {
 	if (expr instanceof bait__ast__AnonFun) {
