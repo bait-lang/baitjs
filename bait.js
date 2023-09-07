@@ -2263,7 +2263,8 @@ bait__ast__StructField.prototype = {
     attrs = ${this.attrs.toString()}
 }`}
 }
-function bait__ast__TypeDecl({ name = from_js_string(""), typ = 0, pos = new bait__token__Pos({}) }) {
+function bait__ast__TypeDecl({ lang = 0, name = from_js_string(""), typ = 0, pos = new bait__token__Pos({}) }) {
+	this.lang = lang
 	this.name = name
 	this.typ = typ
 	this.pos = pos
@@ -2271,6 +2272,7 @@ function bait__ast__TypeDecl({ name = from_js_string(""), typ = 0, pos = new bai
 bait__ast__TypeDecl.prototype = {
 	toString() {
 		return `bait__ast__TypeDecl{
+    lang = ${this.lang.toString()}
     name = ${this.name.toString()}
     typ = ${this.typ.toString()}
     pos = ${this.pos.toString()}
@@ -4328,7 +4330,13 @@ function bait__parser__Parser_type_decl(p) {
 	const pos = p.tok.pos
 	const is_pub = bait__parser__Parser_check_pub(p)
 	bait__parser__Parser_next(p)
-	const name = bait__parser__Parser_prepend_pkg(p, bait__parser__Parser_check_name(p))
+	const lang = bait__parser__Parser_parse_lang(p)
+	let name = bait__parser__Parser_check_name(p)
+	if (eq(lang, bait__ast__Language.bait)) {
+		name = bait__parser__Parser_prepend_pkg(p, name)
+	} else {
+		name = bait__ast__Language_prepend_to(lang, name)
+	}
 	bait__parser__Parser_check(p, bait__token__TokenKind.decl_assign)
 	const is_fun_type = eq(p.tok.kind, bait__token__TokenKind.key_fun)
 	let variants = new array({ data: [], length: 0 })
@@ -4336,18 +4344,18 @@ function bait__parser__Parser_type_decl(p) {
 	if (is_fun_type) {
 		const sym = bait__ast__Table_get_sym(p.table, array_get(variants, 0))
 		const typ = bait__ast__Table_register_sym(p.table, new bait__ast__TypeSymbol({ kind: bait__ast__TypeKind.fun_, name: name, is_pub: is_pub, pkg: p.pkg_name, info: sym.info }))
-		return new bait__ast__TypeDecl({ name: name, typ: typ, pos: pos })
+		return new bait__ast__TypeDecl({ lang: lang, name: name, typ: typ, pos: pos })
 	}
 	if (!eq(p.tok.kind, bait__token__TokenKind.pipe)) {
 		const typ = bait__ast__Table_register_sym(p.table, new bait__ast__TypeSymbol({ kind: bait__ast__TypeKind.alias_type, name: name, parent: array_get(variants, 0), is_pub: is_pub, pkg: p.pkg_name }))
-		return new bait__ast__TypeDecl({ name: name, typ: typ, pos: pos })
+		return new bait__ast__TypeDecl({ lang: lang, name: name, typ: typ, pos: pos })
 	}
 	while (eq(p.tok.kind, bait__token__TokenKind.pipe)) {
 		bait__parser__Parser_next(p)
 		array_push(variants, bait__parser__Parser_parse_type(p))
 	}
 	const typ = bait__ast__Table_register_sym(p.table, new bait__ast__TypeSymbol({ kind: bait__ast__TypeKind.sum_type, name: name, is_pub: is_pub, pkg: p.pkg_name, info: new bait__ast__SumTypeInfo({ variants: variants }) }))
-	return new bait__ast__TypeDecl({ name: name, typ: typ, pos: pos })
+	return new bait__ast__TypeDecl({ lang: lang, name: name, typ: typ, pos: pos })
 }
 
 
@@ -5913,7 +5921,7 @@ function bait__util__shell_escape(s) {
 
 
 const bait__util__VERSION = from_js_string("0.0.5")
-const bait__util__FULL_VERSION = from_js_string(`${bait__util__VERSION.str} ${from_js_string("960b457").str}`)
+const bait__util__FULL_VERSION = from_js_string(`${bait__util__VERSION.str} ${from_js_string("4734114").str}`)
 
 function bait__gen__js__Gen_expr(g, expr) {
 	if (expr instanceof bait__ast__AnonFun) {
