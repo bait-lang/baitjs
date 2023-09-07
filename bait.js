@@ -94,19 +94,11 @@ function from_js_arr(a) {
 
 
 function println(msg) {
-	if ((msg.str)) {
-		JS.console.log(msg.str)
-		return
-	}
-	JS.console.log(msg)
+	JS.console.log(msg.str)
 }
 
 function eprintln(msg) {
-	if ((msg.str)) {
-		JS.console.error(msg.str)
-		return
-	}
-	JS.console.log(msg)
+	JS.console.error(msg.str)
 }
 
 function exit(code) {
@@ -271,11 +263,6 @@ string.prototype = {
     str = ${this.str.toString()}
     length = ${this.length.toString()}
 }`}
-}
-string.prototype = {
-	toString: function() {
-		return this.str
-	}
 }
 function string_get(s, i) {
 	return u8(s.str.charCodeAt(i))
@@ -5926,7 +5913,7 @@ function bait__util__shell_escape(s) {
 
 
 const bait__util__VERSION = from_js_string("0.0.5")
-const bait__util__FULL_VERSION = from_js_string(`${bait__util__VERSION.str} ${from_js_string("7dc8848").str}`)
+const bait__util__FULL_VERSION = from_js_string(`${bait__util__VERSION.str} ${from_js_string("960b457").str}`)
 
 function bait__gen__js__Gen_expr(g, expr) {
 	if (expr instanceof bait__ast__AnonFun) {
