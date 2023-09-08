@@ -2128,7 +2128,7 @@ bait__ast__AnonFun.prototype = {
     pos = ${this.pos.toString()}
 }`}
 }
-function bait__ast__FunDecl({ is_pub = false, lang = 0, name = from_js_string(""), pkg = from_js_string(""), params = new array({ data: [], length: 0 }), return_type = 0, is_test = false, attrs = new array({ data: [], length: 0 }), pos = new bait__token__Pos({}), is_method = false, stmts = new array({ data: [], length: 0 }) }) {
+function bait__ast__FunDecl({ is_pub = false, lang = 0, name = from_js_string(""), pkg = from_js_string(""), params = new array({ data: [], length: 0 }), return_type = 0, is_test = false, attrs = new array({ data: [], length: 0 }), pos = new bait__token__Pos({}), is_method = false, stmts = new array({ data: [], length: 0 }), generic_names = new array({ data: [], length: 0 }) }) {
 	this.is_pub = is_pub
 	this.lang = lang
 	this.name = name
@@ -2140,6 +2140,7 @@ function bait__ast__FunDecl({ is_pub = false, lang = 0, name = from_js_string(""
 	this.pos = pos
 	this.is_method = is_method
 	this.stmts = stmts
+	this.generic_names = generic_names
 }
 bait__ast__FunDecl.prototype = {
 	toString() {
@@ -2155,6 +2156,7 @@ bait__ast__FunDecl.prototype = {
     pos = ${this.pos.toString()}
     is_method = ${this.is_method.toString()}
     stmts = ${this.stmts.toString()}
+    generic_names = ${this.generic_names.toString()}
 }`}
 }
 function bait__ast__Param({ is_mut = false, name = from_js_string(""), typ = 0, pos = new bait__token__Pos({}) }) {
@@ -2328,12 +2330,13 @@ bait__ast__BoolLiteral.prototype = {
     pos = ${this.pos.toString()}
 }`}
 }
-function bait__ast__CallExpr({ lang = 0, name = from_js_string(""), return_type = 0, left_type = 0, left = new bait__ast__EmptyExpr({}), args = new array({ data: [], length: 0 }), is_method = false, pkg = from_js_string(""), pos = new bait__token__Pos({}) }) {
+function bait__ast__CallExpr({ lang = 0, name = from_js_string(""), return_type = 0, left_type = 0, left = new bait__ast__EmptyExpr({}), concrete_types = new array({ data: [], length: 0 }), args = new array({ data: [], length: 0 }), is_method = false, pkg = from_js_string(""), pos = new bait__token__Pos({}) }) {
 	this.lang = lang
 	this.name = name
 	this.return_type = return_type
 	this.left_type = left_type
 	this.left = left
+	this.concrete_types = concrete_types
 	this.args = args
 	this.is_method = is_method
 	this.pkg = pkg
@@ -2347,6 +2350,7 @@ bait__ast__CallExpr.prototype = {
     return_type = ${this.return_type.toString()}
     left_type = ${this.left_type.toString()}
     left = ${this.left.toString()}
+    concrete_types = ${this.concrete_types.toString()}
     args = ${this.args.toString()}
     is_method = ${this.is_method.toString()}
     pkg = ${this.pkg.toString()}
@@ -2837,13 +2841,14 @@ function bait__ast__Scope_is_known(s, name) {
 }
 
 
-function bait__ast__Table({ global_scope = new bait__ast__Scope({}), fun_decls = new map({ data: new Map([]), length: 0 }), type_idxs = new map({ data: new Map([]), length: 0 }), type_symbols = new array({ data: [], length: 0 }), redefined_funs = new array({ data: [], length: 0 }), needed_equality_funs = new array({ data: [], length: 0 }) }) {
+function bait__ast__Table({ global_scope = new bait__ast__Scope({}), fun_decls = new map({ data: new Map([]), length: 0 }), type_idxs = new map({ data: new Map([]), length: 0 }), type_symbols = new array({ data: [], length: 0 }), redefined_funs = new array({ data: [], length: 0 }), needed_equality_funs = new array({ data: [], length: 0 }), generic_fun_types = new map({ data: new Map([]), length: 0 }) }) {
 	this.global_scope = global_scope
 	this.fun_decls = fun_decls
 	this.type_idxs = type_idxs
 	this.type_symbols = type_symbols
 	this.redefined_funs = redefined_funs
 	this.needed_equality_funs = needed_equality_funs
+	this.generic_fun_types = generic_fun_types
 }
 bait__ast__Table.prototype = {
 	toString() {
@@ -2854,6 +2859,7 @@ bait__ast__Table.prototype = {
     type_symbols = ${this.type_symbols.toString()}
     redefined_funs = ${this.redefined_funs.toString()}
     needed_equality_funs = ${this.needed_equality_funs.toString()}
+    generic_fun_types = ${this.generic_fun_types.toString()}
 }`}
 }
 function bait__ast__new_table() {
@@ -3681,7 +3687,7 @@ function bait__parser__Parser_fun_decl(p) {
 	if (!eq(p.tok.kind, bait__token__TokenKind.lcur) && eq(pos.line, p.tok.pos.line)) {
 		return_type = bait__parser__Parser_parse_type(p)
 	}
-	let node = new bait__ast__FunDecl({ is_test: string_starts_with(name, from_js_string("test_")), is_pub: is_pub, name: name, pkg: p.pkg_name, params: params, return_type: return_type, attrs: p.attributes, lang: lang, pos: pos })
+	let node = new bait__ast__FunDecl({ is_test: string_starts_with(name, from_js_string("test_")), is_pub: is_pub, name: name, pkg: p.pkg_name, generic_names: generic_names, params: params, return_type: return_type, attrs: p.attributes, lang: lang, pos: pos })
 	p.attributes = new array({ data: [], length: 0 })
 	if (is_method) {
 		const sym = bait__ast__Table_get_sym(p.table, array_get(params, 0).typ)
@@ -5389,18 +5395,7 @@ function bait__checker__Checker_fun_call(c, node) {
 		}
 		return bait__ast__VOID_TYPE
 	}
-	for (let i = 0; i < node.args.length; i++) {
-		const arg = array_get(node.args, i)
-		const param_type = array_get(def.params, i).typ
-		c.expected_type = param_type
-		arg.typ = bait__checker__Checker_expr(c, arg.expr)
-		if (eq(arg.typ, bait__ast__VOID_TYPE) && !(arg.expr instanceof bait__ast__CallExpr)) {
-			continue
-		}
-		if (!bait__checker__Checker_check_types(c, arg.typ, param_type)) {
-			bait__checker__Checker_error(c, from_js_string(`type ${bait__ast__Table_type_name(c.table, arg.typ).str} not matches ${bait__ast__Table_type_name(c.table, param_type).str} in argument ${i32_str(i32(i + 1)).str}`), node.pos)
-		}
-	}
+	bait__checker__Checker_call_args(c, def, node)
 	return node.return_type
 }
 
@@ -5455,19 +5450,45 @@ function bait__checker__Checker_method_call(c, node) {
 		}
 		return node.return_type
 	}
-	for (let i = 0; i < node.args.length; i++) {
-		const arg = array_get(node.args, i)
-		const param_type = array_get(def.params, i32(i + 1)).typ
-		c.expected_type = param_type
-		arg.typ = bait__checker__Checker_expr(c, arg.expr)
-		if (!bait__checker__Checker_check_types(c, arg.typ, param_type)) {
-			bait__checker__Checker_error(c, from_js_string(`type ${bait__ast__Table_type_name(c.table, arg.typ).str} not matches ${bait__ast__Table_type_name(c.table, param_type).str} in argument ${i32_str(i32(i + 1)).str}`), node.pos)
-		}
-	}
+	bait__checker__Checker_call_args(c, def, node)
 	if (eq(left_sym.kind, bait__ast__TypeKind.array) && array_contains(new array({ data: [from_js_string("filter"), from_js_string("reverse"), from_js_string("slice"), from_js_string("copy"), from_js_string("from_js_arr")], length: 5 }), node.name)) {
 		return left_expr_type
 	}
 	return node.return_type
+}
+
+function bait__checker__Checker_call_args(c, def, node) {
+	const should_resolve_generics = !eq(def.generic_names.length, node.concrete_types.length)
+	let save_as_concrete = false
+	let poffset = 0
+	if (node.is_method) {
+		poffset = 1
+	}
+	for (let i = 0; i < node.args.length; i++) {
+		const arg = array_get(node.args, i)
+		let param_type = array_get(def.params, i32(i + poffset)).typ
+		const psym = bait__ast__Table_get_sym(c.table, param_type)
+		if (should_resolve_generics && eq(psym.kind, bait__ast__TypeKind.generic)) {
+			const gi = array_index(def.generic_names, psym.name)
+			if (i32(gi < node.concrete_types.length)) {
+				param_type = array_get(node.concrete_types, gi)
+			} else {
+				save_as_concrete = true
+			}
+		}
+		c.expected_type = param_type
+		arg.typ = bait__checker__Checker_expr(c, arg.expr)
+		if (eq(arg.typ, bait__ast__VOID_TYPE) && !(arg.expr instanceof bait__ast__CallExpr)) {
+			continue
+		}
+		if (save_as_concrete) {
+			array_push(node.concrete_types, arg.typ)
+			save_as_concrete = false
+		}
+		if (!bait__checker__Checker_check_types(c, arg.typ, param_type)) {
+			bait__checker__Checker_error(c, from_js_string(`type ${bait__ast__Table_type_name(c.table, arg.typ).str} not matches ${bait__ast__Table_type_name(c.table, param_type).str} in argument ${i32_str(i32(i + 1)).str}`), node.pos)
+		}
+	}
 }
 
 
@@ -5926,7 +5947,7 @@ function bait__util__shell_escape(s) {
 
 
 const bait__util__VERSION = from_js_string("0.0.5")
-const bait__util__FULL_VERSION = from_js_string(`${bait__util__VERSION.str} ${from_js_string("ec69cac").str}`)
+const bait__util__FULL_VERSION = from_js_string(`${bait__util__VERSION.str} ${from_js_string("ec8ce9f").str}`)
 
 function bait__gen__js__Gen_expr(g, expr) {
 	if (expr instanceof bait__ast__AnonFun) {
@@ -7154,6 +7175,9 @@ function bait__gen__c__Gen_equality_fun(g, typ) {
 		return from_js_string("")
 	}
 	if (map_contains(sym.overloads, from_js_string("=="))) {
+		return from_js_string("")
+	}
+	if (eq(sym.kind, bait__ast__TypeKind.generic)) {
 		return from_js_string("")
 	}
 	bait__errors__generic_error(from_js_string(`cannot generate equality function for type ${sym.name.str}`))
