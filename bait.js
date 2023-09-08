@@ -4647,7 +4647,7 @@ function bait__parser__Parser_generic_type_names(p) {
 		array_push(names, name)
 		const idx = bait__ast__Table_get_idx(p.table, name)
 		if (eq(idx, 0)) {
-			bait__ast__Table_register_sym(p.table, new bait__ast__TypeSymbol({ name: name, pkg: p.pkg_name, kind: bait__ast__TypeKind.generic }))
+			bait__ast__Table_register_sym(p.table, new bait__ast__TypeSymbol({ name: name, kind: bait__ast__TypeKind.generic, is_pub: true }))
 		}
 		if (eq(p.tok.kind, bait__token__TokenKind.rbr)) {
 			break
@@ -5947,7 +5947,7 @@ function bait__util__shell_escape(s) {
 
 
 const bait__util__VERSION = from_js_string("0.0.5")
-const bait__util__FULL_VERSION = from_js_string(`${bait__util__VERSION.str} ${from_js_string("ec8ce9f").str}`)
+const bait__util__FULL_VERSION = from_js_string(`${bait__util__VERSION.str} ${from_js_string("12d1427").str}`)
 
 function bait__gen__js__Gen_expr(g, expr) {
 	if (expr instanceof bait__ast__AnonFun) {
