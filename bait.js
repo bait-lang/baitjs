@@ -5325,6 +5325,9 @@ function bait__checker__Checker_fun_decl(c, node) {
 	if (!eq(node.lang, bait__ast__Language.bait)) {
 		return
 	}
+	if (bait__ast__Scope_is_known(c.scope, node.name)) {
+		bait__checker__Checker_error(c, from_js_string(`redefinition of ${node.name.str}`), node.pos)
+	}
 	c.cur_fun = node
 	bait__checker__Checker_check_fun_attrs(c, node)
 	bait__checker__Checker_open_scope(c)
@@ -5970,7 +5973,7 @@ function bait__util__shell_escape(s) {
 
 
 const bait__util__VERSION = from_js_string("0.0.5")
-const bait__util__FULL_VERSION = from_js_string(`${bait__util__VERSION.str} ${from_js_string("c9841a5").str}`)
+const bait__util__FULL_VERSION = from_js_string(`${bait__util__VERSION.str} ${from_js_string("4b91b50").str}`)
 
 function bait__gen__js__Gen_expr(g, expr) {
 	if (expr instanceof bait__ast__AnonFun) {
