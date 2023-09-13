@@ -4708,7 +4708,7 @@ function bait__checker__Checker_assign_stmt(c, node) {
 	c.is_lhs_assign = false
 	c.expected_type = node.left_type
 	node.right_type = bait__checker__Checker_expr(c, node.right)
-	if (eq(node.right_type, bait__ast__VOID_TYPE) && !(node.right instanceof bait__ast__CallExpr)) {
+	if (eq(node.left_type, bait__ast__PLACEHOLDER_TYPE) || (eq(node.right_type, bait__ast__VOID_TYPE) && !(node.right instanceof bait__ast__CallExpr))) {
 		return
 	}
 	if (node.left instanceof bait__ast__Ident) {
@@ -5967,7 +5967,7 @@ function bait__util__shell_escape(s) {
 
 
 const bait__util__VERSION = from_js_string("0.0.5")
-const bait__util__FULL_VERSION = from_js_string(`${bait__util__VERSION.str} ${from_js_string("a783a0a").str}`)
+const bait__util__FULL_VERSION = from_js_string(`${bait__util__VERSION.str} ${from_js_string("8e61dc7").str}`)
 
 function bait__gen__js__Gen_expr(g, expr) {
 	if (expr instanceof bait__ast__AnonFun) {
