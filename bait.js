@@ -5148,7 +5148,7 @@ function bait__checker__Checker_ident(c, node) {
 	}
 	obj = bait__ast__Scope_get(c.table.global_scope, node.name)
 	if (eq(obj.typ, bait__ast__PLACEHOLDER_TYPE)) {
-		bait__checker__Checker_error(c, from_js_string(`undefined variable ${node.name.str}`), node.pos)
+		bait__checker__Checker_error(c, from_js_string(`undefined identifier ${node.name.str}`), node.pos)
 	}
 	if (eq(obj.typ, bait__ast__VOID_TYPE)) {
 		obj.typ = bait__checker__Checker_expr(c, obj.expr)
@@ -5414,6 +5414,9 @@ function bait__checker__Checker_fun_call(c, node) {
 
 function bait__checker__Checker_method_call(c, node) {
 	const left_expr_type = bait__checker__Checker_expr(c, node.left)
+	if (eq(left_expr_type, bait__ast__PLACEHOLDER_TYPE)) {
+		return bait__ast__VOID_TYPE
+	}
 	const left_sym = bait__ast__Table_get_sym(c.table, left_expr_type)
 	const final_sym = bait__ast__Table_get_final_sym(c.table, left_expr_type)
 	let def = bait__ast__Table_get_method(c.table, left_sym, node.name)
@@ -5967,7 +5970,7 @@ function bait__util__shell_escape(s) {
 
 
 const bait__util__VERSION = from_js_string("0.0.5")
-const bait__util__FULL_VERSION = from_js_string(`${bait__util__VERSION.str} ${from_js_string("8e61dc7").str}`)
+const bait__util__FULL_VERSION = from_js_string(`${bait__util__VERSION.str} ${from_js_string("c9841a5").str}`)
 
 function bait__gen__js__Gen_expr(g, expr) {
 	if (expr instanceof bait__ast__AnonFun) {
