@@ -5163,7 +5163,7 @@ function bait__checker__Checker_if_expr(c, node) {
 		if (!node.has_else || i32(i < i32(node.branches.length - 1))) {
 			const cond_type = bait__checker__Checker_expr(c, b.cond)
 			if (!eq(cond_type, bait__ast__BOOL_TYPE) && !eq(cond_type, bait__ast__PLACEHOLDER_TYPE)) {
-				bait__checker__Checker_warn(c, from_js_string(`expected bool, got ${bait__ast__Table_type_name(c.table, cond_type).str}`), node.pos)
+				bait__checker__Checker_error(c, from_js_string(`expected bool, got ${bait__ast__Table_type_name(c.table, cond_type).str}`), node.pos)
 			}
 		}
 		bait__checker__Checker_open_scope(c)
@@ -5983,7 +5983,7 @@ function bait__util__shell_escape(s) {
 
 
 const bait__util__VERSION = from_js_string("0.0.5")
-const bait__util__FULL_VERSION = from_js_string(`${bait__util__VERSION.str} ${from_js_string("e835592").str}`)
+const bait__util__FULL_VERSION = from_js_string(`${bait__util__VERSION.str} ${from_js_string("cfe55ae").str}`)
 
 function bait__gen__js__Gen_expr(g, expr) {
 	if (expr instanceof bait__ast__AnonFun) {
