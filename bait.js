@@ -538,6 +538,9 @@ function os__dir(path) {
 }
 
 function os__is_dir(path) {
+	if (!os__exists(path)) {
+		return false
+	}
 	return JS.fs.lstatSync(path.str).isDirectory()
 }
 
@@ -5290,7 +5293,7 @@ function bait__checker__Checker_selector_expr(c, node) {
 		const field = bait__ast__TypeSymbol_find_field(sym, node.field_name, c.table)
 		if (eq(field.name.length, 0)) {
 			bait__checker__Checker_error(c, from_js_string(`${sym.name.str} has no field ${node.field_name.str}`), node.pos)
-			return bait__ast__VOID_TYPE
+			return bait__ast__PLACEHOLDER_TYPE
 		}
 		if (!field.is_pub && !eq(sym.pkg, c.pkg)) {
 			bait__checker__Checker_error(c, from_js_string(`field ${sym.name.str}.${node.field_name.str} is private`), node.pos)
@@ -5983,7 +5986,7 @@ function bait__util__shell_escape(s) {
 
 
 const bait__util__VERSION = from_js_string("0.0.5")
-const bait__util__FULL_VERSION = from_js_string(`${bait__util__VERSION.str} ${from_js_string("cfe55ae").str}`)
+const bait__util__FULL_VERSION = from_js_string(`${bait__util__VERSION.str} ${from_js_string("c00935e").str}`)
 
 function bait__gen__js__Gen_expr(g, expr) {
 	if (expr instanceof bait__ast__AnonFun) {
