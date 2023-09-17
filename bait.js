@@ -622,6 +622,15 @@ function os__platform() {
 	return from_js_string(JS.process.platform)
 }
 
+function os__input(prompt) {
+	const fd = JS.fs.openSync("/dev/stdin", "rs")
+	JS.process.stdout.write(prompt.str)
+	const buf = Buffer.alloc(1024)
+	const bytesRead = JS.fs.readSync(fd, buf, 0, buf.length)
+	const input = buf.slice(0, bytesRead).toString()
+	return from_js_string(input)
+}
+
 function os__Result({ code = 0, stdout = from_js_string(""), stderr = from_js_string("") }) {
 	this.code = code
 	this.stdout = stdout
@@ -5986,7 +5995,7 @@ function bait__util__shell_escape(s) {
 
 
 const bait__util__VERSION = from_js_string("0.0.5")
-const bait__util__FULL_VERSION = from_js_string(`${bait__util__VERSION.str} ${from_js_string("c3e02b7").str}`)
+const bait__util__FULL_VERSION = from_js_string(`${bait__util__VERSION.str} ${from_js_string("7900a8f").str}`)
 
 function bait__gen__js__Gen_expr(g, expr) {
 	if (expr instanceof bait__ast__AnonFun) {
