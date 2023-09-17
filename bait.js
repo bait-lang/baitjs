@@ -127,12 +127,45 @@ function eq(a, b) {
 }
 
 
-function f32_str(n) {
-	return from_js_string(n.toString())
+function map({ data = undefined, length = 0 }) {
+	this.data = data
+	this.length = length
+}
+map.prototype = {
+	toString() {
+		return `map{
+    data = ${this.data.toString()}
+    length = ${this.length.toString()}
+}`}
+}
+function map_get(m, key) {
+	return m.data.get(key.str)
 }
 
-function f64_str(n) {
-	return from_js_string(n.toString())
+function map_set(m, key, val) {
+	if (!map_contains(m, key)) {
+		m.length += 1
+	}
+	m.data.set(key.str, val)
+}
+
+function map_get_set(m, key, val) {
+	if (!map_contains(m, key)) {
+		map_set(m, key, val)
+	}
+	return map_get(m, key)
+}
+
+function map_contains(m, key) {
+	return m.data.has(key.str)
+}
+
+function map_keys(m) {
+	return from_js_string_arr(Array.from(m.data.keys()))
+}
+
+function map_values(m) {
+	return from_js_string_arr(Array.from(m.data.values()))
 }
 
 
@@ -206,54 +239,20 @@ function u64_str(n) {
 	return from_js_string(n.toString())
 }
 
+function f32_str(n) {
+	return from_js_string(n.toString())
+}
+
+function f64_str(n) {
+	return from_js_string(n.toString())
+}
+
 function u8_is_capital(c) {
 	return u8(c >= u8("A")) && u8(c <= u8("Z"))
 }
 
 function u8_ascii(c) {
 	return from_js_string(String.fromCharCode(c))
-}
-
-
-function map({ data = undefined, length = 0 }) {
-	this.data = data
-	this.length = length
-}
-map.prototype = {
-	toString() {
-		return `map{
-    data = ${this.data.toString()}
-    length = ${this.length.toString()}
-}`}
-}
-function map_get(m, key) {
-	return m.data.get(key.str)
-}
-
-function map_set(m, key, val) {
-	if (!map_contains(m, key)) {
-		m.length += 1
-	}
-	m.data.set(key.str, val)
-}
-
-function map_get_set(m, key, val) {
-	if (!map_contains(m, key)) {
-		map_set(m, key, val)
-	}
-	return map_get(m, key)
-}
-
-function map_contains(m, key) {
-	return m.data.has(key.str)
-}
-
-function map_keys(m) {
-	return from_js_string_arr(Array.from(m.data.keys()))
-}
-
-function map_values(m) {
-	return from_js_string_arr(Array.from(m.data.values()))
 }
 
 
@@ -430,6 +429,10 @@ function string_split_lines(s) {
 
 function string_toI32(s) {
 	return parseInt(s.str)
+}
+
+function string_toF64(s) {
+	return parseFloat(s.str)
 }
 
 function string_add(a, b) {
@@ -2423,6 +2426,17 @@ bait__ast__EnumVal.prototype = {
     pos = ${this.pos.toString()}
 }`}
 }
+function bait__ast__FloatLiteral({ val = from_js_string(""), pos = new bait__token__Pos({}) }) {
+	this.val = val
+	this.pos = pos
+}
+bait__ast__FloatLiteral.prototype = {
+	toString() {
+		return `bait__ast__FloatLiteral{
+    val = ${this.val.toString()}
+    pos = ${this.pos.toString()}
+}`}
+}
 function bait__ast__HashExpr({ lang = 0, val = from_js_string(""), pos = new bait__token__Pos({}) }) {
 	this.lang = lang
 	this.val = val
@@ -3554,7 +3568,14 @@ function bait__parser__Parser_name_expr(p, lang) {
 function bait__parser__Parser_number_literal(p) {
 	const pos = p.tok.pos
 	bait__parser__Parser_next(p)
-	return new bait__ast__IntegerLiteral({ val: p.prev_tok.val, pos: pos })
+	if (!eq(p.tok.kind, bait__token__TokenKind.dot)) {
+		return new bait__ast__IntegerLiteral({ val: p.prev_tok.val, pos: pos })
+	}
+	let val = string_add(p.prev_tok.val, from_js_string("."))
+	bait__parser__Parser_next(p)
+	bait__parser__Parser_check(p, bait__token__TokenKind.number)
+	val = string_add(val, p.prev_tok.val)
+	return new bait__ast__FloatLiteral({ val: val, pos: pos })
 }
 
 function bait__parser__Parser_par_expr(p) {
@@ -5007,6 +5028,8 @@ function bait__checker__Checker_expr(c, expr) {
 		return bait__checker__Checker_comp_time_var(c, expr)
 	} else if (expr instanceof bait__ast__EnumVal) {
 		return bait__checker__Checker_enum_val(c, expr)
+	} else if (expr instanceof bait__ast__FloatLiteral) {
+		return bait__ast__F64_TYPE
 	} else if (expr instanceof bait__ast__HashExpr) {
 		return bait__checker__Checker_hash_expr(c, expr)
 	} else if (expr instanceof bait__ast__Ident) {
@@ -5995,7 +6018,7 @@ function bait__util__shell_escape(s) {
 
 
 const bait__util__VERSION = from_js_string("0.0.5")
-const bait__util__FULL_VERSION = from_js_string(`${bait__util__VERSION.str} ${from_js_string("afda796").str}`)
+const bait__util__FULL_VERSION = from_js_string(`${bait__util__VERSION.str} ${from_js_string("2079253").str}`)
 
 function bait__gen__js__Gen_expr(g, expr) {
 	if (expr instanceof bait__ast__AnonFun) {
@@ -6014,6 +6037,8 @@ function bait__gen__js__Gen_expr(g, expr) {
 		bait__gen__js__Gen_comp_time_var(g, expr)
 	} else if (expr instanceof bait__ast__EnumVal) {
 		bait__gen__js__Gen_enum_val(g, expr)
+	} else if (expr instanceof bait__ast__FloatLiteral) {
+		bait__gen__js__Gen_float_literal(g, expr)
 	} else if (expr instanceof bait__ast__HashExpr) {
 		bait__gen__js__Gen_hash_expr(g, expr)
 	} else if (expr instanceof bait__ast__Ident) {
@@ -6045,6 +6070,8 @@ function bait__gen__js__Gen_expr(g, expr) {
 	} else if (expr instanceof bait__ast__TypeOf) {
 		bait__gen__js__Gen_type_of(g, expr)
 	} else {
+		bait__errors__error(g.path, expr.pos, from_js_string(`cannot gen ${from_js_string(expr.toString()).str}`))
+		exit(1)
 	}
 }
 
@@ -6169,6 +6196,10 @@ function bait__gen__js__Gen_comp_time_var(g, node) {
 
 function bait__gen__js__Gen_enum_val(g, node) {
 	bait__gen__js__Gen_write(g, string_add(string_add(bait__gen__js__js_name(node.name), from_js_string(".")), node.val))
+}
+
+function bait__gen__js__Gen_float_literal(g, node) {
+	bait__gen__js__Gen_write(g, node.val)
 }
 
 function bait__gen__js__Gen_hash_expr(g, node) {
