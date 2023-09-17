@@ -5995,7 +5995,7 @@ function bait__util__shell_escape(s) {
 
 
 const bait__util__VERSION = from_js_string("0.0.5")
-const bait__util__FULL_VERSION = from_js_string(`${bait__util__VERSION.str} ${from_js_string("7900a8f").str}`)
+const bait__util__FULL_VERSION = from_js_string(`${bait__util__VERSION.str} ${from_js_string("afda796").str}`)
 
 function bait__gen__js__Gen_expr(g, expr) {
 	if (expr instanceof bait__ast__AnonFun) {
@@ -8362,13 +8362,14 @@ function bait__builder__compile(prefs) {
 	const root_pkg = array_get(files, i32(files.length - 1)).pkg_decl.full_name
 	for (let i = 0; i32(i < files.length); i += 1) {
 		const f = array_get(files, i)
+		const fdir = os__dir(f.path)
 		for (let _t58 = 0; _t58 < f.imports.length; _t58++) {
 			const imp = array_get(f.imports, _t58)
 			if (!eq(imp.lang, bait__ast__Language.bait)) {
 				continue
 			}
 			b.prefs.expected_pkg = imp.name
-			const import_dir = bait__builder__resolve_import(string_replace(imp.name, from_js_string("."), os__PATH_SEP))
+			const import_dir = bait__builder__resolve_import(fdir, string_replace(imp.name, from_js_string("."), os__PATH_SEP))
 			let imp_paths = bait__builder__Builder_collect_bait_files(b, import_dir)
 			if (eq(imp_paths.length, 0)) {
 				bait__errors__generic_error(from_js_string(`package ${imp.name.str} contains no Bait files`))
@@ -8504,8 +8505,12 @@ function bait__builder__Builder_print_errors_and_warnings(b) {
 	return i32(nr_errors > 0) || (b.prefs.warn_is_error && i32(nr_warns > 0))
 }
 
-function bait__builder__resolve_import(pkg) {
-	const dir = os__resource_abs_path(os__join_path(from_js_string("lib"), new array({ data: [pkg], length: 1 })))
+function bait__builder__resolve_import(base_dir, pkg) {
+	let dir = os__join_path(base_dir, new array({ data: [pkg], length: 1 }))
+	if (os__exists(dir)) {
+		return dir
+	}
+	dir = os__resource_abs_path(os__join_path(from_js_string("lib"), new array({ data: [pkg], length: 1 })))
 	if (os__exists(dir)) {
 		return dir
 	}
