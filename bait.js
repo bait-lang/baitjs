@@ -4717,6 +4717,13 @@ function bait__parser__Parser_infer_expr_type(p, expr) {
 
 function bait__checker__Checker_decl_assign(c, node) {
 	const typ = bait__checker__Checker_expr(c, node.right)
+	if (eq(typ, bait__ast__PLACEHOLDER_TYPE)) {
+		return
+	}
+	if (eq(typ, bait__ast__VOID_TYPE)) {
+		bait__checker__Checker_error(c, from_js_string("cannot assign void to variable"), node.pos)
+		return
+	}
 	if (!(node.left instanceof bait__ast__Ident)) {
 		bait__checker__Checker_error(c, from_js_string("cannot declare a variable with a non-identifier"), node.pos)
 		return
@@ -4727,8 +4734,9 @@ function bait__checker__Checker_decl_assign(c, node) {
 		return
 	}
 	bait__ast__Scope_register(c.scope, left.name, new bait__ast__ScopeObject({ kind: bait__ast__ObjectKind.variable, typ: typ, is_mut: left.is_mut }))
-	node.left_type = bait__checker__Checker_expr(c, node.left)
-	node.right_type = node.left_type
+	bait__checker__Checker_expr(c, node.left)
+	node.left_type = typ
+	node.right_type = typ
 }
 
 function bait__checker__Checker_assign_stmt(c, node) {
@@ -5143,20 +5151,20 @@ function bait__checker__Checker_enum_val(c, node) {
 	const sym = bait__ast__Table_get_sym(c.table, node.typ)
 	if (eq(sym.kind, bait__ast__TypeKind.placeholder)) {
 		bait__checker__Checker_error(c, from_js_string(`undefined enum ${node.name.str}`), node.pos)
-		return bait__ast__VOID_TYPE
+		return bait__ast__PLACEHOLDER_TYPE
 	}
 	if (!eq(sym.kind, bait__ast__TypeKind.enum_)) {
 		bait__checker__Checker_error(c, from_js_string(`expected type is not an enum, got ${sym.name.str}`), node.pos)
-		return bait__ast__VOID_TYPE
+		return bait__ast__PLACEHOLDER_TYPE
 	}
 	if (!sym.is_pub && string_contains(sym.name, from_js_string(".")) && !eq(sym.pkg, c.pkg)) {
 		bait__checker__Checker_error(c, from_js_string(`enum ${sym.name.str} is private`), node.pos)
-		return bait__ast__VOID_TYPE
+		return bait__ast__PLACEHOLDER_TYPE
 	}
 	const info = sym.info
 	if (!array_contains(info.vals, node.val)) {
 		bait__checker__Checker_error(c, from_js_string(`enum ${sym.name.str} has no value ${node.val.str}`), node.pos)
-		return bait__ast__VOID_TYPE
+		return bait__ast__PLACEHOLDER_TYPE
 	}
 	node.name = sym.name
 	return node.typ
@@ -5836,11 +5844,11 @@ function bait__checker__Checker_struct_init(c, node) {
 	const sym = bait__ast__Table_get_sym(c.table, node.typ)
 	if (eq(sym.kind, bait__ast__TypeKind.placeholder)) {
 		bait__checker__Checker_error(c, from_js_string(`undefined struct ${node.name.str}`), node.pos)
-		return bait__ast__VOID_TYPE
+		return bait__ast__PLACEHOLDER_TYPE
 	}
 	if (!sym.is_pub && string_contains(sym.name, from_js_string(".")) && !eq(sym.pkg, c.pkg)) {
 		bait__checker__Checker_error(c, from_js_string(`struct ${sym.name.str} is private`), node.pos)
-		return bait__ast__VOID_TYPE
+		return bait__ast__PLACEHOLDER_TYPE
 	}
 	bait__checker__Checker_check_init_field_values(c, node, sym.info)
 	node.name = sym.name
@@ -6018,7 +6026,7 @@ function bait__util__shell_escape(s) {
 
 
 const bait__util__VERSION = from_js_string("0.0.5")
-const bait__util__FULL_VERSION = from_js_string(`${bait__util__VERSION.str} ${from_js_string("2079253").str}`)
+const bait__util__FULL_VERSION = from_js_string(`${bait__util__VERSION.str} ${from_js_string("beba26d").str}`)
 
 function bait__gen__js__Gen_expr(g, expr) {
 	if (expr instanceof bait__ast__AnonFun) {
