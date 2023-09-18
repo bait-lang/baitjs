@@ -6038,7 +6038,7 @@ function bait__util__shell_escape(s) {
 
 
 const bait__util__VERSION = from_js_string("0.0.5")
-const bait__util__FULL_VERSION = from_js_string(`${bait__util__VERSION.str} ${from_js_string("ae9cef7").str}`)
+const bait__util__FULL_VERSION = from_js_string(`${bait__util__VERSION.str} ${from_js_string("e7e1363").str}`)
 
 function bait__gen__js__Gen_expr(g, expr) {
 	if (expr instanceof bait__ast__AnonFun) {
@@ -7048,7 +7048,7 @@ function bait__gen__js__Gen_for_classic_loop(g, node) {
 
 function bait__gen__js__Gen_for_in_loop(g, node) {
 	bait__gen__js__Gen_write_label(g, node.label)
-	let i = node.idxvar
+	let i = bait__gen__js__js_name(node.idxvar)
 	if (eq(i, from_js_string(""))) {
 		i = bait__gen__js__Gen_new_temp_var(g)
 	}
@@ -7059,12 +7059,13 @@ function bait__gen__js__Gen_for_in_loop(g, node) {
 	}
 	const container = bait__gen__js__Gen_expr_string(g, node.expr)
 	bait__gen__js__Gen_writeln(g, from_js_string(`for (let ${i.str} = 0; ${i.str} < ${container.str}.length; ${i.str}++) {`))
+	const val_name = bait__gen__js__js_name(node.valvar.name)
 	if (eq(sym.kind, bait__ast__TypeKind.array)) {
-		bait__gen__js__Gen_writeln(g, from_js_string(`\tconst ${node.valvar.name.str} = array_get(${container.str}, ${i.str})`))
+		bait__gen__js__Gen_writeln(g, from_js_string(`\tconst ${val_name.str} = array_get(${container.str}, ${i.str})`))
 	} else if (eq(sym.kind, bait__ast__TypeKind.string)) {
-		bait__gen__js__Gen_writeln(g, from_js_string(`\tconst ${node.valvar.name.str} = string_get(${container.str}, ${i.str})`))
+		bait__gen__js__Gen_writeln(g, from_js_string(`\tconst ${val_name.str} = string_get(${container.str}, ${i.str})`))
 	} else {
-		bait__gen__js__Gen_writeln(g, from_js_string(`\tconst ${node.valvar.name.str} = ${container.str}[${i.str}]`))
+		bait__gen__js__Gen_writeln(g, from_js_string(`\tconst ${val_name.str} = ${container.str}[${i.str}]`))
 	}
 	bait__gen__js__Gen_stmts(g, node.stmts)
 	bait__gen__js__Gen_writeln(g, from_js_string("}"))
@@ -7076,8 +7077,8 @@ function bait__gen__js__Gen_for_in_map(g, node) {
 	bait__gen__js__Gen_writeln(g, from_js_string(`const ${keys_var.str} = map_keys(${container.str})`))
 	const i = bait__gen__js__Gen_new_temp_var(g)
 	bait__gen__js__Gen_writeln(g, from_js_string(`for (let ${i.str} = 0; ${i.str} < ${keys_var.str}.length; ${i.str}++) {`))
-	bait__gen__js__Gen_writeln(g, from_js_string(`\tconst ${node.idxvar.str} = array_get(${keys_var.str}, ${i.str})`))
-	bait__gen__js__Gen_writeln(g, from_js_string(`\tconst ${node.valvar.name.str} = map_get(${container.str}, ${node.idxvar.str})`))
+	bait__gen__js__Gen_writeln(g, from_js_string(`\tconst ${bait__gen__js__js_name(node.idxvar).str} = array_get(${keys_var.str}, ${i.str})`))
+	bait__gen__js__Gen_writeln(g, from_js_string(`\tconst ${bait__gen__js__js_name(node.valvar.name).str} = map_get(${container.str}, ${node.idxvar.str})`))
 	bait__gen__js__Gen_stmts(g, node.stmts)
 	bait__gen__js__Gen_writeln(g, from_js_string("}"))
 }
