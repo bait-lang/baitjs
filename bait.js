@@ -2706,6 +2706,15 @@ bait__ast__EmptyExpr.prototype = {
     pos = ${this.pos.toString()}
 }`}
 }
+function bait__ast__EmptyStmt({ pos = new bait__token__Pos({}) }) {
+	this.pos = pos
+}
+bait__ast__EmptyStmt.prototype = {
+	toString() {
+		return `bait__ast__EmptyStmt{
+    pos = ${this.pos.toString()}
+}`}
+}
 function bait__ast__PackageDecl({ name = from_js_string(""), full_name = from_js_string("") }) {
 	this.name = name
 	this.full_name = full_name
@@ -5069,7 +5078,8 @@ function bait__checker__Checker_expr(c, expr) {
 	} else if (expr instanceof bait__ast__TypeOf) {
 		return bait__checker__Checker_type_of(c, expr)
 	} else {
-		bait__checker__Checker_error(c, from_js_string(`unexpected expr: ${from_js_string(expr.toString()).str}`), expr.pos)
+		const e = expr
+		bait__checker__Checker_error(c, from_js_string(`unexpected expr: ${from_js_string(e.toString()).str}`), e.pos)
 	}
 }
 
@@ -5203,13 +5213,13 @@ function bait__checker__Checker_ident(c, node) {
 function bait__checker__Checker_if_expr(c, node) {
 	for (let i = 0; i < node.branches.length; i++) {
 		const b = array_get(node.branches, i)
+		bait__checker__Checker_open_scope(c)
 		if (!node.has_else || i32(i < i32(node.branches.length - 1))) {
 			const cond_type = bait__checker__Checker_expr(c, b.cond)
 			if (!eq(cond_type, bait__ast__BOOL_TYPE) && !eq(cond_type, bait__ast__PLACEHOLDER_TYPE)) {
 				bait__checker__Checker_error(c, from_js_string(`expected bool, got ${bait__ast__Table_type_name(c.table, cond_type).str}`), node.pos)
 			}
 		}
-		bait__checker__Checker_open_scope(c)
 		bait__checker__Checker_stmts(c, b.stmts)
 		bait__checker__Checker_close_scope(c)
 	}
@@ -5653,7 +5663,8 @@ function bait__checker__Checker_stmt(c, stmt) {
 	} else if (stmt instanceof bait__ast__TypeDecl) {
 		bait__checker__Checker_type_decl(c, stmt)
 	} else {
-		bait__checker__Checker_error(c, from_js_string(`unexpected stmt: ${from_js_string(stmt.toString()).str}`), stmt.pos)
+		const s = stmt
+		bait__checker__Checker_error(c, from_js_string(`unexpected stmt: ${from_js_string(s.toString()).str}`), s.pos)
 	}
 	c.expected_type = bait__ast__VOID_TYPE
 }
@@ -5679,7 +5690,8 @@ function bait__checker__Checker_expr_stmt(c, node) {
 	if (expr instanceof bait__ast__CallExpr || expr instanceof bait__ast__IfExpr || expr instanceof bait__ast__MatchExpr || expr instanceof bait__ast__HashExpr) {
 		return
 	}
-	bait__checker__Checker_error(c, from_js_string("expression evaluated but not used"), expr.pos)
+	const e = expr
+	bait__checker__Checker_error(c, from_js_string("expression evaluated but not used"), e.pos)
 }
 
 function bait__checker__Checker_enum_decl(c, node) {
@@ -6026,7 +6038,7 @@ function bait__util__shell_escape(s) {
 
 
 const bait__util__VERSION = from_js_string("0.0.5")
-const bait__util__FULL_VERSION = from_js_string(`${bait__util__VERSION.str} ${from_js_string("beba26d").str}`)
+const bait__util__FULL_VERSION = from_js_string(`${bait__util__VERSION.str} ${from_js_string("ae9cef7").str}`)
 
 function bait__gen__js__Gen_expr(g, expr) {
 	if (expr instanceof bait__ast__AnonFun) {
@@ -6078,7 +6090,8 @@ function bait__gen__js__Gen_expr(g, expr) {
 	} else if (expr instanceof bait__ast__TypeOf) {
 		bait__gen__js__Gen_type_of(g, expr)
 	} else {
-		bait__errors__error(g.path, expr.pos, from_js_string(`cannot gen ${from_js_string(expr.toString()).str}`))
+		const e = expr
+		bait__errors__error(g.path, e.pos, from_js_string(`cannot gen ${from_js_string(e.toString()).str}`))
 		exit(1)
 	}
 }
