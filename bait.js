@@ -5068,8 +5068,7 @@ function bait__checker__Checker_enum_decl(c, node) {
 		return
 	}
 	let cur_val = 0
-	outer: 
-	for (let i = 0; i < node.fields.length; i++) {
+	outer: for (let i = 0; i < node.fields.length; i++) {
 		const field = array_get(node.fields, i)
 		for (let j = 0; i32(j < i); j += 1) {
 			if (eq(field.name, array_get(node.fields, j).name)) {
@@ -5192,8 +5191,7 @@ function bait__checker__Checker_type_decl(c, node) {
 
 
 function bait__checker__Checker_struct_decl(c, node) {
-	outer: 
-	for (let i = 0; i < node.fields.length; i++) {
+	outer: for (let i = 0; i < node.fields.length; i++) {
 		const field = array_get(node.fields, i)
 		let should_continue = false
 		for (let j = 0; i32(j < i); j += 1) {
@@ -5403,7 +5401,7 @@ function bait__util__shell_escape(s) {
 
 
 const bait__util__VERSION = from_js_string("0.0.5")
-const bait__util__FULL_VERSION = from_js_string(`${bait__util__VERSION.str} ${from_js_string("c4a0c57").str}`)
+const bait__util__FULL_VERSION = from_js_string(`${bait__util__VERSION.str} ${from_js_string("52dd184").str}`)
 
 function bait__gen__js__Gen_expr(g, expr) {
 	if (expr instanceof bait__ast__AnonFun) {
@@ -6372,7 +6370,7 @@ function bait__gen__js__Gen_loop_control_stmt(g, node) {
 
 function bait__gen__js__Gen_write_label(g, label) {
 	if (i32(label.length > 0)) {
-		bait__gen__js__Gen_writeln(g, from_js_string(`${label.str}: `))
+		bait__gen__js__Gen_write(g, from_js_string(`${label.str}: `))
 	}
 }
 
