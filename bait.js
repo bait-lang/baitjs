@@ -787,37 +787,38 @@ const bait__token__TokenKind = {
 	lcur: 33,
 	rcur: 34,
 	amp: 35,
-	pipe: 36,
-	dollar: 37,
-	hash: 38,
-	key_and: 39,
-	key_as: 40,
-	key_assert: 41,
-	key_break: 42,
-	key_const: 43,
-	key_continue: 44,
-	key_else: 45,
-	key_enum: 46,
-	key_false: 47,
-	key_for: 48,
-	key_fun: 49,
-	key_global: 50,
-	key_if: 51,
-	key_import: 52,
-	key_in: 53,
-	key_interface: 54,
-	key_is: 55,
-	key_match: 56,
-	key_mut: 57,
-	key_not: 58,
-	key_or: 59,
-	key_package: 60,
-	key_pub: 61,
-	key_return: 62,
-	key_struct: 63,
-	key_true: 64,
-	key_type: 65,
-	key_typeof: 66,
+	caret: 36,
+	pipe: 37,
+	dollar: 38,
+	hash: 39,
+	key_and: 40,
+	key_as: 41,
+	key_assert: 42,
+	key_break: 43,
+	key_const: 44,
+	key_continue: 45,
+	key_else: 46,
+	key_enum: 47,
+	key_false: 48,
+	key_for: 49,
+	key_fun: 50,
+	key_global: 51,
+	key_if: 52,
+	key_import: 53,
+	key_in: 54,
+	key_interface: 55,
+	key_is: 56,
+	key_match: 57,
+	key_mut: 58,
+	key_not: 59,
+	key_or: 60,
+	key_package: 61,
+	key_pub: 62,
+	key_return: 63,
+	key_struct: 64,
+	key_true: 65,
+	key_type: 66,
+	key_typeof: 67,
 }
 function bait__token__keyword_to_kind(name) {
 	switch (name.str) {
@@ -1118,6 +1119,11 @@ function bait__token__TokenKind_c_repr(kind) {
 				return from_js_string("&")
 				break
 			}
+		case bait__token__TokenKind.caret:
+			{
+				return from_js_string("*")
+				break
+			}
 	}
 	return bait__token__TokenKind_js_repr(kind)
 }
@@ -1297,6 +1303,11 @@ function bait__token__TokenKind_str(kind) {
 		case bait__token__TokenKind.amp:
 			{
 				return from_js_string("amp")
+				break
+			}
+		case bait__token__TokenKind.caret:
+			{
+				return from_js_string("caret")
 				break
 			}
 		case bait__token__TokenKind.pipe:
@@ -2687,6 +2698,7 @@ function bait__parser__Parser_expr(p, precedence) {
 			}
 		case bait__token__TokenKind.key_not:
 		case bait__token__TokenKind.minus:
+		case bait__token__TokenKind.caret:
 			{
 				node = bait__parser__Parser_prefix_expr(p)
 				break
@@ -4684,6 +4696,22 @@ function bait__checker__Checker_par_expr(c, node) {
 
 function bait__checker__Checker_prefix_expr(c, node) {
 	const typ = bait__checker__Checker_expr(c, node.right)
+	const sym = bait__ast__Table_get_sym(c.table, typ)
+	if (eq(node.op, bait__token__TokenKind.minus) && !eq(sym.kind, bait__ast__TypeKind.number)) {
+		bait__checker__Checker_error(c, from_js_string(`cannot negate ${bait__ast__Table_type_name(c.table, typ).str}`), node.pos)
+		return bait__ast__PLACEHOLDER_TYPE
+	}
+	if (eq(node.op, bait__token__TokenKind.key_not) && !eq(typ, bait__ast__BOOL_TYPE)) {
+		bait__checker__Checker_error(c, from_js_string(`cannot use \`not\` on ${bait__ast__Table_type_name(c.table, typ).str}`), node.pos)
+		return bait__ast__PLACEHOLDER_TYPE
+	}
+	if (eq(node.op, bait__token__TokenKind.caret)) {
+		if (eq(bait__ast__Type_get_nr_amp(typ), 0)) {
+			bait__checker__Checker_error(c, from_js_string(`cannot dereference ${bait__ast__Table_type_name(c.table, typ).str}`), node.pos)
+			return bait__ast__PLACEHOLDER_TYPE
+		}
+		return bait__ast__Type_set_nr_amp(typ, i32(bait__ast__Type_get_nr_amp(typ) - 1))
+	}
 	return typ
 }
 
@@ -5401,7 +5429,7 @@ function bait__util__shell_escape(s) {
 
 
 const bait__util__VERSION = from_js_string("0.0.5")
-const bait__util__FULL_VERSION = from_js_string(`${bait__util__VERSION.str} ${from_js_string("52dd184").str}`)
+const bait__util__FULL_VERSION = from_js_string(`${bait__util__VERSION.str} ${from_js_string("0e3d1a4").str}`)
 
 function bait__gen__js__Gen_expr(g, expr) {
 	if (expr instanceof bait__ast__AnonFun) {
@@ -7619,6 +7647,11 @@ function bait__tokenizer__Tokenizer_next_token(t) {
 			case u8("&"):
 				{
 					return bait__tokenizer__Tokenizer_new_token(t, bait__token__TokenKind.amp, from_js_string(""))
+					break
+				}
+			case u8("^"):
+				{
+					return bait__tokenizer__Tokenizer_new_token(t, bait__token__TokenKind.caret, from_js_string(""))
 					break
 				}
 			case u8("|"):
