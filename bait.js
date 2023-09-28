@@ -186,6 +186,11 @@ function map_values(m) {
 	return from_js_arr(Array.from(m.data.values()))
 }
 
+function map_clear(m) {
+	m.length = 0
+	m.data = new Map([])
+}
+
 
 function i8(n) {
 	return Math.floor(n)
@@ -697,6 +702,7 @@ function bait__token__Token_precedence(t) {
 				break
 			}
 		case bait__token__TokenKind.key_not:
+		case bait__token__TokenKind.caret:
 			{
 				return bait__token__Precedence.prefix
 				break
@@ -2537,7 +2543,7 @@ function bait__ast__Type_idx(t) {
 }
 
 function bait__ast__Type_set_nr_amp(t, n) {
-	return bait__ast__new_type(i32(t + (i32(n * 65536))))
+	return bait__ast__new_type(i32(bait__ast__Type_idx(t) + (i32(n * 65536))))
 }
 
 function bait__ast__Type_get_nr_amp(t) {
@@ -2729,7 +2735,7 @@ function bait__parser__Parser_expr(p, precedence) {
 
 function bait__parser__Parser_expr_with_left(p, left_, precedence) {
 	let left = left_
-	while (i32(precedence < bait__token__Token_precedence(p.tok))) {
+	while (precedence < bait__token__Token_precedence(p.tok)) {
 		if (eq(p.tok.kind, bait__token__TokenKind.dot)) {
 			left = bait__parser__Parser_dot_expr(p, left)
 		} else if (eq(p.tok.kind, bait__token__TokenKind.lbr)) {
@@ -2748,7 +2754,7 @@ function bait__parser__Parser_expr_with_left(p, left_, precedence) {
 function bait__parser__Parser_expr_list(p) {
 	let exprs = new array({ data: [], length: 0 })
 	while (true) {
-		array_push(exprs, bait__parser__Parser_expr(p, 0))
+		array_push(exprs, bait__parser__Parser_expr(p, bait__token__Precedence.lowest))
 		if (!eq(p.tok.kind, bait__token__TokenKind.comma)) {
 			break
 		}
@@ -2771,7 +2777,7 @@ function bait__parser__Parser_array_init(p) {
 			while (!eq(p.tok.kind, bait__token__TokenKind.rcur)) {
 				const key = bait__parser__Parser_check_name(p)
 				bait__parser__Parser_check(p, bait__token__TokenKind.assign)
-				const expr = bait__parser__Parser_expr(p, 0)
+				const expr = bait__parser__Parser_expr(p, bait__token__Precedence.lowest)
 				if (eq(key, from_js_string("length"))) {
 					length_expr = expr
 				} else if (eq(key, from_js_string("cap"))) {
@@ -2786,7 +2792,7 @@ function bait__parser__Parser_array_init(p) {
 	}
 	let exprs = new array({ data: [], length: 0 })
 	while (!eq(p.tok.kind, bait__token__TokenKind.rbr)) {
-		array_push(exprs, bait__parser__Parser_expr(p, 0))
+		array_push(exprs, bait__parser__Parser_expr(p, bait__token__Precedence.lowest))
 		if (eq(p.tok.kind, bait__token__TokenKind.comma)) {
 			bait__parser__Parser_next(p)
 		}
@@ -2892,7 +2898,7 @@ function bait__parser__Parser_if_expr(p) {
 		}
 		bait__parser__Parser_check(p, bait__token__TokenKind.key_if)
 		p.is_struct_possible = false
-		const cond = bait__parser__Parser_expr(p, 0)
+		const cond = bait__parser__Parser_expr(p, bait__token__Precedence.lowest)
 		p.is_struct_possible = true
 		const stmts = bait__parser__Parser_parse_block(p)
 		array_push(branches, new bait__ast__IfBranch({ cond: cond, stmts: stmts }))
@@ -2906,7 +2912,7 @@ function bait__parser__Parser_if_expr(p) {
 function bait__parser__Parser_index_expr(p, left) {
 	const pos = p.tok.pos
 	bait__parser__Parser_check(p, bait__token__TokenKind.lbr)
-	const index = bait__parser__Parser_expr(p, 0)
+	const index = bait__parser__Parser_expr(p, bait__token__Precedence.lowest)
 	bait__parser__Parser_check(p, bait__token__TokenKind.rbr)
 	return new bait__ast__IndexExpr({ left: left, index: index, pos: pos })
 }
@@ -2930,9 +2936,9 @@ function bait__parser__Parser_map_init(p) {
 	let vals = new array({ data: [], length: 0 })
 	bait__parser__Parser_check(p, bait__token__TokenKind.lcur)
 	while (!eq(p.tok.kind, bait__token__TokenKind.rcur)) {
-		array_push(keys, bait__parser__Parser_expr(p, 0))
+		array_push(keys, bait__parser__Parser_expr(p, bait__token__Precedence.lowest))
 		bait__parser__Parser_check(p, bait__token__TokenKind.colon)
-		array_push(vals, bait__parser__Parser_expr(p, 0))
+		array_push(vals, bait__parser__Parser_expr(p, bait__token__Precedence.lowest))
 	}
 	bait__parser__Parser_next(p)
 	return new bait__ast__MapInit({ keys: keys, vals: vals, pos: pos })
@@ -2943,7 +2949,7 @@ function bait__parser__Parser_match_expr(p) {
 	let branches = new array({ data: [], length: 0 })
 	bait__parser__Parser_check(p, bait__token__TokenKind.key_match)
 	p.is_struct_possible = false
-	const cond = bait__parser__Parser_expr(p, 0)
+	const cond = bait__parser__Parser_expr(p, bait__token__Precedence.lowest)
 	p.is_struct_possible = true
 	bait__parser__Parser_check(p, bait__token__TokenKind.lcur)
 	while (!eq(p.tok.kind, bait__token__TokenKind.rcur)) {
@@ -3003,7 +3009,7 @@ function bait__parser__Parser_number_literal(p) {
 function bait__parser__Parser_par_expr(p) {
 	const pos = p.tok.pos
 	bait__parser__Parser_next(p)
-	const expr = bait__parser__Parser_expr(p, 0)
+	const expr = bait__parser__Parser_expr(p, bait__token__Precedence.lowest)
 	bait__parser__Parser_check(p, bait__token__TokenKind.rpar)
 	return new bait__ast__ParExpr({ expr: expr, pos: pos })
 }
@@ -3012,7 +3018,7 @@ function bait__parser__Parser_prefix_expr(p) {
 	const pos = p.tok.pos
 	const op = p.tok.kind
 	bait__parser__Parser_next(p)
-	const right = bait__parser__Parser_expr(p, 0)
+	const right = bait__parser__Parser_expr(p, bait__token__Precedence.prefix)
 	return new bait__ast__PrefixExpr({ op: op, right: right, pos: pos })
 }
 
@@ -3032,7 +3038,7 @@ function bait__parser__Parser_string_literal(p) {
 		}
 		bait__parser__Parser_next(p)
 		bait__parser__Parser_check(p, bait__token__TokenKind.lcur)
-		array_push(exprs, bait__parser__Parser_expr(p, 0))
+		array_push(exprs, bait__parser__Parser_expr(p, bait__token__Precedence.lowest))
 	}
 	return new bait__ast__StringInterLiteral({ vals: vals, exprs: exprs, pos: pos })
 }
@@ -3041,7 +3047,7 @@ function bait__parser__Parser_typeof_expr(p) {
 	const pos = p.tok.pos
 	bait__parser__Parser_check(p, bait__token__TokenKind.key_typeof)
 	bait__parser__Parser_check(p, bait__token__TokenKind.lpar)
-	const expr = bait__parser__Parser_expr(p, 0)
+	const expr = bait__parser__Parser_expr(p, bait__token__Precedence.lowest)
 	bait__parser__Parser_check(p, bait__token__TokenKind.rpar)
 	return new bait__ast__TypeOf({ expr: expr, pos: pos })
 }
@@ -3057,7 +3063,7 @@ function bait__parser__Parser_for_loop(p, label) {
 	}
 	const pos = p.prev_tok.pos
 	p.is_struct_possible = false
-	const cond = bait__parser__Parser_expr(p, 0)
+	const cond = bait__parser__Parser_expr(p, bait__token__Precedence.lowest)
 	p.is_struct_possible = true
 	const stmts = bait__parser__Parser_parse_block(p)
 	return new bait__ast__ForLoop({ label: label, cond: cond, stmts: stmts, pos: pos })
@@ -3069,7 +3075,7 @@ function bait__parser__Parser_for_classic_loop(p, label) {
 	const init = bait__parser__Parser_assign_stmt(p)
 	p.is_for_init = false
 	bait__parser__Parser_check(p, bait__token__TokenKind.semicolon)
-	const cond = bait__parser__Parser_expr(p, 0)
+	const cond = bait__parser__Parser_expr(p, bait__token__Precedence.lowest)
 	bait__parser__Parser_check(p, bait__token__TokenKind.semicolon)
 	const inc = bait__parser__Parser_stmt(p)
 	const stmts = bait__parser__Parser_parse_block(p)
@@ -3091,7 +3097,7 @@ function bait__parser__Parser_for_in_loop(p, label) {
 	let valvar = new bait__ast__Param({ pos: p.tok.pos, name: bait__parser__Parser_check_name(p), is_mut: is_mut })
 	bait__parser__Parser_check(p, bait__token__TokenKind.key_in)
 	p.is_struct_possible = false
-	const expr = bait__parser__Parser_expr(p, 0)
+	const expr = bait__parser__Parser_expr(p, bait__token__Precedence.lowest)
 	p.is_struct_possible = true
 	const stmts = bait__parser__Parser_parse_block(p)
 	return new bait__ast__ForInLoop({ label: label, idxvar: idxvar, valvar: valvar, expr: expr, stmts: stmts, pos: pos })
@@ -3234,7 +3240,7 @@ function bait__parser__Parser_method_call(p, left) {
 function bait__parser__Parser_call_args(p) {
 	let args = new array({ data: [], length: 0 })
 	while (!eq(p.tok.kind, bait__token__TokenKind.rpar) && !p.should_abort) {
-		array_push(args, new bait__ast__CallArg({ expr: bait__parser__Parser_expr(p, 0) }))
+		array_push(args, new bait__ast__CallArg({ expr: bait__parser__Parser_expr(p, bait__token__Precedence.lowest) }))
 		if (!eq(p.tok.kind, bait__token__TokenKind.rpar) && !eq(p.tok.kind, bait__token__TokenKind.eof)) {
 			bait__parser__Parser_check(p, bait__token__TokenKind.comma)
 		}
@@ -3615,7 +3621,7 @@ function bait__parser__Parser_stmt_with_name(p) {
 		bait__parser__Parser_next(p)
 		return bait__parser__Parser_for_loop(p, label)
 	}
-	const left = bait__parser__Parser_expr(p, 0)
+	const left = bait__parser__Parser_expr(p, bait__token__Precedence.lowest)
 	if (bait__token__TokenKind_is_assign(p.tok.kind)) {
 		return bait__parser__Parser_partial_assign_stmt(p, left)
 	}
@@ -3625,13 +3631,13 @@ function bait__parser__Parser_stmt_with_name(p) {
 function bait__parser__Parser_assert_stmt(p) {
 	bait__parser__Parser_next(p)
 	const pos = p.tok.pos
-	const expr = bait__parser__Parser_expr(p, 0)
+	const expr = bait__parser__Parser_expr(p, bait__token__Precedence.lowest)
 	return new bait__ast__AssertStmt({ expr: expr, pos: pos })
 }
 
 function bait__parser__Parser_assign_stmt(p) {
 	const pos = p.tok.pos
-	const left = bait__parser__Parser_expr(p, 0)
+	const left = bait__parser__Parser_expr(p, bait__token__Precedence.lowest)
 	return bait__parser__Parser_partial_assign_stmt(p, left)
 }
 
@@ -3639,7 +3645,7 @@ function bait__parser__Parser_partial_assign_stmt(p, left) {
 	const pos = p.tok.pos
 	const op = p.tok.kind
 	bait__parser__Parser_next(p)
-	const right = bait__parser__Parser_expr(p, 0)
+	const right = bait__parser__Parser_expr(p, bait__token__Precedence.lowest)
 	return new bait__ast__AssignStmt({ op: op, left: left, right: right, pos: pos })
 }
 
@@ -3661,7 +3667,7 @@ function bait__parser__Parser_const_decl(p) {
 	let expr = new bait__ast__EmptyExpr({})
 	let typ = bait__ast__PLACEHOLDER_TYPE
 	if (eq(lang, bait__ast__Language.bait)) {
-		expr = bait__parser__Parser_expr(p, 0)
+		expr = bait__parser__Parser_expr(p, bait__token__Precedence.lowest)
 		typ = bait__parser__Parser_infer_expr_type(p, expr)
 	} else {
 		typ = bait__parser__Parser_parse_type(p)
@@ -3682,7 +3688,7 @@ function bait__parser__Parser_loop_control_stmt(p) {
 }
 
 function bait__parser__Parser_expr_stmt(p) {
-	const expr = bait__parser__Parser_expr(p, 0)
+	const expr = bait__parser__Parser_expr(p, bait__token__Precedence.lowest)
 	return new bait__ast__ExprStmt({ expr: expr })
 }
 
@@ -3706,7 +3712,7 @@ function bait__parser__Parser_enum_decl(p) {
 		let expr = new bait__ast__EmptyExpr({})
 		if (eq(p.tok.kind, bait__token__TokenKind.decl_assign)) {
 			bait__parser__Parser_next(p)
-			expr = bait__parser__Parser_expr(p, 0)
+			expr = bait__parser__Parser_expr(p, bait__token__Precedence.lowest)
 		}
 		array_push(variants, fname)
 		array_push(fields, new bait__ast__EnumField({ name: fname, expr: expr, pos: fpos }))
@@ -3721,7 +3727,7 @@ function bait__parser__Parser_global_decl(p) {
 	bait__parser__Parser_check(p, bait__token__TokenKind.key_global)
 	const name = bait__parser__Parser_prepend_pkg(p, bait__parser__Parser_check_name(p))
 	bait__parser__Parser_check(p, bait__token__TokenKind.decl_assign)
-	const expr = bait__parser__Parser_expr(p, 0)
+	const expr = bait__parser__Parser_expr(p, bait__token__Precedence.lowest)
 	const typ = bait__parser__Parser_infer_expr_type(p, expr)
 	bait__ast__Scope_register(p.table.global_scope, name, new bait__ast__ScopeObject({ typ: typ, kind: bait__ast__ObjectKind.global_ }))
 	return new bait__ast__GlobalDecl({ name: name, expr: expr, pos: pos })
@@ -3770,7 +3776,7 @@ function bait__parser__Parser_return_stmt(p) {
 	bait__parser__Parser_check(p, bait__token__TokenKind.key_return)
 	let expr = new bait__ast__EmptyExpr({})
 	if (eq(p.tok.pos.line, pos.line)) {
-		expr = bait__parser__Parser_expr(p, 0)
+		expr = bait__parser__Parser_expr(p, bait__token__Precedence.lowest)
 	}
 	return new bait__ast__ReturnStmt({ expr: expr, pos: pos })
 }
@@ -3891,7 +3897,7 @@ function bait__parser__Parser_struct_decl_field(p, is_mut, is_pub, is_global) {
 	let expr = new bait__ast__EmptyExpr({})
 	if (eq(p.tok.kind, bait__token__TokenKind.decl_assign)) {
 		bait__parser__Parser_next(p)
-		expr = bait__parser__Parser_expr(p, 0)
+		expr = bait__parser__Parser_expr(p, bait__token__Precedence.lowest)
 	}
 	const field = new bait__ast__StructField({ name: fname, typ: ftyp, expr: expr, pos: pos, is_mut: is_mut, is_pub: is_pub, is_global: is_global, attrs: p.attributes })
 	p.attributes = new array({ data: [], length: 0 })
@@ -3915,7 +3921,7 @@ function bait__parser__Parser_struct_init_field(p) {
 	const pos = p.tok.pos
 	const name = bait__parser__Parser_check_name(p)
 	bait__parser__Parser_check(p, bait__token__TokenKind.assign)
-	const expr = bait__parser__Parser_expr(p, 0)
+	const expr = bait__parser__Parser_expr(p, bait__token__Precedence.lowest)
 	return new bait__ast__StructInitField({ name: name, expr: expr, pos: pos })
 }
 
@@ -4505,6 +4511,10 @@ function bait__checker__Checker_as_cast(c, node) {
 	const expr_sym = bait__ast__Table_get_sym(c.table, expr_type)
 	const target_sym = bait__ast__Table_get_sym(c.table, node.target)
 	if (!bait__checker__Checker_does_type_exist(c, target_sym, node.pos)) {
+		return expr_type
+	}
+	if (i32(bait__ast__Type_get_nr_amp(expr_type) >= 1) && eq(bait__ast__Type_get_nr_amp(node.target), 0)) {
+		bait__checker__Checker_error(c, from_js_string("cannot cast to normal type from pointer"), node.pos)
 		return expr_type
 	}
 	if (eq(expr_sym.kind, bait__ast__TypeKind.sum_type) && node.expr instanceof bait__ast__Ident) {
@@ -5429,7 +5439,7 @@ function bait__util__shell_escape(s) {
 
 
 const bait__util__VERSION = from_js_string("0.0.5")
-const bait__util__FULL_VERSION = from_js_string(`${bait__util__VERSION.str} ${from_js_string("ccc8711").str}`)
+const bait__util__FULL_VERSION = from_js_string(`${bait__util__VERSION.str} ${from_js_string("ffd9bb7").str}`)
 
 function bait__gen__js__Gen_expr(g, expr) {
 	if (expr instanceof bait__ast__AnonFun) {
@@ -5863,7 +5873,8 @@ function bait__gen__js__Gen_string_inter_literal(g, node) {
 
 function bait__gen__js__Gen_type_of(g, node) {
 	const sym = bait__ast__Table_get_sym(g.table, node.typ)
-	bait__gen__js__Gen_write(g, string_add(string_add(from_js_string("from_js_string(\""), sym.name), from_js_string("\")")))
+	const amp = string_repeat(from_js_string("*"), bait__ast__Type_get_nr_amp(node.typ))
+	bait__gen__js__Gen_write(g, string_add(string_add(string_add(from_js_string("from_js_string(\""), amp), sym.name), from_js_string("\")")))
 }
 
 function bait__gen__js__Gen_expr_to_string(g, expr, typ) {
@@ -5900,8 +5911,8 @@ function bait__gen__js__Gen_fun_decl(g, node) {
 				map_set(g.cur_concrete_types, gn, array_get(conc_types, i))
 			}
 			bait__gen__js__Gen_fun_decl(g, node)
+			map_clear(g.cur_concrete_types)
 		}
-		g.cur_concrete_types = new map({ data: new Map([]), length: 0 })
 		return
 	}
 	g.cur_fun = node
@@ -7057,7 +7068,8 @@ function bait__gen__c__Gen_struct_init(g, node) {
 
 function bait__gen__c__Gen_type_of(g, node) {
 	const sym = bait__ast__Table_get_sym(g.table, node.typ)
-	bait__gen__c__Gen_write(g, string_add(string_add(from_js_string("from_c_string(\""), sym.name), from_js_string("\")")))
+	const amp = string_repeat(from_js_string("*"), bait__ast__Type_get_nr_amp(node.typ))
+	bait__gen__c__Gen_write(g, string_add(string_add(string_add(from_js_string("from_c_string(\""), amp), sym.name), from_js_string("\")")))
 }
 
 function bait__gen__c__Gen_expr_to_string(g, expr, typ) {
@@ -7073,6 +7085,10 @@ function bait__gen__c__Gen_expr_to_string(g, expr, typ) {
 		bait__gen__c__Gen_write(g, from_js_string(`${name.str}_str(`))
 		bait__gen__c__Gen_expr(g, expr)
 		bait__gen__c__Gen_write(g, from_js_string(")"))
+		return
+	}
+	if (eq(sym.kind, bait__ast__TypeKind.generic)) {
+		bait__gen__c__Gen_expr_to_string(g, expr, map_get_set(g.cur_concrete_types, sym.name, 0))
 		return
 	}
 	const e = expr
@@ -7093,8 +7109,8 @@ function bait__gen__c__Gen_fun_decl(g, node) {
 				map_set(g.cur_concrete_types, gn, array_get(conc_types, i))
 			}
 			bait__gen__c__Gen_fun_decl(g, node)
+			map_clear(g.cur_concrete_types)
 		}
-		g.cur_concrete_types = new map({ data: new Map([]), length: 0 })
 		return
 	}
 	const type_str = bait__gen__c__Gen_typ(g, node.return_type)
@@ -7400,7 +7416,7 @@ function bait__gen__c__Gen_concrete_sym(g, typ) {
 function bait__gen__c__Gen_typ(g, typ) {
 	const sym = bait__ast__Table_get_sym(g.table, typ)
 	if (eq(sym.kind, bait__ast__TypeKind.generic)) {
-		return bait__gen__c__Gen_typ(g, map_get_set(g.cur_concrete_types, sym.name, 0))
+		return bait__gen__c__Gen_typ(g, bait__ast__Type_set_nr_amp(map_get_set(g.cur_concrete_types, sym.name, 0), bait__ast__Type_get_nr_amp(typ)))
 	}
 	const name = string_replace(string_replace(string_replace(sym.name, from_js_string("[]"), from_js_string("array_")), from_js_string("C."), from_js_string("")), from_js_string("."), from_js_string("__"))
 	const ptrs = string_repeat(from_js_string("*"), bait__ast__Type_get_nr_amp(typ))
