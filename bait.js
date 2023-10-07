@@ -481,8 +481,8 @@ function string_add(a, b) {
 	return from_js_string(a.str + b.str)
 }
 
-function array_string_join(arr, sep) {
-	const js_arr = array_string_to_js_arr(arr)
+function Array_string_join(arr, sep) {
+	const js_arr = Array_string_to_js_arr(arr)
 	return from_js_string(js_arr.join(sep.str))
 }
 
@@ -498,7 +498,7 @@ function from_js_string_arr(js_arr) {
 	return a
 }
 
-function array_string_to_js_arr(arr) {
+function Array_string_to_js_arr(arr) {
 	const js_arr = []
 	for (let _t3 = 0; _t3 < arr.length; _t3++) {
 		const s = array_get(arr, _t3)
@@ -627,7 +627,7 @@ function os__getwd() {
 }
 
 function os__join_path(base, dirs) {
-	const js_dirs = array_string_to_js_arr(dirs)
+	const js_dirs = Array_string_to_js_arr(dirs)
 	return from_js_string(JS.path.join(base.str, ...js_dirs))
 }
 
@@ -1745,7 +1745,7 @@ function bait__errors__Message_print(msg) {
 	bait__errors__message(msg.kind, msg.title, msg.path, msg.pos, msg.msg)
 }
 
-function array_bait__errors__Message_print_and_exit(msgs) {
+function Array_bait__errors__Message_print_and_exit(msgs) {
 	for (let _t5 = 0; _t5 < msgs.length; _t5++) {
 		const msg = array_get(msgs, _t5)
 		bait__errors__Message_print(msg)
@@ -2306,7 +2306,7 @@ function bait__ast__Attribute({ name = from_js_string(""), value = from_js_strin
 	this.value = value
 	this.pos = pos
 }
-function array_bait__ast__Attribute_find_attr(attrs, name) {
+function Array_bait__ast__Attribute_find_attr(attrs, name) {
 	for (let _t6 = 0; _t6 < attrs.length; _t6++) {
 		const attr = array_get(attrs, _t6)
 		if (eq(attr.name, name)) {
@@ -3309,7 +3309,7 @@ function bait__parser__Parser_bait_import(p) {
 		bait__parser__Parser_next(p)
 		array_push(name_parts, bait__parser__Parser_check_name(p))
 	}
-	const name = array_string_join(name_parts, from_js_string("."))
+	const name = Array_string_join(name_parts, from_js_string("."))
 	let alias = array_get(name_parts, i32(name_parts.length - 1))
 	if (eq(p.tok.kind, bait__token__TokenKind.key_as)) {
 		bait__parser__Parser_next(p)
@@ -5466,7 +5466,7 @@ function bait__util__shell_escape(s) {
 
 
 const bait__util__VERSION = from_js_string("0.0.5")
-const bait__util__FULL_VERSION = from_js_string(`${bait__util__VERSION.str} ${from_js_string("30f218f").str}`)
+const bait__util__FULL_VERSION = from_js_string(`${bait__util__VERSION.str} ${from_js_string("794d018").str}`)
 
 function bait__gen__js__Gen_expr(g, expr) {
 	if (expr instanceof bait__ast__AnonFun) {
@@ -5959,7 +5959,7 @@ function bait__gen__js__Gen_fun_decl(g, node) {
 	bait__gen__js__Gen_writeln(g, from_js_string(") {"))
 	bait__gen__js__Gen_stmts(g, node.stmts)
 	bait__gen__js__Gen_writeln(g, from_js_string("}"))
-	const export_attr = array_bait__ast__Attribute_find_attr(node.attrs, from_js_string("export"))
+	const export_attr = Array_bait__ast__Attribute_find_attr(node.attrs, from_js_string("export"))
 	if (!eq(export_attr.name, from_js_string(""))) {
 		bait__gen__js__Gen_writeln(g, from_js_string(`module.exports.${export_attr.value.str} = ${bait__gen__js__js_name(node.name).str}`))
 	}
@@ -6052,7 +6052,7 @@ function bait__gen__js__Gen_generic_fun_name(g, name, concrete_types) {
 }
 
 
-const bait__gen__js__JS_RESERVED = new array({ data: [from_js_string("await"), from_js_string("break"), from_js_string("case"), from_js_string("catch"), from_js_string("class"), from_js_string("const"), from_js_string("continue"), from_js_string("debugger"), from_js_string("default"), from_js_string("delete"), from_js_string("do"), from_js_string("else"), from_js_string("enum"), from_js_string("export"), from_js_string("extends"), from_js_string("false"), from_js_string("finally"), from_js_string("for"), from_js_string("function"), from_js_string("if"), from_js_string("import"), from_js_string("in"), from_js_string("instanceof"), from_js_string("new"), from_js_string("null"), from_js_string("return"), from_js_string("super"), from_js_string("switch"), from_js_string("this"), from_js_string("throw"), from_js_string("true"), from_js_string("try"), from_js_string("typeof"), from_js_string("var"), from_js_string("void"), from_js_string("while"), from_js_string("with"), from_js_string("yield"), from_js_string("let"), from_js_string("static"), from_js_string("implements"), from_js_string("interface"), from_js_string("package"), from_js_string("private"), from_js_string("protected"), from_js_string("public"), from_js_string("as"), from_js_string("async"), from_js_string("from"), from_js_string("get"), from_js_string("meta"), from_js_string("of"), from_js_string("set"), from_js_string("target")], length: 54 })
+const bait__gen__js__JS_RESERVED = new array({ data: [from_js_string("await"), from_js_string("break"), from_js_string("case"), from_js_string("catch"), from_js_string("class"), from_js_string("const"), from_js_string("continue"), from_js_string("debugger"), from_js_string("default"), from_js_string("delete"), from_js_string("do"), from_js_string("else"), from_js_string("enum"), from_js_string("export"), from_js_string("extends"), from_js_string("false"), from_js_string("finally"), from_js_string("for"), from_js_string("function"), from_js_string("if"), from_js_string("import"), from_js_string("in"), from_js_string("instanceof"), from_js_string("new"), from_js_string("null"), from_js_string("return"), from_js_string("super"), from_js_string("switch"), from_js_string("this"), from_js_string("throw"), from_js_string("true"), from_js_string("try"), from_js_string("typeof"), from_js_string("var"), from_js_string("void"), from_js_string("while"), from_js_string("with"), from_js_string("yield"), from_js_string("let"), from_js_string("static"), from_js_string("implements"), from_js_string("interface"), from_js_string("package"), from_js_string("private"), from_js_string("protected"), from_js_string("public"), from_js_string("as"), from_js_string("async"), from_js_string("from"), from_js_string("get"), from_js_string("meta"), from_js_string("of"), from_js_string("set"), from_js_string("target"), from_js_string("globalThis"), from_js_string("Infinity"), from_js_string("NaN"), from_js_string("undefined"), from_js_string("eval"), from_js_string("isFinite"), from_js_string("isNaN"), from_js_string("parseFloat"), from_js_string("parseInt"), from_js_string("decodeURI"), from_js_string("decodeURIComponent"), from_js_string("encodeURI"), from_js_string("encodeURIComponent"), from_js_string("escape"), from_js_string("unescape"), from_js_string("Object"), from_js_string("Function"), from_js_string("Boolean"), from_js_string("Symbol"), from_js_string("Error"), from_js_string("AggregateError"), from_js_string("EvalError"), from_js_string("RangeError"), from_js_string("ReferenceError"), from_js_string("SyntaxError"), from_js_string("TypeError"), from_js_string("URIError"), from_js_string("InternalError"), from_js_string("Number"), from_js_string("BigInt"), from_js_string("Math"), from_js_string("Date"), from_js_string("String"), from_js_string("RegExp"), from_js_string("Array"), from_js_string("Int8Array"), from_js_string("Uint8Array"), from_js_string("Uint8ClampedArray"), from_js_string("Int16Array"), from_js_string("Uint16Array"), from_js_string("Int32Array"), from_js_string("Uint32Array"), from_js_string("Float32Array"), from_js_string("Float64Array"), from_js_string("BigInt64Array"), from_js_string("BigUint64Array"), from_js_string("Map"), from_js_string("Set"), from_js_string("WeakMap"), from_js_string("WeakSet"), from_js_string("ArrayBuffer"), from_js_string("SharedArrayBuffer"), from_js_string("Atomics"), from_js_string("DataView"), from_js_string("JSON"), from_js_string("FinalizationRegistry"), from_js_string("WeakRef"), from_js_string("Iterator"), from_js_string("Promise"), from_js_string("Generator"), from_js_string("GeneratorFunction"), from_js_string("AsyncFunction"), from_js_string("AsyncGenerator"), from_js_string("AsyncGeneratorFunction"), from_js_string("Reflect"), from_js_string("Proxy"), from_js_string("Intl")], length: 121 })
 function bait__gen__js__Gen({ pref = new bait__preference__Prefs({}), table = new bait__ast__Table({}), path = from_js_string(""), pkg = from_js_string(""), type_defs_out = from_js_string(""), global_out = from_js_string(""), fun_decls_out = from_js_string(""), out = from_js_string(""), indent = 0, empty_line = false, foreign_imports = new map({ data: new Map([]), length: 0 }), generated_str_funs = new array({ data: [], length: 0 }), tmp_counter = 0, cur_concrete_types = new map({ data: new Map([]), length: 0 }), cur_fun = new bait__ast__FunDecl({}), is_for_loop_head = false, is_lhs_assign = false, is_array_map_set = false }) {
 	this.pref = pref
 	this.table = table
@@ -6229,7 +6229,7 @@ function bait__gen__js__Gen_concrete_sym(g, typ) {
 }
 
 function bait__gen__js__js_name(n) {
-	const name = string_replace(string_replace(string_replace(string_replace(n, from_js_string("."), from_js_string("__")), from_js_string("[]"), from_js_string("array_")), from_js_string("["), from_js_string("_")), from_js_string("]"), from_js_string("_"))
+	const name = string_replace(string_replace(string_replace(string_replace(n, from_js_string("."), from_js_string("__")), from_js_string("[]"), from_js_string("Array_")), from_js_string("["), from_js_string("_")), from_js_string("]"), from_js_string("_"))
 	if (array_contains(bait__gen__js__JS_RESERVED, name)) {
 		return from_js_string(`bait_${name.str}`)
 	}
@@ -7878,7 +7878,7 @@ function bait__builder__Builder_parse_source_file(b, path) {
 	const text = os__read_file(path)
 	let t = bait__tokenizer__new_tokenizer(text, path)
 	const tokens = bait__tokenizer__Tokenizer_tokenize(t)
-	array_bait__errors__Message_print_and_exit(t.errors)
+	Array_bait__errors__Message_print_and_exit(t.errors)
 	return bait__parser__parse(tokens, path, b.table, b.prefs)
 }
 
@@ -7966,7 +7966,7 @@ function bait__builder__Builder_code_gen_js(b) {
 	bait__builder__ensure_dir_exists(os__dir(b.prefs.out_name))
 	os__write_file(b.prefs.out_name, res)
 	if (b.prefs.should_run) {
-		const argstr = array_string_join(b.prefs.user_args, from_js_string(" "))
+		const argstr = Array_string_join(b.prefs.user_args, from_js_string(" "))
 		const run_res = os__system(from_js_string(`node ${b.prefs.out_name.str} ${argstr.str}`))
 		if (!b.prefs.keep_exe) {
 			os__rm(b.prefs.out_name)
@@ -7989,7 +7989,7 @@ function bait__builder__Builder_code_gen_c(b) {
 		return comp_res
 	}
 	if (b.prefs.should_run) {
-		const argstr = array_string_join(b.prefs.user_args, from_js_string(" "))
+		const argstr = Array_string_join(b.prefs.user_args, from_js_string(" "))
 		const run_res = os__system(from_js_string(`./${b.prefs.out_name.str} ${argstr.str}`))
 		if (!b.prefs.keep_exe) {
 			os__rm(b.prefs.out_name)
@@ -8170,7 +8170,7 @@ function bait__util__tools__launch_tool(name, args) {
 		eprintln(from_js_string(`Failed to compile tool "${name.str}" with error: ${comp_res.stderr.str}`))
 		return 1
 	}
-	const args_string = array_string_join(args, from_js_string(" "))
+	const args_string = Array_string_join(args, from_js_string(" "))
 	if (bait__util__tools__VERBOSE) {
 		println(from_js_string("launching tool"))
 		println(from_js_string(`  source: ${tool_source.str}`))
