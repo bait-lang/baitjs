@@ -167,6 +167,15 @@ function bool_str(b) {
 }
 
 
+function u8_is_capital(c) {
+	return u8(c >= u8("A")) && u8(c <= u8("Z"))
+}
+
+function u8_ascii(c) {
+	return from_js_string(String.fromCharCode(c))
+}
+
+
 
 function eq(a, b) {
 	if (a === b) {
@@ -297,14 +306,6 @@ function f64_str(n) {
 	return from_js_string(n.toString())
 }
 
-function u8_is_capital(c) {
-	return u8(c >= u8("A")) && u8(c <= u8("Z"))
-}
-
-function u8_ascii(c) {
-	return from_js_string(String.fromCharCode(c))
-}
-
 
 function string({ str = undefined, length = 0 }) {
 	this.str = str
@@ -426,6 +427,18 @@ function string_ends_with(s, suffix) {
 
 function string_contains(s, substr) {
 	return s.str.includes(substr.str)
+}
+
+function string_is_capital(s) {
+	if (eq(s.length, 0) || !u8_is_capital(string_get(s, 0))) {
+		return false
+	}
+	for (let i = 1; i32(i < s.length); i += 1) {
+		if (u8_is_capital(string_get(s, i))) {
+			return false
+		}
+	}
+	return true
 }
 
 function string_is_upper(s) {
@@ -2097,8 +2110,9 @@ function bait__ast__ReturnStmt({ expr = undefined, pos = new bait__token__Pos({}
 	this.expr = expr
 	this.pos = pos
 }
-function bait__ast__StructDecl({ lang = 0, name = from_js_string(""), typ = 0, fields = new bait_Array({ data: [], length: 0 }), pos = new bait__token__Pos({}) }) {
+function bait__ast__StructDecl({ lang = 0, pkg_prefix = from_js_string(""), name = from_js_string(""), typ = 0, fields = new bait_Array({ data: [], length: 0 }), pos = new bait__token__Pos({}) }) {
 	this.lang = lang
+	this.pkg_prefix = pkg_prefix
 	this.name = name
 	this.typ = typ
 	this.fields = fields
@@ -3848,7 +3862,6 @@ function bait__parser__Parser_struct_decl(p) {
 	const lang = bait__parser__Parser_parse_lang(p)
 	let name = bait__parser__Parser_check_name(p)
 	if (eq(lang, bait__ast__Language.bait)) {
-		name = bait__parser__Parser_prepend_pkg(p, name)
 	} else {
 		name = bait__ast__Language_prepend_to(lang, name)
 	}
@@ -3912,9 +3925,9 @@ function bait__parser__Parser_struct_decl(p) {
 		Array_push(fields, bait__parser__Parser_struct_decl_field(p, field_is_mut, field_is_pub, field_is_global))
 	}
 	bait__parser__Parser_check(p, bait__token__TokenKind.rcur)
-	const tsym = new bait__ast__TypeSymbol({ kind: bait__ast__TypeKind.struct_, name: name, is_pub: is_pub, pkg: p.pkg_name, info: new bait__ast__StructInfo({ fields: fields }) })
+	const tsym = new bait__ast__TypeSymbol({ kind: bait__ast__TypeKind.struct_, name: bait__parser__Parser_prepend_pkg(p, name), is_pub: is_pub, pkg: p.pkg_name, info: new bait__ast__StructInfo({ fields: fields }) })
 	const typ = bait__ast__Table_register_sym(p.table, tsym)
-	return new bait__ast__StructDecl({ lang: lang, name: name, typ: typ, fields: fields, pos: pos })
+	return new bait__ast__StructDecl({ lang: lang, pkg_prefix: bait__parser__Parser_prepend_pkg(p, from_js_string("")), name: name, typ: typ, fields: fields, pos: pos })
 }
 
 function bait__parser__Parser_struct_decl_field(p, is_mut, is_pub, is_global) {
@@ -5256,6 +5269,9 @@ function bait__checker__Checker_type_decl(c, node) {
 
 
 function bait__checker__Checker_struct_decl(c, node) {
+	if (!u8_is_capital(string_get(node.name, 0)) && !eq(node.name, from_js_string("string")) && !eq(node.name, from_js_string("map"))) {
+		bait__checker__Checker_warn(c, from_js_string(`struct name \`${node.name.str}\` must start with a capital letter`), node.pos)
+	}
 	outer: for (let i = 0; i < node.fields.length; i++) {
 		const field = Array_get(node.fields, i)
 		let should_continue = false
@@ -5466,7 +5482,7 @@ function bait__util__shell_escape(s) {
 
 
 const bait__util__VERSION = from_js_string("0.0.5")
-const bait__util__FULL_VERSION = from_js_string(`${bait__util__VERSION.str} ${from_js_string("d62f850").str}`)
+const bait__util__FULL_VERSION = from_js_string(`${bait__util__VERSION.str} ${from_js_string("4e21983").str}`)
 
 function bait__gen__js__Gen_expr(g, expr) {
 	if (expr instanceof bait__ast__AnonFun) {
@@ -6648,7 +6664,7 @@ function bait__gen__js__Gen_struct_decl(g, node) {
 		return
 	}
 	bait__gen__js__Gen_write(g, from_js_string("function "))
-	const jsname = bait__gen__js__js_name(node.name)
+	const jsname = bait__gen__js__js_name(string_add(node.pkg_prefix, node.name))
 	bait__gen__js__Gen_write(g, jsname)
 	bait__gen__js__Gen_write(g, from_js_string("({ "))
 	for (let i = 0; i < node.fields.length; i++) {
