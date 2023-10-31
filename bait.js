@@ -2670,95 +2670,112 @@ function bait__ast__Table_register_num(t, name) {
 
 
 function bait__parser__Parser_expr(p, precedence) {
-	let node = new bait__ast__EmptyExpr({})
+	let node = bait__parser__Parser_single_expr(p)
+	while (precedence < bait__token__Token_precedence(p.tok)) {
+		if (eq(p.tok.kind, bait__token__TokenKind.dot)) {
+			node = bait__parser__Parser_dot_expr(p, node)
+		} else if (eq(p.tok.kind, bait__token__TokenKind.lbr)) {
+			node = bait__parser__Parser_index_expr(p, node)
+		} else if (eq(p.tok.kind, bait__token__TokenKind.key_as)) {
+			node = bait__parser__Parser_as_cast(p, node)
+		} else if (bait__token__TokenKind_is_infix(p.tok.kind)) {
+			node = bait__parser__Parser_infix_expr(p, node)
+		} else {
+			return node
+		}
+	}
+	return node
+}
+
+function bait__parser__Parser_single_expr(p) {
 	switch (p.tok.kind) {
 		case bait__token__TokenKind.hash:
 			{
-				node = bait__parser__Parser_hash_expr(p)
+				return bait__parser__Parser_hash_expr(p)
 				break
 			}
 		case bait__token__TokenKind.char:
 			{
-				node = bait__parser__Parser_char_literal(p)
+				return bait__parser__Parser_char_literal(p)
 				break
 			}
 		case bait__token__TokenKind.dollar:
 			{
-				node = bait__parser__Parser_comp_time_var(p)
+				return bait__parser__Parser_comp_time_var(p)
 				break
 			}
 		case bait__token__TokenKind.dot:
 			{
-				node = bait__parser__Parser_enum_val(p, false)
+				return bait__parser__Parser_enum_val(p, false)
 				break
 			}
 		case bait__token__TokenKind.lbr:
 			{
-				node = bait__parser__Parser_array_init(p)
+				return bait__parser__Parser_array_init(p)
 				break
 			}
 		case bait__token__TokenKind.lpar:
 			{
-				node = bait__parser__Parser_par_expr(p)
+				return bait__parser__Parser_par_expr(p)
 				break
 			}
 		case bait__token__TokenKind.name:
 			{
-				node = bait__parser__Parser_name_expr(p, bait__ast__Language.bait)
+				return bait__parser__Parser_name_expr(p, bait__ast__Language.bait)
 				break
 			}
 		case bait__token__TokenKind.number:
 			{
-				node = bait__parser__Parser_number_literal(p)
+				return bait__parser__Parser_number_literal(p)
 				break
 			}
 		case bait__token__TokenKind.string:
 			{
-				node = bait__parser__Parser_string_literal(p)
+				return bait__parser__Parser_string_literal(p)
 				break
 			}
 		case bait__token__TokenKind.key_fun:
 			{
-				node = bait__parser__Parser_anon_fun(p)
+				return bait__parser__Parser_anon_fun(p)
 				break
 			}
 		case bait__token__TokenKind.key_false:
 		case bait__token__TokenKind.key_true:
 			{
-				node = bait__parser__Parser_bool_literal(p)
+				return bait__parser__Parser_bool_literal(p)
 				break
 			}
 		case bait__token__TokenKind.key_if:
 			{
-				node = bait__parser__Parser_if_expr(p)
+				return bait__parser__Parser_if_expr(p)
 				break
 			}
 		case bait__token__TokenKind.key_match:
 			{
-				node = bait__parser__Parser_match_expr(p)
+				return bait__parser__Parser_match_expr(p)
 				break
 			}
 		case bait__token__TokenKind.key_mut:
 			{
-				node = bait__parser__Parser_ident(p, bait__ast__Language.bait)
+				return bait__parser__Parser_ident(p, bait__ast__Language.bait)
 				break
 			}
 		case bait__token__TokenKind.key_not:
 		case bait__token__TokenKind.minus:
 		case bait__token__TokenKind.caret:
 			{
-				node = bait__parser__Parser_prefix_expr(p)
+				return bait__parser__Parser_prefix_expr(p)
 				break
 			}
 		case bait__token__TokenKind.key_typeof:
 			{
-				node = bait__parser__Parser_typeof_expr(p)
+				return bait__parser__Parser_typeof_expr(p)
 				break
 			}
 		case bait__token__TokenKind.eof:
 			{
 				p.should_abort = true
-				return node
+				return new bait__ast__EmptyExpr({})
 				break
 			}
 		default:
@@ -2771,25 +2788,6 @@ function bait__parser__Parser_expr(p, precedence) {
 				break
 			}
 	}
-	return bait__parser__Parser_expr_with_left(p, node, precedence)
-}
-
-function bait__parser__Parser_expr_with_left(p, left_, precedence) {
-	let left = left_
-	while (precedence < bait__token__Token_precedence(p.tok)) {
-		if (eq(p.tok.kind, bait__token__TokenKind.dot)) {
-			left = bait__parser__Parser_dot_expr(p, left)
-		} else if (eq(p.tok.kind, bait__token__TokenKind.lbr)) {
-			left = bait__parser__Parser_index_expr(p, left)
-		} else if (eq(p.tok.kind, bait__token__TokenKind.key_as)) {
-			left = bait__parser__Parser_as_cast(p, left)
-		} else if (bait__token__TokenKind_is_infix(p.tok.kind)) {
-			left = bait__parser__Parser_infix_expr(p, left)
-		} else {
-			return left
-		}
-	}
-	return left
 }
 
 function bait__parser__Parser_expr_list(p) {
@@ -5482,7 +5480,7 @@ function bait__util__shell_escape(s) {
 
 
 const bait__util__VERSION = from_js_string("0.0.5")
-const bait__util__FULL_VERSION = from_js_string(`${bait__util__VERSION.str} ${from_js_string("4e21983").str}`)
+const bait__util__FULL_VERSION = from_js_string(`${bait__util__VERSION.str} ${from_js_string("1a13efe").str}`)
 
 function bait__gen__js__Gen_expr(g, expr) {
 	if (expr instanceof bait__ast__AnonFun) {
