@@ -23,15 +23,6 @@ function bait__ast__EmptyStmt_str(it, indent) {
 	return from_js_string(s + space + "}")
 }
 
-function bait__token__Pos_str(it, indent) {
-	const space = " ".repeat(indent * 4)
-	let s = "bait.token.Pos{"
-	s += "\n"
-	s += space + "    line = " + i32_str(it.line, indent + 1).str + "\n"
-	s += space + "    col = " + i32_str(it.col, indent + 1).str + "\n"
-	return from_js_string(s + space + "}")
-}
-
 function bait_Array({ data = undefined, length = 0 }) {
 	this.data = data
 	this.length = length
@@ -717,6 +708,10 @@ function bait__token__Pos({ line = 0, col = 0 }) {
 	this.line = line
 	this.col = col
 }
+function bait__token__Pos_str(p) {
+	return from_js_string(`{ line = ${i32_str(p.line).str}, col = ${i32_str(p.col).str} }`)
+}
+
 
 const bait__token__Precedence = {
 	lowest: 0,
@@ -5480,7 +5475,7 @@ function bait__util__shell_escape(s) {
 
 
 const bait__util__VERSION = from_js_string("0.0.5")
-const bait__util__FULL_VERSION = from_js_string(`${bait__util__VERSION.str} ${from_js_string("7527979").str}`)
+const bait__util__FULL_VERSION = from_js_string(`${bait__util__VERSION.str} ${from_js_string("0c7c666").str}`)
 
 function bait__gen__js__Gen_expr(g, expr) {
 	if (expr instanceof bait__ast__AnonFun) {
@@ -8204,7 +8199,7 @@ function bait__util__tools__find_tool_source(base) {
 
 const TOOLS = new bait_Array({ data: [from_js_string("ast"), from_js_string("init"), from_js_string("self"), from_js_string("up"), from_js_string("symlink"), from_js_string("doctor"), from_js_string("help"), from_js_string("test-all"), from_js_string("test-lib"), from_js_string("test-tools"), from_js_string("build-examples"), from_js_string("build-tools"), from_js_string("check-md")], length: 13 })
 function main() {
-	const args = Array_slice(os__ARGS, 2, os__ARGS.length)
+	const args = os__user_args()
 	let prefs = bait__preference__parse_args(args)
 	bait__preference__Prefs_set_comptime_vars(prefs)
 	if (Array_contains(TOOLS, prefs.command)) {
