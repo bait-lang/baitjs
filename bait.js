@@ -725,34 +725,35 @@ const bait__token__Precedence = {
 	index: 8,
 }
 function bait__token__Token_precedence(t) {
+	let _t5 = undefined
 	switch (t.kind) {
 		case bait__token__TokenKind.lbr:
 			{
-				return bait__token__Precedence.index
+				_t5 = bait__token__Precedence.index
 				break
 			}
 		case bait__token__TokenKind.dot:
 			{
-				return bait__token__Precedence.call
+				_t5 = bait__token__Precedence.call
 				break
 			}
 		case bait__token__TokenKind.key_not:
 		case bait__token__TokenKind.caret:
 			{
-				return bait__token__Precedence.prefix
+				_t5 = bait__token__Precedence.prefix
 				break
 			}
 		case bait__token__TokenKind.mul:
 		case bait__token__TokenKind.div:
 		case bait__token__TokenKind.mod:
 			{
-				return bait__token__Precedence.product
+				_t5 = bait__token__Precedence.product
 				break
 			}
 		case bait__token__TokenKind.plus:
 		case bait__token__TokenKind.minus:
 			{
-				return bait__token__Precedence.sum
+				_t5 = bait__token__Precedence.sum
 				break
 			}
 		case bait__token__TokenKind.eq:
@@ -762,27 +763,28 @@ function bait__token__Token_precedence(t) {
 		case bait__token__TokenKind.le:
 		case bait__token__TokenKind.ge:
 			{
-				return bait__token__Precedence.compare
+				_t5 = bait__token__Precedence.compare
 				break
 			}
 		case bait__token__TokenKind.key_as:
 		case bait__token__TokenKind.key_is:
 			{
-				return bait__token__Precedence.as_is
+				_t5 = bait__token__Precedence.as_is
 				break
 			}
 		case bait__token__TokenKind.key_and:
 		case bait__token__TokenKind.key_or:
 			{
-				return bait__token__Precedence.cond
+				_t5 = bait__token__Precedence.cond
 				break
 			}
 		default:
 			{
-				return bait__token__Precedence.lowest
+				_t5 = bait__token__Precedence.lowest
 				break
 			}
 	}
+	return _t5
 }
 
 
@@ -862,153 +864,155 @@ const bait__token__TokenKind = {
 	key_typeof: 67,
 }
 function bait__token__keyword_to_kind(name) {
+	let _t6 = undefined
 	switch (name.str) {
 		case from_js_string("and").str:
 			{
-				return bait__token__TokenKind.key_and
+				_t6 = bait__token__TokenKind.key_and
 				break
 			}
 		case from_js_string("as").str:
 			{
-				return bait__token__TokenKind.key_as
+				_t6 = bait__token__TokenKind.key_as
 				break
 			}
 		case from_js_string("assert").str:
 			{
-				return bait__token__TokenKind.key_assert
+				_t6 = bait__token__TokenKind.key_assert
 				break
 			}
 		case from_js_string("break").str:
 			{
-				return bait__token__TokenKind.key_break
+				_t6 = bait__token__TokenKind.key_break
 				break
 			}
 		case from_js_string("const").str:
 			{
-				return bait__token__TokenKind.key_const
+				_t6 = bait__token__TokenKind.key_const
 				break
 			}
 		case from_js_string("continue").str:
 			{
-				return bait__token__TokenKind.key_continue
+				_t6 = bait__token__TokenKind.key_continue
 				break
 			}
 		case from_js_string("else").str:
 			{
-				return bait__token__TokenKind.key_else
+				_t6 = bait__token__TokenKind.key_else
 				break
 			}
 		case from_js_string("enum").str:
 			{
-				return bait__token__TokenKind.key_enum
+				_t6 = bait__token__TokenKind.key_enum
 				break
 			}
 		case from_js_string("false").str:
 			{
-				return bait__token__TokenKind.key_false
+				_t6 = bait__token__TokenKind.key_false
 				break
 			}
 		case from_js_string("for").str:
 			{
-				return bait__token__TokenKind.key_for
+				_t6 = bait__token__TokenKind.key_for
 				break
 			}
 		case from_js_string("fun").str:
 			{
-				return bait__token__TokenKind.key_fun
+				_t6 = bait__token__TokenKind.key_fun
 				break
 			}
 		case from_js_string("global").str:
 			{
-				return bait__token__TokenKind.key_global
+				_t6 = bait__token__TokenKind.key_global
 				break
 			}
 		case from_js_string("if").str:
 			{
-				return bait__token__TokenKind.key_if
+				_t6 = bait__token__TokenKind.key_if
 				break
 			}
 		case from_js_string("import").str:
 			{
-				return bait__token__TokenKind.key_import
+				_t6 = bait__token__TokenKind.key_import
 				break
 			}
 		case from_js_string("in").str:
 			{
-				return bait__token__TokenKind.key_in
+				_t6 = bait__token__TokenKind.key_in
 				break
 			}
 		case from_js_string("interface").str:
 			{
-				return bait__token__TokenKind.key_interface
+				_t6 = bait__token__TokenKind.key_interface
 				break
 			}
 		case from_js_string("is").str:
 			{
-				return bait__token__TokenKind.key_is
+				_t6 = bait__token__TokenKind.key_is
 				break
 			}
 		case from_js_string("match").str:
 			{
-				return bait__token__TokenKind.key_match
+				_t6 = bait__token__TokenKind.key_match
 				break
 			}
 		case from_js_string("mut").str:
 			{
-				return bait__token__TokenKind.key_mut
+				_t6 = bait__token__TokenKind.key_mut
 				break
 			}
 		case from_js_string("not").str:
 			{
-				return bait__token__TokenKind.key_not
+				_t6 = bait__token__TokenKind.key_not
 				break
 			}
 		case from_js_string("or").str:
 			{
-				return bait__token__TokenKind.key_or
+				_t6 = bait__token__TokenKind.key_or
 				break
 			}
 		case from_js_string("package").str:
 			{
-				return bait__token__TokenKind.key_package
+				_t6 = bait__token__TokenKind.key_package
 				break
 			}
 		case from_js_string("pub").str:
 			{
-				return bait__token__TokenKind.key_pub
+				_t6 = bait__token__TokenKind.key_pub
 				break
 			}
 		case from_js_string("return").str:
 			{
-				return bait__token__TokenKind.key_return
+				_t6 = bait__token__TokenKind.key_return
 				break
 			}
 		case from_js_string("struct").str:
 			{
-				return bait__token__TokenKind.key_struct
+				_t6 = bait__token__TokenKind.key_struct
 				break
 			}
 		case from_js_string("true").str:
 			{
-				return bait__token__TokenKind.key_true
+				_t6 = bait__token__TokenKind.key_true
 				break
 			}
 		case from_js_string("type").str:
 			{
-				return bait__token__TokenKind.key_type
+				_t6 = bait__token__TokenKind.key_type
 				break
 			}
 		case from_js_string("typeof").str:
 			{
-				return bait__token__TokenKind.key_typeof
+				_t6 = bait__token__TokenKind.key_typeof
 				break
 			}
 		default:
 			{
-				return bait__token__TokenKind.name
+				_t6 = bait__token__TokenKind.name
 				break
 			}
 	}
+	return _t6
 }
 
 const bait__token__COMPARE_KINDS = new bait_Array({ data: [bait__token__TokenKind.eq, bait__token__TokenKind.ne, bait__token__TokenKind.lt, bait__token__TokenKind.gt, bait__token__TokenKind.le, bait__token__TokenKind.ge, bait__token__TokenKind.key_is], length: 7 })
@@ -1028,485 +1032,495 @@ function bait__token__TokenKind_is_assign(kind) {
 }
 
 function bait__token__TokenKind_js_repr(kind) {
+	let _t7 = undefined
 	switch (kind) {
 		case bait__token__TokenKind.key_break:
 			{
-				return from_js_string("break")
+				_t7 = from_js_string("break")
 				break
 			}
 		case bait__token__TokenKind.key_continue:
 			{
-				return from_js_string("continue")
+				_t7 = from_js_string("continue")
 				break
 			}
 		case bait__token__TokenKind.key_is:
 			{
-				return from_js_string("instanceof")
+				_t7 = from_js_string("instanceof")
 				break
 			}
 		case bait__token__TokenKind.mul:
 			{
-				return from_js_string("*")
+				_t7 = from_js_string("*")
 				break
 			}
 		case bait__token__TokenKind.div:
 			{
-				return from_js_string("/")
+				_t7 = from_js_string("/")
 				break
 			}
 		case bait__token__TokenKind.mod:
 			{
-				return from_js_string("%")
+				_t7 = from_js_string("%")
 				break
 			}
 		case bait__token__TokenKind.plus:
 			{
-				return from_js_string("+")
+				_t7 = from_js_string("+")
 				break
 			}
 		case bait__token__TokenKind.minus:
 			{
-				return from_js_string("-")
+				_t7 = from_js_string("-")
 				break
 			}
 		case bait__token__TokenKind.mul_assign:
 			{
-				return from_js_string("*=")
+				_t7 = from_js_string("*=")
 				break
 			}
 		case bait__token__TokenKind.div_assign:
 			{
-				return from_js_string("/=")
+				_t7 = from_js_string("/=")
 				break
 			}
 		case bait__token__TokenKind.mod_assign:
 			{
-				return from_js_string("%=")
+				_t7 = from_js_string("%=")
 				break
 			}
 		case bait__token__TokenKind.plus_assign:
 			{
-				return from_js_string("+=")
+				_t7 = from_js_string("+=")
 				break
 			}
 		case bait__token__TokenKind.minus_assign:
 			{
-				return from_js_string("-=")
+				_t7 = from_js_string("-=")
 				break
 			}
 		case bait__token__TokenKind.decl_assign:
 		case bait__token__TokenKind.assign:
 			{
-				return from_js_string("=")
+				_t7 = from_js_string("=")
 				break
 			}
 		case bait__token__TokenKind.eq:
 			{
-				return from_js_string("==")
+				_t7 = from_js_string("==")
 				break
 			}
 		case bait__token__TokenKind.ne:
 			{
-				return from_js_string("!=")
+				_t7 = from_js_string("!=")
 				break
 			}
 		case bait__token__TokenKind.lt:
 			{
-				return from_js_string("<")
+				_t7 = from_js_string("<")
 				break
 			}
 		case bait__token__TokenKind.gt:
 			{
-				return from_js_string(">")
+				_t7 = from_js_string(">")
 				break
 			}
 		case bait__token__TokenKind.le:
 			{
-				return from_js_string("<=")
+				_t7 = from_js_string("<=")
 				break
 			}
 		case bait__token__TokenKind.ge:
 			{
-				return from_js_string(">=")
+				_t7 = from_js_string(">=")
 				break
 			}
 		case bait__token__TokenKind.key_and:
 			{
-				return from_js_string("&&")
+				_t7 = from_js_string("&&")
 				break
 			}
 		case bait__token__TokenKind.key_not:
 			{
-				return from_js_string("!")
+				_t7 = from_js_string("!")
 				break
 			}
 		case bait__token__TokenKind.key_or:
 			{
-				return from_js_string("||")
+				_t7 = from_js_string("||")
 				break
 			}
 		default:
 			{
-				return from_js_string("")
+				_t7 = from_js_string("")
 				break
 			}
 	}
+	return _t7
 }
 
 function bait__token__TokenKind_c_repr(kind) {
+	let _t8 = undefined
 	switch (kind) {
 		case bait__token__TokenKind.amp:
 			{
-				return from_js_string("&")
+				_t8 = from_js_string("&")
 				break
 			}
 		case bait__token__TokenKind.caret:
 			{
-				return from_js_string("*")
+				_t8 = from_js_string("*")
+				break
+			}
+		default:
+			{
+				_t8 = bait__token__TokenKind_js_repr(kind)
 				break
 			}
 	}
-	return bait__token__TokenKind_js_repr(kind)
+	return _t8
 }
 
 function bait__token__TokenKind_str(kind) {
+	let _t9 = undefined
 	switch (kind) {
 		case bait__token__TokenKind.eof:
 			{
-				return from_js_string("eof")
+				_t9 = from_js_string("eof")
 				break
 			}
 		case bait__token__TokenKind.attr:
 			{
-				return from_js_string("attr")
+				_t9 = from_js_string("attr")
 				break
 			}
 		case bait__token__TokenKind.name:
 			{
-				return from_js_string("name")
+				_t9 = from_js_string("name")
 				break
 			}
 		case bait__token__TokenKind.string:
 			{
-				return from_js_string("string")
+				_t9 = from_js_string("string")
 				break
 			}
 		case bait__token__TokenKind.char:
 			{
-				return from_js_string("char")
+				_t9 = from_js_string("char")
 				break
 			}
 		case bait__token__TokenKind.number:
 			{
-				return from_js_string("number")
+				_t9 = from_js_string("number")
 				break
 			}
 		case bait__token__TokenKind.dot:
 			{
-				return from_js_string("dot")
+				_t9 = from_js_string("dot")
 				break
 			}
 		case bait__token__TokenKind.colon:
 			{
-				return from_js_string("colon")
+				_t9 = from_js_string("colon")
 				break
 			}
 		case bait__token__TokenKind.comma:
 			{
-				return from_js_string("comma")
+				_t9 = from_js_string("comma")
 				break
 			}
 		case bait__token__TokenKind.semicolon:
 			{
-				return from_js_string("semicolon")
+				_t9 = from_js_string("semicolon")
 				break
 			}
 		case bait__token__TokenKind.plus:
 			{
-				return from_js_string("plus")
+				_t9 = from_js_string("plus")
 				break
 			}
 		case bait__token__TokenKind.minus:
 			{
-				return from_js_string("minus")
+				_t9 = from_js_string("minus")
 				break
 			}
 		case bait__token__TokenKind.mul:
 			{
-				return from_js_string("mul")
+				_t9 = from_js_string("mul")
 				break
 			}
 		case bait__token__TokenKind.div:
 			{
-				return from_js_string("div")
+				_t9 = from_js_string("div")
 				break
 			}
 		case bait__token__TokenKind.mod:
 			{
-				return from_js_string("mod")
+				_t9 = from_js_string("mod")
 				break
 			}
 		case bait__token__TokenKind.assign:
 			{
-				return from_js_string("assign")
+				_t9 = from_js_string("assign")
 				break
 			}
 		case bait__token__TokenKind.decl_assign:
 			{
-				return from_js_string("decl_assign")
+				_t9 = from_js_string("decl_assign")
 				break
 			}
 		case bait__token__TokenKind.plus_assign:
 			{
-				return from_js_string("plus_assign")
+				_t9 = from_js_string("plus_assign")
 				break
 			}
 		case bait__token__TokenKind.minus_assign:
 			{
-				return from_js_string("minus_assign")
+				_t9 = from_js_string("minus_assign")
 				break
 			}
 		case bait__token__TokenKind.mul_assign:
 			{
-				return from_js_string("mul_assign")
+				_t9 = from_js_string("mul_assign")
 				break
 			}
 		case bait__token__TokenKind.div_assign:
 			{
-				return from_js_string("div_assign")
+				_t9 = from_js_string("div_assign")
 				break
 			}
 		case bait__token__TokenKind.mod_assign:
 			{
-				return from_js_string("mod_assign")
+				_t9 = from_js_string("mod_assign")
 				break
 			}
 		case bait__token__TokenKind.eq:
 			{
-				return from_js_string("eq")
+				_t9 = from_js_string("eq")
 				break
 			}
 		case bait__token__TokenKind.ne:
 			{
-				return from_js_string("ne")
+				_t9 = from_js_string("ne")
 				break
 			}
 		case bait__token__TokenKind.lt:
 			{
-				return from_js_string("lt")
+				_t9 = from_js_string("lt")
 				break
 			}
 		case bait__token__TokenKind.gt:
 			{
-				return from_js_string("gt")
+				_t9 = from_js_string("gt")
 				break
 			}
 		case bait__token__TokenKind.le:
 			{
-				return from_js_string("le")
+				_t9 = from_js_string("le")
 				break
 			}
 		case bait__token__TokenKind.ge:
 			{
-				return from_js_string("ge")
+				_t9 = from_js_string("ge")
 				break
 			}
 		case bait__token__TokenKind.lpar:
 			{
-				return from_js_string("lpar")
+				_t9 = from_js_string("lpar")
 				break
 			}
 		case bait__token__TokenKind.rpar:
 			{
-				return from_js_string("rpar")
+				_t9 = from_js_string("rpar")
 				break
 			}
 		case bait__token__TokenKind.lbr:
 			{
-				return from_js_string("lbr")
+				_t9 = from_js_string("lbr")
 				break
 			}
 		case bait__token__TokenKind.rbr:
 			{
-				return from_js_string("rbr")
+				_t9 = from_js_string("rbr")
 				break
 			}
 		case bait__token__TokenKind.lcur:
 			{
-				return from_js_string("lcur")
+				_t9 = from_js_string("lcur")
 				break
 			}
 		case bait__token__TokenKind.rcur:
 			{
-				return from_js_string("rcur")
+				_t9 = from_js_string("rcur")
 				break
 			}
 		case bait__token__TokenKind.amp:
 			{
-				return from_js_string("amp")
+				_t9 = from_js_string("amp")
 				break
 			}
 		case bait__token__TokenKind.caret:
 			{
-				return from_js_string("caret")
+				_t9 = from_js_string("caret")
 				break
 			}
 		case bait__token__TokenKind.pipe:
 			{
-				return from_js_string("pipe")
+				_t9 = from_js_string("pipe")
 				break
 			}
 		case bait__token__TokenKind.dollar:
 			{
-				return from_js_string("dollar")
+				_t9 = from_js_string("dollar")
 				break
 			}
 		case bait__token__TokenKind.hash:
 			{
-				return from_js_string("hash")
+				_t9 = from_js_string("hash")
 				break
 			}
 		case bait__token__TokenKind.key_and:
 			{
-				return from_js_string("key_and")
+				_t9 = from_js_string("key_and")
 				break
 			}
 		case bait__token__TokenKind.key_as:
 			{
-				return from_js_string("key_as")
+				_t9 = from_js_string("key_as")
 				break
 			}
 		case bait__token__TokenKind.key_assert:
 			{
-				return from_js_string("key_assert")
+				_t9 = from_js_string("key_assert")
 				break
 			}
 		case bait__token__TokenKind.key_break:
 			{
-				return from_js_string("key_break")
+				_t9 = from_js_string("key_break")
 				break
 			}
 		case bait__token__TokenKind.key_const:
 			{
-				return from_js_string("key_const")
+				_t9 = from_js_string("key_const")
 				break
 			}
 		case bait__token__TokenKind.key_continue:
 			{
-				return from_js_string("key_continue")
+				_t9 = from_js_string("key_continue")
 				break
 			}
 		case bait__token__TokenKind.key_else:
 			{
-				return from_js_string("key_else")
+				_t9 = from_js_string("key_else")
 				break
 			}
 		case bait__token__TokenKind.key_enum:
 			{
-				return from_js_string("key_enum")
+				_t9 = from_js_string("key_enum")
 				break
 			}
 		case bait__token__TokenKind.key_false:
 			{
-				return from_js_string("key_false")
+				_t9 = from_js_string("key_false")
 				break
 			}
 		case bait__token__TokenKind.key_for:
 			{
-				return from_js_string("key_for")
+				_t9 = from_js_string("key_for")
 				break
 			}
 		case bait__token__TokenKind.key_fun:
 			{
-				return from_js_string("key_fun")
+				_t9 = from_js_string("key_fun")
 				break
 			}
 		case bait__token__TokenKind.key_global:
 			{
-				return from_js_string("key_global")
+				_t9 = from_js_string("key_global")
 				break
 			}
 		case bait__token__TokenKind.key_if:
 			{
-				return from_js_string("key_if")
+				_t9 = from_js_string("key_if")
 				break
 			}
 		case bait__token__TokenKind.key_import:
 			{
-				return from_js_string("key_import")
+				_t9 = from_js_string("key_import")
 				break
 			}
 		case bait__token__TokenKind.key_in:
 			{
-				return from_js_string("key_in")
+				_t9 = from_js_string("key_in")
 				break
 			}
 		case bait__token__TokenKind.key_interface:
 			{
-				return from_js_string("key_interface")
+				_t9 = from_js_string("key_interface")
 				break
 			}
 		case bait__token__TokenKind.key_is:
 			{
-				return from_js_string("key_is")
+				_t9 = from_js_string("key_is")
 				break
 			}
 		case bait__token__TokenKind.key_match:
 			{
-				return from_js_string("key_match")
+				_t9 = from_js_string("key_match")
 				break
 			}
 		case bait__token__TokenKind.key_mut:
 			{
-				return from_js_string("key_mut")
+				_t9 = from_js_string("key_mut")
 				break
 			}
 		case bait__token__TokenKind.key_not:
 			{
-				return from_js_string("key_not")
+				_t9 = from_js_string("key_not")
 				break
 			}
 		case bait__token__TokenKind.key_or:
 			{
-				return from_js_string("key_or")
+				_t9 = from_js_string("key_or")
 				break
 			}
 		case bait__token__TokenKind.key_package:
 			{
-				return from_js_string("key_package")
+				_t9 = from_js_string("key_package")
 				break
 			}
 		case bait__token__TokenKind.key_pub:
 			{
-				return from_js_string("key_pub")
+				_t9 = from_js_string("key_pub")
 				break
 			}
 		case bait__token__TokenKind.key_return:
 			{
-				return from_js_string("key_return")
+				_t9 = from_js_string("key_return")
 				break
 			}
 		case bait__token__TokenKind.key_struct:
 			{
-				return from_js_string("key_struct")
+				_t9 = from_js_string("key_struct")
 				break
 			}
 		case bait__token__TokenKind.key_true:
 			{
-				return from_js_string("key_true")
+				_t9 = from_js_string("key_true")
 				break
 			}
 		case bait__token__TokenKind.key_type:
 			{
-				return from_js_string("key_type")
+				_t9 = from_js_string("key_type")
 				break
 			}
 		case bait__token__TokenKind.key_typeof:
 			{
-				return from_js_string("key_typeof")
+				_t9 = from_js_string("key_typeof")
 				break
 			}
 	}
+	return _t9
 }
 
 
@@ -1796,23 +1810,25 @@ function bait__errors__format_title(k, title) {
 	if (eq(os__getenv(from_js_string("BAITCOLOR")), from_js_string("0"))) {
 		return title
 	}
+	let _t11 = undefined
 	switch (k) {
 		case bait__errors__Kind.info:
 			{
-				return term__color__magenta(title)
+				_t11 = term__color__magenta(title)
 				break
 			}
 		case bait__errors__Kind.warning:
 			{
-				return term__color__yellow(title)
+				_t11 = term__color__yellow(title)
 				break
 			}
 		case bait__errors__Kind.error:
 			{
-				return term__color__red(title)
+				_t11 = term__color__red(title)
 				break
 			}
 	}
+	return _t11
 }
 
 
@@ -1964,19 +1980,25 @@ function bait__preference__Prefs_set_comptime_vars(p) {
 }
 
 function bait__preference__backend_from_string(s) {
+	let _t13 = undefined
 	switch (s.str) {
 		case from_js_string("js").str:
 			{
-				return bait__preference__Backend.js
+				_t13 = bait__preference__Backend.js
 				break
 			}
 		case from_js_string("c").str:
 			{
-				return bait__preference__Backend.c
+				_t13 = bait__preference__Backend.c
+				break
+			}
+		default:
+			{
+				_t13 = panic(from_js_string(`Invalid backend: ${s.str}`)).js
 				break
 			}
 	}
-	return bait__preference__Backend.js
+	return _t13
 }
 
 
@@ -4009,78 +4031,80 @@ function bait__parser__Parser_parse_name_type(p, lang) {
 	} else if (!string_contains(name, from_js_string(".")) && !map_contains(p.table.type_idxs, name)) {
 		name = bait__parser__Parser_prepend_pkg(p, name)
 	}
+	let _t25 = undefined
 	switch (name.str) {
 		case from_js_string("i8").str:
 			{
-				return bait__ast__I8_TYPE
+				_t25 = bait__ast__I8_TYPE
 				break
 			}
 		case from_js_string("i16").str:
 			{
-				return bait__ast__I16_TYPE
+				_t25 = bait__ast__I16_TYPE
 				break
 			}
 		case from_js_string("i32").str:
 			{
-				return bait__ast__I32_TYPE
+				_t25 = bait__ast__I32_TYPE
 				break
 			}
 		case from_js_string("i64").str:
 			{
-				return bait__ast__I64_TYPE
+				_t25 = bait__ast__I64_TYPE
 				break
 			}
 		case from_js_string("u8").str:
 			{
-				return bait__ast__U8_TYPE
+				_t25 = bait__ast__U8_TYPE
 				break
 			}
 		case from_js_string("u16").str:
 			{
-				return bait__ast__U16_TYPE
+				_t25 = bait__ast__U16_TYPE
 				break
 			}
 		case from_js_string("u32").str:
 			{
-				return bait__ast__U32_TYPE
+				_t25 = bait__ast__U32_TYPE
 				break
 			}
 		case from_js_string("u64").str:
 			{
-				return bait__ast__U64_TYPE
+				_t25 = bait__ast__U64_TYPE
 				break
 			}
 		case from_js_string("f32").str:
 			{
-				return bait__ast__F32_TYPE
+				_t25 = bait__ast__F32_TYPE
 				break
 			}
 		case from_js_string("f64").str:
 			{
-				return bait__ast__F64_TYPE
+				_t25 = bait__ast__F64_TYPE
 				break
 			}
 		case from_js_string("bool").str:
 			{
-				return bait__ast__BOOL_TYPE
+				_t25 = bait__ast__BOOL_TYPE
 				break
 			}
 		case from_js_string("string").str:
 			{
-				return bait__ast__STRING_TYPE
+				_t25 = bait__ast__STRING_TYPE
 				break
 			}
 		case from_js_string("any").str:
 			{
-				return bait__ast__ANY_TYPE
+				_t25 = bait__ast__ANY_TYPE
 				break
 			}
 		default:
 			{
+				_t25 = bait__ast__Table_find_type_or_add_placeholder(p.table, name)
 				break
 			}
 	}
-	return bait__ast__Table_find_type_or_add_placeholder(p.table, name)
+	return _t25
 }
 
 function bait__parser__Parser_parse_fun_type(p) {
@@ -5508,7 +5532,7 @@ function bait__util__shell_escape(s) {
 
 
 const bait__util__VERSION = from_js_string("0.0.5")
-const bait__util__FULL_VERSION = from_js_string(`${bait__util__VERSION.str} ${from_js_string("2f56d56").str}`)
+const bait__util__FULL_VERSION = from_js_string(`${bait__util__VERSION.str} ${from_js_string("9c1ecce").str}`)
 
 function bait__gen__js__Gen_expr(g, expr) {
 	if (expr instanceof bait__ast__AnonFun) {
