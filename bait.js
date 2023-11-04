@@ -5024,6 +5024,9 @@ function bait__checker__Checker_match_expr(c, node, is_expr) {
 				Array_push(branch.expr_types, expr_type)
 			}
 		}
+		if (is_expr) {
+			c.expected_type = node.typ
+		}
 		bait__checker__Checker_stmts(c, branch.stmts)
 		bait__checker__Checker_close_scope(c)
 		if (is_expr) {
@@ -5505,7 +5508,7 @@ function bait__util__shell_escape(s) {
 
 
 const bait__util__VERSION = from_js_string("0.0.5")
-const bait__util__FULL_VERSION = from_js_string(`${bait__util__VERSION.str} ${from_js_string("3b04745").str}`)
+const bait__util__FULL_VERSION = from_js_string(`${bait__util__VERSION.str} ${from_js_string("2f56d56").str}`)
 
 function bait__gen__js__Gen_expr(g, expr) {
 	if (expr instanceof bait__ast__AnonFun) {
