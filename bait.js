@@ -5532,7 +5532,7 @@ function bait__util__shell_escape(s) {
 
 
 const bait__util__VERSION = from_js_string("0.0.5")
-const bait__util__FULL_VERSION = from_js_string(`${bait__util__VERSION.str} ${from_js_string("9c1ecce").str}`)
+const bait__util__FULL_VERSION = from_js_string(`${bait__util__VERSION.str} ${from_js_string("e7205a8").str}`)
 
 function bait__gen__js__Gen_expr(g, expr) {
 	if (expr instanceof bait__ast__AnonFun) {
@@ -7580,7 +7580,7 @@ function bait__gen__c__Gen_write_types(g) {
 }
 
 
-function bait__tokenizer__Tokenizer({ path = from_js_string(""), text = from_js_string(""), pos = 0, line = 0, last_nl_pos = 0, is_string_inter = false, str_quote = 0, should_abort = false, errors = new bait_Array({ data: [], length: 0 }) }) {
+function bait__tokenizer__Tokenizer({ path = from_js_string(""), text = from_js_string(""), pos = -1, line = 1, last_nl_pos = -1, is_string_inter = false, str_quote = 0, should_abort = false, errors = new bait_Array({ data: [], length: 0 }) }) {
 	this.path = path
 	this.text = text
 	this.pos = pos
@@ -7591,10 +7591,6 @@ function bait__tokenizer__Tokenizer({ path = from_js_string(""), text = from_js_
 	this.should_abort = should_abort
 	this.errors = errors
 }
-function bait__tokenizer__new_tokenizer(text, path) {
-	return new bait__tokenizer__Tokenizer({ path: path, text: text, pos: -1, line: 1, last_nl_pos: -1 })
-}
-
 function bait__tokenizer__Tokenizer_tokenize(t) {
 	let tokens = new bait_Array({ data: [], length: 0 })
 	while (!t.should_abort) {
@@ -7973,7 +7969,7 @@ function bait__builder__Builder_get_user_files(b, path) {
 
 function bait__builder__Builder_parse_source_file(b, path) {
 	const text = os__read_file(path)
-	let t = bait__tokenizer__new_tokenizer(text, path)
+	let t = new bait__tokenizer__Tokenizer({ path: path, text: text })
 	const tokens = bait__tokenizer__Tokenizer_tokenize(t)
 	Array_bait__errors__Message_print_and_exit(t.errors)
 	return bait__parser__parse(tokens, path, b.table, b.prefs)
