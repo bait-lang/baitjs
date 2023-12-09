@@ -4813,7 +4813,7 @@ function bait__checker__Checker_fun_decl(c, node) {
 	bait__checker__Checker_stmts(c, node.stmts)
 	bait__checker__Checker_close_scope(c)
 	if (!eq(node.return_type, bait__ast__VOID_TYPE) && !bait__checker__has_toplevel_return(node.stmts) && !c.returns) {
-		bait__checker__Checker_warn(c, from_js_string("missing return statement"), node.pos)
+		bait__checker__Checker_error(c, from_js_string("missing return statement"), node.pos)
 	}
 }
 
@@ -5579,7 +5579,7 @@ function bait__util__shell_escape(s) {
 
 
 const bait__util__VERSION = from_js_string("0.0.5")
-const bait__util__FULL_VERSION = from_js_string(`${bait__util__VERSION.str} ${from_js_string("6ac22c2").str}`)
+const bait__util__FULL_VERSION = from_js_string(`${bait__util__VERSION.str} ${from_js_string("2bae1ed").str}`)
 
 function bait__gen__js__Gen_expr(g, expr) {
 	if (expr instanceof bait__ast__AnonFun) {
