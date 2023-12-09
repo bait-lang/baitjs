@@ -3630,7 +3630,7 @@ function bait__parser__Parser_script_mode_main(p) {
 	while (!p.should_abort && !eq(p.tok.kind, bait__token__TokenKind.eof)) {
 		Array_push(stmts, bait__parser__Parser_stmt(p))
 	}
-	let node = new bait__ast__FunDecl({ name: from_js_string("main") })
+	let node = new bait__ast__FunDecl({ name: from_js_string("main"), return_type: bait__ast__VOID_TYPE })
 	map_set(p.table.fun_decls, from_js_string("main"), node)
 	node.stmts = stmts
 	return node
@@ -5579,7 +5579,7 @@ function bait__util__shell_escape(s) {
 
 
 const bait__util__VERSION = from_js_string("0.0.5")
-const bait__util__FULL_VERSION = from_js_string(`${bait__util__VERSION.str} ${from_js_string("2bae1ed").str}`)
+const bait__util__FULL_VERSION = from_js_string(`${bait__util__VERSION.str} ${from_js_string("14cccd3").str}`)
 
 function bait__gen__js__Gen_expr(g, expr) {
 	if (expr instanceof bait__ast__AnonFun) {
