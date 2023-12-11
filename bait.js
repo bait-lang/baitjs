@@ -8,18 +8,18 @@ JS.child_process = require("child_process")
 
 
 function bait__ast__EmptyExpr_str(it, indent) {
-	const space = " ".repeat(indent * 4)
+	const space = " ".repeat(indent * 2)
 	let s = "bait.ast.EmptyExpr{"
 	s += "\n"
-	s += space + "    pos = " + bait__token__Pos_str(it.pos, indent + 1).str + "\n"
+	s += space + "  pos = " + bait__token__Pos_str(it.pos, indent + 1).str + "\n"
 	return from_js_string(s + space + "}")
 }
 
 function bait__ast__EmptyStmt_str(it, indent) {
-	const space = " ".repeat(indent * 4)
+	const space = " ".repeat(indent * 2)
 	let s = "bait.ast.EmptyStmt{"
 	s += "\n"
-	s += space + "    pos = " + bait__token__Pos_str(it.pos, indent + 1).str + "\n"
+	s += space + "  pos = " + bait__token__Pos_str(it.pos, indent + 1).str + "\n"
 	return from_js_string(s + space + "}")
 }
 
@@ -5580,7 +5580,7 @@ function bait__util__shell_escape(s) {
 
 
 const bait__util__VERSION = from_js_string("0.0.5")
-const bait__util__FULL_VERSION = from_js_string(`${bait__util__VERSION.str} ${from_js_string("dea4892").str}`)
+const bait__util__FULL_VERSION = from_js_string(`${bait__util__VERSION.str} ${from_js_string("a2ec372").str}`)
 
 function bait__gen__js__Gen_expr(g, expr) {
 	if (expr instanceof bait__ast__AnonFun) {
@@ -6718,10 +6718,10 @@ function bait__gen__js__Gen_generate_str_fun(g, typ) {
 	if (eq(sym.kind, bait__ast__TypeKind.array)) {
 		const info = sym.info
 		const el_str = bait__gen__js__Gen_get_str_fun(g, info.elem_type)
-		g.fun_decls_out = string_add(g.fun_decls_out, from_js_string(`function ${name.str}(a) {
+		g.fun_decls_out = string_add(g.fun_decls_out, from_js_string(`function ${name.str}(a, indent) {
 	let s = "["
 	for (let i = 0; i < a.length; i++) {
-		s += ${el_str.str}(a.data[i]).str
+		s += ${el_str.str}(a.data[i], indent + 1).str
 		if (i < a.length - 1) {
 			s += ", "
 		}
@@ -6733,7 +6733,7 @@ function bait__gen__js__Gen_generate_str_fun(g, typ) {
 	if (eq(sym.kind, bait__ast__TypeKind.struct_)) {
 		const info = sym.info
 		g.fun_decls_out = string_add(g.fun_decls_out, from_js_string(`function ${name.str}(it, indent) {
-	const space = " ".repeat(indent * 4)
+	const space = " ".repeat(indent * 2)
 	let s = "${sym.name.str}{"\n`))
 		if (i32(info.fields.length > 0)) {
 			g.fun_decls_out = string_add(g.fun_decls_out, from_js_string("\ts += \"\\n\"\n"))
@@ -6741,11 +6741,11 @@ function bait__gen__js__Gen_generate_str_fun(g, typ) {
 		for (let _t522 = 0; _t522 < info.fields.length; _t522++) {
 			const field = Array_get(info.fields, _t522)
 			if (eq(typ, field.typ)) {
-				g.fun_decls_out = string_add(g.fun_decls_out, from_js_string(`\ts += space + "    ${field.name.str} = ${sym.name.str}{...}\\n"\n`))
+				g.fun_decls_out = string_add(g.fun_decls_out, from_js_string(`\ts += space + "  ${field.name.str} = ${sym.name.str}{...}\\n"\n`))
 				continue
 			}
 			const str_fun_name = bait__gen__js__Gen_get_str_fun(g, field.typ)
-			g.fun_decls_out = string_add(g.fun_decls_out, from_js_string(`\ts += space + "    ${field.name.str} = " + ${str_fun_name.str}(it.${field.name.str}, indent + 1).str + "\\n"\n`))
+			g.fun_decls_out = string_add(g.fun_decls_out, from_js_string(`\ts += space + "  ${field.name.str} = " + ${str_fun_name.str}(it.${field.name.str}, indent + 1).str + "\\n"\n`))
 		}
 		g.fun_decls_out = string_add(g.fun_decls_out, from_js_string("\treturn from_js_string(s + space + \"}\")\n}\n\n"))
 		return
