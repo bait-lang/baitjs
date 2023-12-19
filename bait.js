@@ -3155,7 +3155,7 @@ function bait__parser__Parser_fun_decl(p) {
 	if (eq(p.tok.kind, bait__token__TokenKind.hash)) {
 		lang = bait__parser__Parser_parse_lang(p)
 		name = bait__ast__Language_prepend_to(lang, name)
-		if (eq(lang, bait__ast__Language.js)) {
+		if (eq(lang, bait__ast__Language.js) && eq(p.next_tok.kind, bait__token__TokenKind.dot)) {
 			name = string_add(name, string_add(bait__parser__Parser_check_name(p), from_js_string(".")))
 			bait__parser__Parser_check(p, bait__token__TokenKind.dot)
 		}
@@ -5688,7 +5688,7 @@ function bait__util__shell_escape(s) {
 
 
 const bait__util__VERSION = from_js_string("0.0.5")
-const bait__util__FULL_VERSION = from_js_string(`${bait__util__VERSION.str} ${from_js_string("577f6a8").str}`)
+const bait__util__FULL_VERSION = from_js_string(`${bait__util__VERSION.str} ${from_js_string("7d9d909").str}`)
 
 function bait__gen__js__Gen_expr(g, expr) {
 	if (expr instanceof bait__ast__AnonFun) {
