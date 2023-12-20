@@ -2007,7 +2007,8 @@ function bait__preference__backend_from_string(s) {
 			}
 		default:
 			{
-				_t57 = panic(from_js_string(`Invalid backend: ${s.str}`)).js
+				panic(from_js_string(`Invalid backend: ${s.str}`))
+				_t57 = bait__preference__Backend.js
 				break
 			}
 	}
@@ -4852,7 +4853,8 @@ function bait__checker__Checker_selector_expr(c, node) {
 		bait__checker__Checker_error(c, from_js_string(`cast to the variant before accessing field of sumtype ${sym.name.str}`), node.pos)
 		return bait__ast__VOID_TYPE
 	}
-	return bait__ast__ANY_TYPE
+	bait__checker__Checker_error(c, from_js_string(`cannot select from ${bait__ast__Table_type_name(c.table, node.expr_type).str}`), node.pos)
+	return bait__ast__PLACEHOLDER_TYPE
 }
 
 function bait__checker__Checker_string_literal(c, node) {
@@ -5695,7 +5697,7 @@ function bait__util__shell_escape(s) {
 
 
 const bait__util__VERSION = from_js_string("0.0.5")
-const bait__util__FULL_VERSION = from_js_string(`${bait__util__VERSION.str} ${from_js_string("aa8b93b").str}`)
+const bait__util__FULL_VERSION = from_js_string(`${bait__util__VERSION.str} ${from_js_string("86a75b3").str}`)
 
 function bait__gen__js__Gen_expr(g, expr) {
 	if (expr instanceof bait__ast__AnonFun) {
@@ -8552,7 +8554,7 @@ function bait__builder__run_tests(prefs) {
 
 const bait__util__tools__VERBOSE = Array_contains(os__ARGS, from_js_string("--verbose")) || Array_contains(os__ARGS, from_js_string("-v"))
 function bait__util__tools__launch_tool(name, args) {
-	const base_path = os__join_path(from_js_string("/home/john/Documents/privat/bait"), new bait_Array({ data: [from_js_string("cli"), from_js_string("tools"), name], length: 3 }))
+	const base_path = os__join_path(from_js_string("/home/runner/work/bait/bait"), new bait_Array({ data: [from_js_string("cli"), from_js_string("tools"), name], length: 3 }))
 	const tool_source = bait__util__tools__find_tool_source(base_path)
 	const tool_exe = string_add(base_path, from_js_string(".js"))
 	const baitexe = os__executable()
