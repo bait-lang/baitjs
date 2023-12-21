@@ -2708,6 +2708,7 @@ function bait__lexer__Lexer({ val = from_js_string(""), text = from_js_string(""
 function bait__lexer__Lexer_init(l, text) {
 	l.text = text
 	l.line_starts = new bait_Array({ data: [0], length: 1 })
+	l.pos = 0
 }
 
 function bait__lexer__Lexer_get_pos(l) {
@@ -3735,13 +3736,10 @@ function bait__parser__Parser_import_stmts(p) {
 }
 
 
-function bait__parser__Parser({ pref = new bait__preference__Prefs({}), path = from_js_string(""), table = new bait__ast__Table({}), lexer = new bait__lexer__Lexer({}), eofs = 0, idx = 0, tok = 0, next_tok = 0, val = from_js_string(""), pkg_name = from_js_string(""), import_aliases = new map({ data: new Map([]), length: 0 }), attributes = new bait_Array({ data: [], length: 0 }), expr_pkg = from_js_string(""), is_for_init = false, is_struct_possible = false, should_abort = false, warnings = new bait_Array({ data: [], length: 0 }), errors = new bait_Array({ data: [], length: 0 }) }) {
+function bait__parser__Parser({ pref = new bait__preference__Prefs({}), path = from_js_string(""), eofs = 0, tok = 0, next_tok = 0, val = from_js_string(""), pkg_name = from_js_string(""), import_aliases = new map({ data: new Map([]), length: 0 }), attributes = new bait_Array({ data: [], length: 0 }), expr_pkg = from_js_string(""), is_for_init = false, is_struct_possible = false, should_abort = false, table = new bait__ast__Table({}), lexer = new bait__lexer__Lexer({}), warnings = new bait_Array({ data: [], length: 0 }), errors = new bait_Array({ data: [], length: 0 }) }) {
 	this.pref = pref
 	this.path = path
-	this.table = table
-	this.lexer = lexer
 	this.eofs = eofs
-	this.idx = idx
 	this.tok = tok
 	this.next_tok = next_tok
 	this.val = val
@@ -3752,12 +3750,24 @@ function bait__parser__Parser({ pref = new bait__preference__Prefs({}), path = f
 	this.is_for_init = is_for_init
 	this.is_struct_possible = is_struct_possible
 	this.should_abort = should_abort
+	this.table = table
+	this.lexer = lexer
 	this.warnings = warnings
 	this.errors = errors
 }
-function bait__parser__parse(text, path, table, pref) {
-	let p = new bait__parser__Parser({ lexer: new bait__lexer__Lexer({}), pref: pref, path: path, table: table, is_struct_possible: true })
+function bait__parser__new(table, pref) {
+	return new bait__parser__Parser({ table: table, pref: pref })
+}
+
+function bait__parser__Parser_parse(p, text, path) {
 	bait__lexer__Lexer_init(p.lexer, text)
+	p.path = path
+	p.eofs = 0
+	p.import_aliases = new map({ data: new Map([]), length: 0 })
+	p.expr_pkg = from_js_string("")
+	p.is_for_init = false
+	p.is_struct_possible = true
+	p.should_abort = false
 	bait__parser__Parser_next(p)
 	const pkg_decl = bait__parser__Parser_package_decl(p)
 	if (i32(p.pref.expected_pkg.length > 0) && !eq(pkg_decl.full_name, p.pref.expected_pkg)) {
@@ -6060,7 +6070,7 @@ function bait__util__shell_escape(s) {
 
 
 const bait__util__VERSION = from_js_string("0.0.5")
-const bait__util__FULL_VERSION = from_js_string(`${bait__util__VERSION.str} ${from_js_string("ab8671a").str}`)
+const bait__util__FULL_VERSION = from_js_string(`${bait__util__VERSION.str} ${from_js_string("296eef6").str}`)
 
 function bait__gen__js__Gen_comptime_var(g, node) {
 	bait__gen__js__Gen_write(g, from_js_string("from_js_string(\""))
@@ -8269,11 +8279,11 @@ function bait__util__timers__set_show(state) {
 }
 
 
-function bait__builder__Builder({ table = new bait__ast__Table({}), prefs = new bait__preference__Prefs({}), parsed_files = new bait_Array({ data: [], length: 0 }), checker = new bait__checker__Checker({}) }) {
-	this.table = table
+function bait__builder__Builder({ prefs = new bait__preference__Prefs({}), parsed_files = new bait_Array({ data: [], length: 0 }), checker = new bait__checker__Checker({}), parser = new bait__parser__Parser({}) }) {
 	this.prefs = prefs
 	this.parsed_files = parsed_files
 	this.checker = checker
+	this.parser = parser
 }
 function bait__builder__Builder_collect_bait_files(b, dir) {
 	const all_files = os__ls(dir)
@@ -8299,11 +8309,11 @@ function bait__builder__Builder_get_user_files(b, path) {
 
 function bait__builder__Builder_parse_source_file(b, path) {
 	const text = os__read_file(path)
-	return bait__parser__parse(text, path, b.table, b.prefs)
+	return bait__parser__Parser_parse(b.parser, text, path)
 }
 
 function bait__builder__compile(prefs) {
-	let b = new bait__builder__Builder({ prefs: prefs, table: bait__ast__new_table() })
+	let b = new bait__builder__Builder({ prefs: prefs, parser: bait__parser__new(bait__ast__new_table(), prefs) })
 	bait__util__timers__start(from_js_string("PARSE"))
 	let paths = bait__builder__Builder_get_user_files(b, prefs.command)
 	let files = new bait_Array({ data: [], length: 0 })
@@ -8385,7 +8395,7 @@ function bait__builder__compile(prefs) {
 	bait__util__timers__show(from_js_string("DEPGRAPH"))
 	bait__util__timers__start(from_js_string("CHECK"))
 	b.parsed_files = sorted_files
-	b.checker = new bait__checker__Checker({ prefs: b.prefs, table: b.table })
+	b.checker = new bait__checker__Checker({ prefs: b.prefs, table: b.parser.table })
 	bait__checker__Checker_check_files(b.checker, sorted_files)
 	bait__util__timers__show(from_js_string("CHECK"))
 	if (bait__builder__Builder_check_redefined_functions(b)) {
@@ -8402,7 +8412,7 @@ function bait__builder__compile(prefs) {
 
 function bait__builder__Builder_code_gen_js(b) {
 	bait__util__timers__start(from_js_string("GEN"))
-	const res = string_add(bait__gen__js__gen(b.parsed_files, b.table, b.prefs), from_js_string("\n"))
+	const res = string_add(bait__gen__js__gen(b.parsed_files, b.parser.table, b.prefs), from_js_string("\n"))
 	bait__util__timers__show(from_js_string("GEN"))
 	bait__builder__ensure_dir_exists(os__dir(b.prefs.out_name))
 	os__write_file(b.prefs.out_name, res)
@@ -8419,7 +8429,7 @@ function bait__builder__Builder_code_gen_js(b) {
 
 function bait__builder__Builder_code_gen_c(b) {
 	bait__util__timers__start(from_js_string("GEN"))
-	const res = string_add(bait__gen__c__gen(b.parsed_files, b.table, b.prefs), from_js_string("\n"))
+	const res = string_add(bait__gen__c__gen(b.parsed_files, b.parser.table, b.prefs), from_js_string("\n"))
 	bait__util__timers__show(from_js_string("GEN"))
 	if (os__exists(b.prefs.out_name) && os__is_dir(b.prefs.out_name)) {
 		b.prefs.out_name = string_add(b.prefs.out_name, from_js_string(".exe"))
@@ -8522,12 +8532,12 @@ function bait__builder__FunRedefinition({ path = from_js_string(""), pos = new b
 	this.signature = signature
 }
 function bait__builder__Builder_check_redefined_functions(b) {
-	if (eq(b.table.redefined_funs.length, 0)) {
+	if (eq(b.parser.table.redefined_funs.length, 0)) {
 		return false
 	}
 	let unique_redefs = new bait_Array({ data: [], length: 0 })
-	for (let _t710 = 0; _t710 < b.table.redefined_funs.length; _t710++) {
-		const name = Array_get(b.table.redefined_funs, _t710)
+	for (let _t710 = 0; _t710 < b.parser.table.redefined_funs.length; _t710++) {
+		const name = Array_get(b.parser.table.redefined_funs, _t710)
 		if (!Array_contains(unique_redefs, name)) {
 			Array_push(unique_redefs, name)
 		}
@@ -8557,7 +8567,7 @@ function bait__builder__Builder_fun_signature(b, node) {
 	let sig = from_js_string(`fun ${node.name.str}(`)
 	for (let i = 0; i < node.params.length; i++) {
 		const p = Array_get(node.params, i)
-		const type_name = bait__ast__Table_get_sym(b.table, p.typ).name
+		const type_name = bait__ast__Table_get_sym(b.parser.table, p.typ).name
 		sig = string_add(sig, from_js_string(`${p.name.str} ${type_name.str}`))
 		if (i32(i < i32(node.params.length - 1))) {
 			sig = string_add(sig, from_js_string(", "))
