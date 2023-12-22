@@ -6070,7 +6070,7 @@ function bait__util__shell_escape(s) {
 
 
 const bait__util__VERSION = from_js_string("0.0.5")
-const bait__util__FULL_VERSION = from_js_string(`${bait__util__VERSION.str} ${from_js_string("d268f50").str}`)
+const bait__util__FULL_VERSION = from_js_string(`${bait__util__VERSION.str} ${from_js_string("7871e56").str}`)
 
 function bait__gen__js__Gen_comptime_var(g, node) {
 	bait__gen__js__Gen_write(g, from_js_string("from_js_string(\""))
@@ -8279,9 +8279,10 @@ function bait__util__timers__set_show(state) {
 }
 
 
-function bait__builder__Builder({ prefs = new bait__preference__Prefs({}), parsed_files = new bait_Array({ data: [], length: 0 }), checker = new bait__checker__Checker({}), parser = new bait__parser__Parser({}) }) {
+function bait__builder__Builder({ prefs = new bait__preference__Prefs({}), parsed_files = new bait_Array({ data: [], length: 0 }), parsed_pkgs = new bait_Array({ data: [], length: 0 }), checker = new bait__checker__Checker({}), parser = new bait__parser__Parser({}) }) {
 	this.prefs = prefs
 	this.parsed_files = parsed_files
+	this.parsed_pkgs = parsed_pkgs
 	this.checker = checker
 	this.parser = parser
 }
@@ -8328,14 +8329,16 @@ function bait__builder__compile(prefs) {
 		Array_push(ast_files, bait__builder__Builder_parse_file(b, p, from_js_string("")))
 	}
 	for (let i = 0; i32(i < ast_files.length); i += 1) {
-		const f = Array_get(ast_files, i)
-		const fdir = os__dir(f.path)
-		for (let _t672 = 0; _t672 < f.imports.length; _t672++) {
-			const imp = Array_get(f.imports, _t672)
+		const file = Array_get(ast_files, i)
+		for (let _t672 = 0; _t672 < file.imports.length; _t672++) {
+			const imp = Array_get(file.imports, _t672)
 			if (!eq(imp.lang, bait__ast__Language.bait)) {
 				continue
 			}
-			const import_dir = bait__builder__resolve_import(fdir, string_replace(imp.name, from_js_string("."), os__PATH_SEP))
+			if (Array_contains(b.parsed_pkgs, imp.name)) {
+				continue
+			}
+			const import_dir = bait__builder__resolve_import(os__dir(file.path), imp.name)
 			if (!os__exists(import_dir)) {
 				bait__errors__generic_error(from_js_string(`package ${imp.name.str} not found`))
 				continue
@@ -8345,12 +8348,9 @@ function bait__builder__compile(prefs) {
 				bait__errors__generic_error(from_js_string(`package ${imp.name.str} contains no Bait files`))
 				continue
 			}
-			const filtered_paths = Array_filter(imp_paths, function (p) {
-				return !Array_contains(paths, p)
-			})
 			let nr_newly_parsed = 0
-			for (let _t676 = 0; _t676 < filtered_paths.length; _t676++) {
-				const p = Array_get(filtered_paths, _t676)
+			for (let _t677 = 0; _t677 < imp_paths.length; _t677++) {
+				const p = Array_get(imp_paths, _t677)
 				const parsed_file = bait__builder__Builder_parse_file(b, p, imp.name)
 				if (eq(parsed_file.path.length, 0)) {
 					continue
@@ -8359,9 +8359,10 @@ function bait__builder__compile(prefs) {
 				Array_push(paths, p)
 				Array_push(ast_files, parsed_file)
 			}
-			if (eq(nr_newly_parsed, 0) && i32(filtered_paths.length > 0)) {
+			if (eq(nr_newly_parsed, 0) && i32(imp_paths.length > 0)) {
 				bait__errors__generic_error(from_js_string(`no files belong to package ${imp.name.str}`))
 			}
+			Array_push(b.parsed_pkgs, imp.name)
 		}
 	}
 	bait__util__timers__show(from_js_string("PARSE"))
@@ -8371,11 +8372,11 @@ function bait__builder__compile(prefs) {
 	}
 	bait__util__timers__start(from_js_string("DEPGRAPH"))
 	let deps = new map({ data: new Map([]), length: 0 })
-	for (let _t680 = 0; _t680 < ast_files.length; _t680++) {
-		const f = Array_get(ast_files, _t680)
+	for (let _t681 = 0; _t681 < ast_files.length; _t681++) {
+		const f = Array_get(ast_files, _t681)
 		const pkg_name = f.pkg_decl.full_name
-		for (let _t681 = 0; _t681 < f.imports.length; _t681++) {
-			const imp = Array_get(f.imports, _t681)
+		for (let _t682 = 0; _t682 < f.imports.length; _t682++) {
+			const imp = Array_get(f.imports, _t682)
 			if (!eq(imp.lang, bait__ast__Language.bait)) {
 				continue
 			}
@@ -8386,10 +8387,10 @@ function bait__builder__compile(prefs) {
 	let pkg_order = new bait_Array({ data: [], length: 0 })
 	bait__builder__order_pkgs(pkg_order, Array_get(ast_files, 0).pkg_decl.full_name, deps, looked)
 	let sorted_files = new bait_Array({ data: [], length: 0 })
-	for (let _t683 = 0; _t683 < pkg_order.length; _t683++) {
-		const pkg = Array_get(pkg_order, _t683)
-		for (let _t684 = 0; _t684 < ast_files.length; _t684++) {
-			const f = Array_get(ast_files, _t684)
+	for (let _t684 = 0; _t684 < pkg_order.length; _t684++) {
+		const pkg = Array_get(pkg_order, _t684)
+		for (let _t685 = 0; _t685 < ast_files.length; _t685++) {
+			const f = Array_get(ast_files, _t685)
 			if (eq(f.pkg_decl.full_name, pkg)) {
 				Array_push(sorted_files, f)
 			}
@@ -8459,29 +8460,29 @@ function bait__builder__Builder_code_gen_c(b) {
 function bait__builder__Builder_print_errors_and_warnings(b, parser_errs) {
 	let nr_warns = 0
 	let nr_errors = 0
-	for (let _t695 = 0; _t695 < b.parsed_files.length; _t695++) {
-		const f = Array_get(b.parsed_files, _t695)
+	for (let _t696 = 0; _t696 < b.parsed_files.length; _t696++) {
+		const f = Array_get(b.parsed_files, _t696)
 		nr_warns += f.warnings.length
 		nr_errors += f.errors.length
 		if (!b.prefs.hide_warnings) {
-			for (let _t697 = 0; _t697 < f.infos.length; _t697++) {
-				const info = Array_get(f.infos, _t697)
+			for (let _t698 = 0; _t698 < f.infos.length; _t698++) {
+				const info = Array_get(f.infos, _t698)
 				bait__errors__Message_print(info)
 			}
 		}
 		if (b.prefs.warn_is_error) {
-			for (let _t699 = 0; _t699 < f.warnings.length; _t699++) {
-				const warn = Array_get(f.warnings, _t699)
+			for (let _t700 = 0; _t700 < f.warnings.length; _t700++) {
+				const warn = Array_get(f.warnings, _t700)
 				bait__errors__error(warn.path, warn.pos, warn.msg)
 			}
 		} else if (!b.prefs.hide_warnings) {
-			for (let _t700 = 0; _t700 < f.warnings.length; _t700++) {
-				const warn = Array_get(f.warnings, _t700)
+			for (let _t701 = 0; _t701 < f.warnings.length; _t701++) {
+				const warn = Array_get(f.warnings, _t701)
 				bait__errors__Message_print(warn)
 			}
 		}
-		for (let _t701 = 0; _t701 < f.errors.length; _t701++) {
-			const err = Array_get(f.errors, _t701)
+		for (let _t702 = 0; _t702 < f.errors.length; _t702++) {
+			const err = Array_get(f.errors, _t702)
 			bait__errors__Message_print(err)
 			if (parser_errs) {
 				return true
@@ -8489,29 +8490,30 @@ function bait__builder__Builder_print_errors_and_warnings(b, parser_errs) {
 		}
 	}
 	nr_errors += b.checker.errors.length
-	for (let _t703 = 0; _t703 < b.checker.errors.length; _t703++) {
-		const err = Array_get(b.checker.errors, _t703)
+	for (let _t704 = 0; _t704 < b.checker.errors.length; _t704++) {
+		const err = Array_get(b.checker.errors, _t704)
 		bait__errors__Message_print(err)
 	}
 	return i32(nr_errors > 0) || (b.prefs.warn_is_error && i32(nr_warns > 0))
 }
 
-function bait__builder__resolve_import(base_dir, pkg) {
-	let dir = os__join_path(base_dir, new bait_Array({ data: [pkg], length: 1 }))
+function bait__builder__resolve_import(base_dir, name) {
+	const name_as_path = string_replace(name, from_js_string("."), os__PATH_SEP)
+	let dir = os__join_path(base_dir, new bait_Array({ data: [name_as_path], length: 1 }))
 	if (os__exists(dir)) {
 		return dir
 	}
-	dir = os__resource_abs_path(os__join_path(from_js_string("lib"), new bait_Array({ data: [pkg], length: 1 })))
+	dir = os__resource_abs_path(os__join_path(from_js_string("lib"), new bait_Array({ data: [name_as_path], length: 1 })))
 	if (os__exists(dir)) {
 		return dir
 	}
-	return os__join_path(os__getwd(), new bait_Array({ data: [from_js_string("lib"), pkg], length: 2 }))
+	return os__join_path(os__getwd(), new bait_Array({ data: [from_js_string("lib"), name_as_path], length: 2 }))
 }
 
 function bait__builder__order_pkgs(ordered, pkg, deps, looked) {
 	Array_push(looked, pkg)
-	for (let _t706 = 0; _t706 < map_get_set(deps, pkg, new bait_Array({ data: [], length: 0 })).length; _t706++) {
-		const d = Array_get(map_get_set(deps, pkg, new bait_Array({ data: [], length: 0 })), _t706)
+	for (let _t707 = 0; _t707 < map_get_set(deps, pkg, new bait_Array({ data: [], length: 0 })).length; _t707++) {
+		const d = Array_get(map_get_set(deps, pkg, new bait_Array({ data: [], length: 0 })), _t707)
 		if (Array_contains(looked, d)) {
 			continue
 		}
@@ -8540,27 +8542,27 @@ function bait__builder__Builder_check_redefined_functions(b) {
 		return false
 	}
 	let unique_redefs = new bait_Array({ data: [], length: 0 })
-	for (let _t711 = 0; _t711 < b.parser.table.redefined_funs.length; _t711++) {
-		const name = Array_get(b.parser.table.redefined_funs, _t711)
+	for (let _t712 = 0; _t712 < b.parser.table.redefined_funs.length; _t712++) {
+		const name = Array_get(b.parser.table.redefined_funs, _t712)
 		if (!Array_contains(unique_redefs, name)) {
 			Array_push(unique_redefs, name)
 		}
 	}
-	for (let _t713 = 0; _t713 < unique_redefs.length; _t713++) {
-		const name = Array_get(unique_redefs, _t713)
+	for (let _t714 = 0; _t714 < unique_redefs.length; _t714++) {
+		const name = Array_get(unique_redefs, _t714)
 		let redefinitions = new bait_Array({ data: [], length: 0 })
-		for (let _t714 = 0; _t714 < b.parsed_files.length; _t714++) {
-			const file = Array_get(b.parsed_files, _t714)
-			for (let _t715 = 0; _t715 < file.stmts.length; _t715++) {
-				const stmt = Array_get(file.stmts, _t715)
+		for (let _t715 = 0; _t715 < b.parsed_files.length; _t715++) {
+			const file = Array_get(b.parsed_files, _t715)
+			for (let _t716 = 0; _t716 < file.stmts.length; _t716++) {
+				const stmt = Array_get(file.stmts, _t716)
 				if (stmt instanceof bait__ast__FunDecl && eq(stmt.name, name)) {
 					Array_push(redefinitions, new bait__builder__FunRedefinition({ path: file.path, pos: stmt.pos, name: name, signature: bait__builder__Builder_fun_signature(b, stmt) }))
 				}
 			}
 		}
 		bait__errors__generic_error(from_js_string(`redfinition of function "${name.str}"`))
-		for (let _t717 = 0; _t717 < redefinitions.length; _t717++) {
-			const redef = Array_get(redefinitions, _t717)
+		for (let _t718 = 0; _t718 < redefinitions.length; _t718++) {
+			const redef = Array_get(redefinitions, _t718)
 			bait__errors__info(from_js_string("conflict"), redef.path, redef.pos, redef.signature)
 		}
 	}
@@ -8584,8 +8586,8 @@ function bait__builder__Builder_fun_signature(b, node) {
 
 function bait__builder__run_tests(prefs) {
 	let files_to_test = new bait_Array({ data: [], length: 0 })
-	for (let _t719 = 0; _t719 < prefs.args.length; _t719++) {
-		const a = Array_get(prefs.args, _t719)
+	for (let _t720 = 0; _t720 < prefs.args.length; _t720++) {
+		const a = Array_get(prefs.args, _t720)
 		if (os__exists(a) && string_ends_with(a, from_js_string(".bt")) && string_contains(a, from_js_string("_test."))) {
 			Array_push(files_to_test, a)
 		} else if (os__exists_dir(a)) {
