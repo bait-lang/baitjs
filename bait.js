@@ -2535,12 +2535,12 @@ function bait__ast__Table_fun_type_signature(t, param_types, return_type) {
 	return sig
 }
 
-function bait__ast__Table_find_type_or_add_placeholder(t, name) {
+function bait__ast__Table_find_type_or_add_placeholder(t, name, pkg) {
 	const idx = bait__ast__Table_get_idx(t, name)
 	if (idx > 0) {
 		return idx
 	}
-	return bait__ast__Table_register_sym(t, new bait__ast__TypeSymbol({ kind: bait__ast__TypeKind.placeholder, name: name }))
+	return bait__ast__Table_register_sym(t, new bait__ast__TypeSymbol({ kind: bait__ast__TypeKind.placeholder, name: name, pkg: pkg }))
 }
 
 function bait__ast__Table_get_method(t, sym, name) {
@@ -4574,7 +4574,7 @@ function bait__parser__Parser_parse_name_type(p, lang) {
 			}
 		default:
 			{
-				_t229 = bait__ast__Table_find_type_or_add_placeholder(p.table, name)
+				_t229 = bait__ast__Table_find_type_or_add_placeholder(p.table, name, p.pkg_name)
 				break
 			}
 	}
@@ -6124,7 +6124,7 @@ function bait__util__shell_escape(s) {
 
 
 const bait__util__VERSION = from_js_string("0.0.5")
-const bait__util__FULL_VERSION = from_js_string(`${bait__util__VERSION.str} ${from_js_string("f8d6da1").str}`)
+const bait__util__FULL_VERSION = from_js_string(`${bait__util__VERSION.str} ${from_js_string("c51e481").str}`)
 
 function bait__gen__js__Gen_comptime_var(g, node) {
 	bait__gen__js__Gen_write(g, from_js_string("from_js_string(\""))
