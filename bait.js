@@ -2502,7 +2502,7 @@ function bait__ast__Table_find_or_register_array(t, elem_type) {
 	if (idx > 0) {
 		return idx
 	}
-	return bait__ast__Table_register_sym(t, new bait__ast__TypeSymbol({ kind: bait__ast__TypeKind.array, name: name, parent: bait__ast__ARRAY_TYPE, info: new bait__ast__ArrayInfo({ elem_type: elem_type }) }))
+	return bait__ast__Table_register_sym(t, new bait__ast__TypeSymbol({ kind: bait__ast__TypeKind.array, name: name, pkg: elem_sym.pkg, parent: bait__ast__ARRAY_TYPE, info: new bait__ast__ArrayInfo({ elem_type: elem_type }) }))
 }
 
 function bait__ast__Table_find_or_register_map(t, key_type, val_type) {
@@ -6124,7 +6124,7 @@ function bait__util__shell_escape(s) {
 
 
 const bait__util__VERSION = from_js_string("0.0.5")
-const bait__util__FULL_VERSION = from_js_string(`${bait__util__VERSION.str} ${from_js_string("4806eff").str}`)
+const bait__util__FULL_VERSION = from_js_string(`${bait__util__VERSION.str} ${from_js_string("f8d6da1").str}`)
 
 function bait__gen__js__Gen_comptime_var(g, node) {
 	bait__gen__js__Gen_write(g, from_js_string("from_js_string(\""))
