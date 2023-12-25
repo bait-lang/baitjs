@@ -1613,7 +1613,7 @@ function bait__ast__AnonFun({ decl = new bait__ast__FunDecl({}), typ = 0, pos = 
 	this.typ = typ
 	this.pos = pos
 }
-function bait__ast__FunDecl({ is_pub = false, lang = 0, name = from_js_string(""), pkg = from_js_string(""), params = new bait_Array({ data: [], length: 0 }), return_type = 0, is_test = false, attrs = new bait_Array({ data: [], length: 0 }), pos = new bait__token__Pos({}), is_method = false, stmts = new bait_Array({ data: [], length: 0 }), generic_names = new bait_Array({ data: [], length: 0 }), concrete_types = new bait_Array({ data: [], length: 0 }) }) {
+function bait__ast__FunDecl({ is_pub = false, lang = 0, name = from_js_string(""), pkg = from_js_string(""), params = new bait_Array({ data: [], length: 0 }), return_type = 0, is_test = false, attrs = new bait_Array({ data: [], length: 0 }), pos = new bait__token__Pos({}), is_method = false, noreturn = false, stmts = new bait_Array({ data: [], length: 0 }), generic_names = new bait_Array({ data: [], length: 0 }), concrete_types = new bait_Array({ data: [], length: 0 }) }) {
 	this.is_pub = is_pub
 	this.lang = lang
 	this.name = name
@@ -1624,6 +1624,7 @@ function bait__ast__FunDecl({ is_pub = false, lang = 0, name = from_js_string(""
 	this.attrs = attrs
 	this.pos = pos
 	this.is_method = is_method
+	this.noreturn = noreturn
 	this.stmts = stmts
 	this.generic_names = generic_names
 	this.concrete_types = concrete_types
@@ -1698,7 +1699,7 @@ function bait__ast__BoolLiteral({ val = false, pos = new bait__token__Pos({}) })
 	this.val = val
 	this.pos = pos
 }
-function bait__ast__CallExpr({ lang = 0, name = from_js_string(""), return_type = 0, left_type = 0, left = new bait__ast__EmptyExpr({}), concrete_types = new bait_Array({ data: [], length: 0 }), is_field = false, args = new bait_Array({ data: [], length: 0 }), is_method = false, pkg = from_js_string(""), pos = new bait__token__Pos({}) }) {
+function bait__ast__CallExpr({ lang = 0, name = from_js_string(""), return_type = 0, left_type = 0, left = new bait__ast__EmptyExpr({}), concrete_types = new bait_Array({ data: [], length: 0 }), is_field = false, noreturn = false, args = new bait_Array({ data: [], length: 0 }), is_method = false, pkg = from_js_string(""), pos = new bait__token__Pos({}) }) {
 	this.lang = lang
 	this.name = name
 	this.return_type = return_type
@@ -1706,6 +1707,7 @@ function bait__ast__CallExpr({ lang = 0, name = from_js_string(""), return_type 
 	this.left = left
 	this.concrete_types = concrete_types
 	this.is_field = is_field
+	this.noreturn = noreturn
 	this.args = args
 	this.is_method = is_method
 	this.pkg = pkg
@@ -4007,7 +4009,7 @@ const bait__checker__AttrValue = {
 	optional: 1,
 	required: 2,
 }
-const bait__checker__FUN_ATTRS = new map({ data: new Map([[from_js_string("deprecated").str, bait__checker__AttrValue.optional], [from_js_string("deprecated_after").str, bait__checker__AttrValue.required], [from_js_string("export").str, bait__checker__AttrValue.required], [from_js_string("overload").str, bait__checker__AttrValue.required]]), length: 4 })
+const bait__checker__FUN_ATTRS = new map({ data: new Map([[from_js_string("deprecated").str, bait__checker__AttrValue.optional], [from_js_string("deprecated_after").str, bait__checker__AttrValue.required], [from_js_string("export").str, bait__checker__AttrValue.required], [from_js_string("noreturn").str, bait__checker__AttrValue.none], [from_js_string("overload").str, bait__checker__AttrValue.required]]), length: 5 })
 const bait__checker__STRUCT_FIELD_ATTRS = new map({ data: new Map([[from_js_string("required").str, bait__checker__AttrValue.none]]), length: 1 })
 function bait__checker__Checker_check_attribute(c, attr, known_list) {
 	if (!map_contains(known_list, attr.name)) {
@@ -4036,6 +4038,8 @@ function bait__checker__Checker_check_fun_attrs(c, node) {
 			bait__checker__Checker_attr_overload(c, node, attr)
 		} else if (eq(attr.name, from_js_string("export"))) {
 			bait__checker__Checker_attr_export(c, attr)
+		} else if (eq(attr.name, from_js_string("noreturn"))) {
+			node.noreturn = true
 		}
 	}
 }
@@ -4554,7 +4558,7 @@ function bait__checker__Checker_fun_decl(c, node) {
 	bait__checker__Checker_fun_params(c, node.params)
 	bait__checker__Checker_stmts(c, node.stmts)
 	bait__checker__Checker_close_scope(c)
-	if (!eq(node.return_type, bait__ast__VOID_TYPE) && !bait__checker__has_toplevel_return(node.stmts) && !c.returns) {
+	if (!node.noreturn && !eq(node.return_type, bait__ast__VOID_TYPE) && !bait__checker__has_toplevel_return(node.stmts) && !c.returns) {
 		bait__checker__Checker_error(c, from_js_string("missing return statement"), node.pos)
 	}
 	c.cur_fun = new bait__ast__FunDecl({ return_type: bait__ast__VOID_TYPE })
@@ -4615,6 +4619,7 @@ function bait__checker__Checker_fun_call(c, node) {
 	if (!def.is_pub && !eq(def.pkg, c.pkg)) {
 		bait__checker__Checker_error(c, from_js_string(`function ${def.name.str} is private`), node.pos)
 	}
+	node.noreturn = def.noreturn
 	node.return_type = def.return_type
 	bait__checker__Checker_check_fun_attrs_on_call(c, node, def)
 	if (!eq(node.args.length, def.params.length)) {
@@ -4675,6 +4680,7 @@ function bait__checker__Checker_method_call(c, node) {
 		bait__checker__Checker_error(c, from_js_string(`method ${def.name.str} is private`), node.pos)
 	}
 	node.lang = def.lang
+	node.noreturn = def.noreturn
 	node.return_type = def.return_type
 	if (!node.is_field) {
 		if (Array_get(def.params, 0).is_mut) {
@@ -4759,24 +4765,6 @@ function bait__checker__Checker_call_args(c, def, node, poffset) {
 	}
 }
 
-function bait__checker__has_toplevel_return(stmts) {
-	for (let _t376 = 0; _t376 < stmts.length; _t376++) {
-		const stmt = Array_get(stmts, _t376)
-		if (stmt instanceof bait__ast__ReturnStmt) {
-			return true
-		}
-		if (stmt instanceof bait__ast__ExprStmt) {
-			if (stmt.expr instanceof bait__ast__CallExpr) {
-				const expr = stmt.expr
-				if (!expr.is_method && Array_contains(new bait_Array({ data: [from_js_string("panic"), from_js_string("exit")], length: 2 }), expr.name)) {
-					return true
-				}
-			}
-		}
-	}
-	return false
-}
-
 
 function bait__checker__Checker_if_expr(c, node, is_expr) {
 	if (is_expr) {
@@ -4813,6 +4801,9 @@ function bait__checker__Checker_if_expr(c, node, is_expr) {
 		bait__checker__Checker_close_scope(c)
 		if (is_expr) {
 			const last = Array_last(branch.stmts)
+			if (bait__checker__is_noreturn_call(last)) {
+				continue
+			}
 			if (!(last instanceof bait__ast__ExprStmt) || eq((last).typ, bait__ast__VOID_TYPE)) {
 				bait__checker__Checker_error(c, from_js_string("branch does not return a value"), branch.pos)
 				continue
@@ -4893,9 +4884,46 @@ function bait__checker__Checker_is_sumtype_variant_infix(c, node) {
 }
 
 
-function bait__checker__Checker_stmts(c, stmts) {
+function bait__checker__Checker_return_stmt(c, node) {
+	if (node.expr instanceof bait__ast__EmptyExpr) {
+		if (!eq(c.cur_fun.return_type, bait__ast__VOID_TYPE)) {
+			bait__checker__Checker_error(c, from_js_string(`expected return value of type ${bait__ast__Table_type_name(c.table, c.cur_fun.return_type).str}`), node.pos)
+		}
+		return
+	}
+	if (eq(c.cur_fun.return_type, bait__ast__VOID_TYPE)) {
+		bait__checker__Checker_error(c, from_js_string(`function ${c.cur_fun.name.str} does not return a value`), node.pos)
+	}
+	c.expected_type = c.cur_fun.return_type
+	const expr_type = bait__checker__Checker_expr(c, node.expr)
+	if (!bait__checker__Checker_check_types(c, expr_type, c.cur_fun.return_type)) {
+		bait__checker__Checker_error(c, from_js_string(`expected return value of type ${bait__ast__Table_type_name(c.table, c.cur_fun.return_type).str}, got ${bait__ast__Table_type_name(c.table, expr_type).str}`), node.pos)
+	}
+}
+
+function bait__checker__has_toplevel_return(stmts) {
 	for (let _t402 = 0; _t402 < stmts.length; _t402++) {
 		const stmt = Array_get(stmts, _t402)
+		if (stmt instanceof bait__ast__ReturnStmt || bait__checker__is_noreturn_call(stmt)) {
+			return true
+		}
+	}
+	return false
+}
+
+function bait__checker__is_noreturn_call(stmt) {
+	if (stmt instanceof bait__ast__ExprStmt) {
+		if (stmt.expr instanceof bait__ast__CallExpr) {
+			return (stmt.expr).noreturn
+		}
+	}
+	return false
+}
+
+
+function bait__checker__Checker_stmts(c, stmts) {
+	for (let _t406 = 0; _t406 < stmts.length; _t406++) {
+		const stmt = Array_get(stmts, _t406)
 		bait__checker__Checker_stmt(c, stmt)
 	}
 }
@@ -5084,23 +5112,6 @@ function bait__checker__Checker_loop_control_stmt(c, node) {
 	const obj = bait__ast__Scope_get(c.scope, node.label)
 	if (!eq(obj.kind, bait__ast__ObjectKind.label)) {
 		bait__checker__Checker_error(c, from_js_string(`label "${node.label.str}" not found`), node.pos)
-	}
-}
-
-function bait__checker__Checker_return_stmt(c, node) {
-	if (node.expr instanceof bait__ast__EmptyExpr) {
-		if (!eq(c.cur_fun.return_type, bait__ast__VOID_TYPE)) {
-			bait__checker__Checker_error(c, from_js_string(`expected return value of type ${bait__ast__Table_type_name(c.table, c.cur_fun.return_type).str}`), node.pos)
-		}
-		return
-	}
-	if (eq(c.cur_fun.return_type, bait__ast__VOID_TYPE)) {
-		bait__checker__Checker_error(c, from_js_string(`function ${c.cur_fun.name.str} does not return a value`), node.pos)
-	}
-	c.expected_type = c.cur_fun.return_type
-	const expr_type = bait__checker__Checker_expr(c, node.expr)
-	if (!bait__checker__Checker_check_types(c, expr_type, c.cur_fun.return_type)) {
-		bait__checker__Checker_error(c, from_js_string(`expected return value of type ${bait__ast__Table_type_name(c.table, c.cur_fun.return_type).str}, got ${bait__ast__Table_type_name(c.table, expr_type).str}`), node.pos)
 	}
 }
 
@@ -5343,7 +5354,7 @@ function bait__util__shell_escape(s) {
 
 
 const bait__util__VERSION = from_js_string("0.0.5")
-const bait__util__FULL_VERSION = from_js_string(`${bait__util__VERSION.str} ${from_js_string("8219123").str}`)
+const bait__util__FULL_VERSION = from_js_string(`${bait__util__VERSION.str} ${from_js_string("77fbcf2").str}`)
 
 function bait__gen__js__Gen_comptime_var(g, node) {
 	bait__gen__js__Gen_write(g, from_js_string("from_js_string(\""))
