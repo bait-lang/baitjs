@@ -1860,6 +1860,10 @@ function bait__ast__Attribute({ name = from_js_string(""), value = from_js_strin
 	this.value = value
 	this.pos = pos
 }
+function Array_bait__ast__Attribute_has(attrs, name) {
+	return i32(Array_bait__ast__Attribute_find_attr(attrs, name).name.length > 0)
+}
+
 function Array_bait__ast__Attribute_find_attr(attrs, name) {
 	for (let _t61 = 0; _t61 < attrs.length; _t61++) {
 		const attr = Array_get(attrs, _t61)
@@ -2915,7 +2919,7 @@ function bait__parser__Parser_fun_decl(p) {
 	if (!eq(p.tok, bait__token__Token.lcur) && eq(pos.line, bait__parser__Parser_pos(p).line)) {
 		return_type = bait__parser__Parser_parse_type(p)
 	}
-	let node = new bait__ast__FunDecl({ is_test: string_starts_with(name, from_js_string("test_")), is_pub: is_pub, name: name, pkg: p.pkg_name, generic_names: generic_names, params: params, return_type: return_type, attrs: p.attributes, lang: lang, pos: pos })
+	let node = new bait__ast__FunDecl({ is_test: string_starts_with(name, from_js_string("test_")), is_pub: is_pub, name: name, pkg: p.pkg_name, generic_names: generic_names, params: params, return_type: return_type, noreturn: Array_bait__ast__Attribute_has(p.attributes, from_js_string("noreturn")), attrs: p.attributes, lang: lang, pos: pos })
 	p.attributes = new bait_Array({ data: [], length: 0 })
 	if (is_method) {
 		const sym = bait__ast__Table_get_sym(p.table, Array_get(params, 0).typ)
@@ -4038,8 +4042,6 @@ function bait__checker__Checker_check_fun_attrs(c, node) {
 			bait__checker__Checker_attr_overload(c, node, attr)
 		} else if (eq(attr.name, from_js_string("export"))) {
 			bait__checker__Checker_attr_export(c, attr)
-		} else if (eq(attr.name, from_js_string("noreturn"))) {
-			node.noreturn = true
 		}
 	}
 }
@@ -5354,7 +5356,7 @@ function bait__util__shell_escape(s) {
 
 
 const bait__util__VERSION = from_js_string("0.0.5")
-const bait__util__FULL_VERSION = from_js_string(`${bait__util__VERSION.str} ${from_js_string("72cadab").str}`)
+const bait__util__FULL_VERSION = from_js_string(`${bait__util__VERSION.str} ${from_js_string("5224f99").str}`)
 
 function bait__gen__js__Gen_comptime_var(g, node) {
 	bait__gen__js__Gen_write(g, from_js_string("from_js_string(\""))
