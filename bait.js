@@ -5354,7 +5354,7 @@ function bait__util__shell_escape(s) {
 
 
 const bait__util__VERSION = from_js_string("0.0.5")
-const bait__util__FULL_VERSION = from_js_string(`${bait__util__VERSION.str} ${from_js_string("e6a9d2a").str}`)
+const bait__util__FULL_VERSION = from_js_string(`${bait__util__VERSION.str} ${from_js_string("655ae39").str}`)
 
 function bait__gen__js__Gen_comptime_var(g, node) {
 	bait__gen__js__Gen_write(g, from_js_string("from_js_string(\""))
@@ -5813,8 +5813,9 @@ function bait__gen__js__Gen_call_expr(g, node) {
 			return
 		}
 		const sym = bait__ast__Table_get_sym(g.table, node.left_type)
-		if (eq(sym.kind, bait__ast__TypeKind.array) && Array_contains(new bait_Array({ data: [from_js_string("push"), from_js_string("push_many"), from_js_string("push_many_with_len")], length: 3 }), node.name)) {
-			bait__gen__js__Gen_gen_array_method(g, node.name, node, sym)
+		const final_sym = bait__ast__Table_get_final_sym(g.table, node.left_type)
+		if (eq(final_sym.kind, bait__ast__TypeKind.array) && Array_contains(new bait_Array({ data: [from_js_string("push"), from_js_string("push_many"), from_js_string("push_many_with_len")], length: 3 }), node.name)) {
+			bait__gen__js__Gen_gen_array_method(g, node.name, node, final_sym)
 			return
 		}
 		name = bait__gen__js__js_name(string_add(string_add(sym.name, from_js_string("_")), node.name))
