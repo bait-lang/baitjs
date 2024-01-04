@@ -5391,7 +5391,7 @@ function bait__util__shell_escape(s) {
 
 
 const bait__util__VERSION = from_js_string("0.0.6")
-const bait__util__FULL_VERSION = from_js_string(`${bait__util__VERSION.str} ${from_js_string("6a3aa82").str}`)
+const bait__util__FULL_VERSION = from_js_string(`${bait__util__VERSION.str} ${from_js_string("05bd239").str}`)
 
 function bait__gen__js__Gen_comptime_var(g, node) {
 	bait__gen__js__Gen_write(g, from_js_string("from_js_string(\""))
@@ -6942,7 +6942,7 @@ function bait__gen__c__Gen_string_literal(g, node) {
 
 function bait__gen__c__Gen_string_inter_literal(g, node) {
 	const len = i32(node.vals.length + node.exprs.length)
-	bait__gen__c__Gen_write(g, from_js_string(`interpolate(new_array_from_c(${i32_str(len).str}, ${i32_str(len).str}, sizeof(string), (string[]){`))
+	bait__gen__c__Gen_write(g, from_js_string(`interpolate(new_array_from_c(${i32_str(len).str}, ${i32_str(len).str}, sizeof(string), (string[${i32_str(len).str}]){`))
 	for (let i = 0; i < node.vals.length; i++) {
 		const val = Array_get(node.vals, i)
 		const esc_val = bait__util__escape_char(string_replace(val, from_js_string("\n"), from_js_string("\\n")), u8("\""))
@@ -7657,11 +7657,10 @@ function bait__builder__Builder_code_gen_c(b) {
 	bait__util__timers__start(from_js_string("GEN"))
 	const res = string_add(bait__gen__c__gen(b.parsed_files, b.parser.table, b.prefs), from_js_string("\n"))
 	bait__util__timers__show(from_js_string("GEN"))
-	if (os__exists_dir(b.prefs.out_name)) {
+	if (os__exists_dir(b.prefs.out_name) || eq(os__platform(), from_js_string("win32"))) {
 		b.prefs.out_name = string_add(b.prefs.out_name, from_js_string(".exe"))
-	} else {
-		bait__builder__ensure_dir_exists(os__dir(b.prefs.out_name))
 	}
+	bait__builder__ensure_dir_exists(os__dir(b.prefs.out_name))
 	const tmp_c_path = os__join_path(os__tmp_dir(), new bait_Array({ data: [string_add(os__file_name(b.prefs.out_name), from_js_string(".c"))], length: 1 }))
 	os__write_file(tmp_c_path, res)
 	const comp_res = os__system(from_js_string(`${b.prefs.cc.str} ${tmp_c_path.str} -o ${b.prefs.out_name.str}`))
@@ -7670,7 +7669,8 @@ function bait__builder__Builder_code_gen_c(b) {
 	}
 	if (b.prefs.should_run) {
 		const argstr = Array_string_join(b.prefs.user_args, from_js_string(" "))
-		const run_res = os__system(from_js_string(`./${b.prefs.out_name.str} ${argstr.str}`))
+		const run_cmd = string_replace(from_js_string(`./${b.prefs.out_name.str} ${argstr.str}`), from_js_string("/"), os__PATH_SEP)
+		const run_res = os__system(run_cmd)
 		if (!b.prefs.keep_exe) {
 			os__rm(b.prefs.out_name)
 		}
