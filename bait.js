@@ -1440,7 +1440,7 @@ const bait__preference__Backend = {
 	js: 0,
 	c: 1,
 }
-function bait__preference__Prefs({ command = from_js_string(""), out_name = from_js_string(""), args = new bait_Array({ data: [], length: 0 }), user_args = new bait_Array({ data: [], length: 0 }), build_options = new bait_Array({ data: [], length: 0 }), should_run = false, is_verbose = false, show_timings = false, backend = 0, is_test = false, is_script = false, is_library = false, keep_exe = false, hide_warnings = false, warn_is_error = false }) {
+function bait__preference__Prefs({ command = from_js_string(""), out_name = from_js_string(""), args = new bait_Array({ data: [], length: 0 }), user_args = new bait_Array({ data: [], length: 0 }), build_options = new bait_Array({ data: [], length: 0 }), should_run = false, is_verbose = false, show_timings = false, backend = 0, is_test = false, is_script = false, is_library = false, keep_exe = false, cc = from_js_string("cc"), hide_warnings = false, warn_is_error = false }) {
 	this.command = command
 	this.out_name = out_name
 	this.args = args
@@ -1454,6 +1454,7 @@ function bait__preference__Prefs({ command = from_js_string(""), out_name = from
 	this.is_script = is_script
 	this.is_library = is_library
 	this.keep_exe = keep_exe
+	this.cc = cc
 	this.hide_warnings = hide_warnings
 	this.warn_is_error = warn_is_error
 }
@@ -1474,6 +1475,11 @@ function bait__preference__parse_args(args) {
 		} else if (eq(arg, from_js_string("-o")) || eq(arg, from_js_string("--out"))) {
 			i = i32(i + 1)
 			p.out_name = Array_get(args, i)
+			Array_push(p.build_options, arg)
+			Array_push(p.build_options, p.out_name)
+		} else if (eq(arg, from_js_string("-cc"))) {
+			i = i32(i + 1)
+			p.cc = Array_get(args, i)
 			Array_push(p.build_options, arg)
 			Array_push(p.build_options, p.out_name)
 		} else if (eq(arg, from_js_string("-v")) || eq(arg, from_js_string("--verbose"))) {
@@ -5385,7 +5391,7 @@ function bait__util__shell_escape(s) {
 
 
 const bait__util__VERSION = from_js_string("0.0.6")
-const bait__util__FULL_VERSION = from_js_string(`${bait__util__VERSION.str} ${from_js_string("808bae1").str}`)
+const bait__util__FULL_VERSION = from_js_string(`${bait__util__VERSION.str} ${from_js_string("6a3aa82").str}`)
 
 function bait__gen__js__Gen_comptime_var(g, node) {
 	bait__gen__js__Gen_write(g, from_js_string("from_js_string(\""))
@@ -7658,7 +7664,7 @@ function bait__builder__Builder_code_gen_c(b) {
 	}
 	const tmp_c_path = os__join_path(os__tmp_dir(), new bait_Array({ data: [string_add(os__file_name(b.prefs.out_name), from_js_string(".c"))], length: 1 }))
 	os__write_file(tmp_c_path, res)
-	const comp_res = os__system(from_js_string(`cc ${tmp_c_path.str} -o ${b.prefs.out_name.str}`))
+	const comp_res = os__system(from_js_string(`${b.prefs.cc.str} ${tmp_c_path.str} -o ${b.prefs.out_name.str}`))
 	if (!eq(comp_res, 0)) {
 		return comp_res
 	}
