@@ -4726,12 +4726,13 @@ function bait__checker__Checker_method_call(c, node) {
 				return node.return_type
 			}
 		}
-		if (i32(bait__ast__Type_get_nr_amp(left_expr_type) < bait__ast__Type_get_nr_amp(Array_get(def.params, 0).typ))) {
-			node.left = new bait__ast__PrefixExpr({ op: bait__token__Token.amp, right: node.left })
-		}
 		node.left_type = Array_get(def.params, 0).typ
 		if (eq(final_sym.kind, bait__ast__TypeKind.array) && Array_contains(new bait_Array({ data: [from_js_string("push"), from_js_string("push_many_with_len"), from_js_string("push_many")], length: 3 }), node.name)) {
 			node.left_type = left_expr_type
+		}
+		if (i32(bait__ast__Type_get_nr_amp(left_expr_type) < bait__ast__Type_get_nr_amp(Array_get(def.params, 0).typ))) {
+			node.left = new bait__ast__PrefixExpr({ op: bait__token__Token.amp, right: node.left })
+			node.left_type = bait__ast__Type_set_nr_amp(node.left_type, 1)
 		}
 	}
 	bait__checker__Checker_check_fun_attrs_on_call(c, node, def)
@@ -5391,7 +5392,7 @@ function bait__util__shell_escape(s) {
 
 
 const bait__util__VERSION = from_js_string("0.0.6")
-const bait__util__FULL_VERSION = from_js_string(`${bait__util__VERSION.str} ${from_js_string("2657019").str}`)
+const bait__util__FULL_VERSION = from_js_string(`${bait__util__VERSION.str} ${from_js_string("0fa254b").str}`)
 
 function bait__gen__js__Gen_comptime_var(g, node) {
 	bait__gen__js__Gen_write(g, from_js_string("from_js_string(\""))
@@ -7228,6 +7229,8 @@ function bait__gen__c__Gen_stmt(g, stmt) {
 		bait__gen__c__Gen_if_expr(g, stmt, false)
 	} else if (stmt instanceof bait__ast__InterfaceDecl) {
 		bait__gen__c__Gen_interface_decl(g, stmt)
+	} else if (stmt instanceof bait__ast__LoopControlStmt) {
+		bait__gen__c__Gen_loop_control_stmt(g, stmt)
 	} else if (stmt instanceof bait__ast__ReturnStmt) {
 		bait__gen__c__Gen_return_stmt(g, stmt)
 	} else if (stmt instanceof bait__ast__StructDecl) {
@@ -7343,6 +7346,10 @@ function bait__gen__c__Gen_for_in_loop(g, node) {
 	}
 	bait__gen__c__Gen_stmts(g, node.stmts)
 	bait__gen__c__Gen_writeln(g, from_js_string("}"))
+}
+
+function bait__gen__c__Gen_loop_control_stmt(g, node) {
+	bait__gen__c__Gen_writeln(g, string_add(bait__token__Token_c_repr(node.kind), from_js_string(";")))
 }
 
 function bait__gen__c__Gen_interface_decl(g, node) {
