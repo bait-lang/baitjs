@@ -3252,6 +3252,7 @@ function bait__parser__Parser_parse(p, text, path, expected_pkg) {
 	p.is_for_init = false
 	p.is_struct_possible = true
 	p.should_abort = false
+	p.warnings = new bait_Array({ data: [], length: 0 })
 	bait__parser__Parser_next(p)
 	const pkg_decl = bait__parser__Parser_package_decl(p)
 	if (i32(expected_pkg.length > 0) && !eq(pkg_decl.full_name, expected_pkg)) {
@@ -5456,7 +5457,7 @@ function bait__util__shell_escape(s) {
 
 
 const bait__util__VERSION = from_js_string("0.0.6")
-const bait__util__FULL_VERSION = from_js_string(`${bait__util__VERSION.str} ${from_js_string("d8c62bc").str}`)
+const bait__util__FULL_VERSION = from_js_string(`${bait__util__VERSION.str} ${from_js_string("9fffa4e").str}`)
 
 function bait__gen__js__Gen_comptime_var(g, node) {
 	bait__gen__js__Gen_write(g, from_js_string("from_js_string(\""))
