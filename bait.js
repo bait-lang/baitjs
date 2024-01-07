@@ -8,6 +8,15 @@ JS.child_process = require("child_process")
 
 var bait__util__timers__g_timers = new bait__util__timers__Timers({})
 
+function bait__ast__BoolLiteral_str(it, indent) {
+	const space = " ".repeat(indent * 2)
+	let s = "bait.ast.BoolLiteral{"
+	s += "\n"
+	s += space + "  val = " + bool_str(it.val, indent + 1).str + "\n"
+	s += space + "  pos = " + bait__token__Pos_str(it.pos, indent + 1).str + "\n"
+	return from_js_string(s + space + "}")
+}
+
 function bait__ast__EmptyExpr_str(it, indent) {
 	const space = " ".repeat(indent * 2)
 	let s = "bait.ast.EmptyExpr{"
@@ -1942,7 +1951,7 @@ function bait__ast__Expr_repr(e) {
 	} else if (e instanceof bait__ast__AsCast) {
 		_t69 = string_add(bait__ast__Expr_repr(e.expr), from_js_string(" as XX"))
 	} else if (e instanceof bait__ast__BoolLiteral) {
-		_t69 = from_js_string("bool")
+		_t69 = bait__ast__BoolLiteral_str(e, 0)
 	} else if (e instanceof bait__ast__CallExpr) {
 		_t69 = string_add(e.name, from_js_string("()"))
 	} else if (e instanceof bait__ast__CharLiteral) {
@@ -1958,7 +1967,7 @@ function bait__ast__Expr_repr(e) {
 	} else if (e instanceof bait__ast__Ident) {
 		_t69 = e.name
 	} else if (e instanceof bait__ast__IfMatch) {
-		_t69 = from_js_string("if")
+		_t69 = from_js_string("if/match")
 	} else if (e instanceof bait__ast__IndexExpr) {
 		_t69 = string_add(string_add(string_add(bait__ast__Expr_repr(e.left), from_js_string("[")), bait__ast__Expr_repr(e.index)), from_js_string("]"))
 	} else if (e instanceof bait__ast__InfixExpr) {
@@ -5477,7 +5486,7 @@ function bait__util__shell_escape(s) {
 
 
 const bait__util__VERSION = from_js_string("0.0.6")
-const bait__util__FULL_VERSION = from_js_string(`${bait__util__VERSION.str} ${from_js_string("3c661ae").str}`)
+const bait__util__FULL_VERSION = from_js_string(`${bait__util__VERSION.str} ${from_js_string("20be021").str}`)
 
 function bait__gen__js__Gen_comptime_var(g, node) {
 	bait__gen__js__Gen_write(g, from_js_string("from_js_string(\""))
