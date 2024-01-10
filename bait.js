@@ -4316,57 +4316,59 @@ function bait__checker__Checker_generic_error(c, msg) {
 
 
 function bait__checker__Checker_expr(c, expr) {
+	let _t285 = undefined
 	if (expr instanceof bait__ast__AnonFun) {
-		return bait__checker__Checker_anon_fun(c, expr)
+		_t285 = bait__checker__Checker_anon_fun(c, expr)
 	} else if (expr instanceof bait__ast__ArrayInit) {
-		return bait__checker__Checker_array_init(c, expr)
+		_t285 = bait__checker__Checker_array_init(c, expr)
 	} else if (expr instanceof bait__ast__AsCast) {
-		return bait__checker__Checker_as_cast(c, expr)
+		_t285 = bait__checker__Checker_as_cast(c, expr)
 	} else if (expr instanceof bait__ast__BoolLiteral) {
-		return bait__ast__BOOL_TYPE
+		_t285 = bait__ast__BOOL_TYPE
 	} else if (expr instanceof bait__ast__CallExpr) {
-		return bait__checker__Checker_call_expr(c, expr)
+		_t285 = bait__checker__Checker_call_expr(c, expr)
 	} else if (expr instanceof bait__ast__CharLiteral) {
-		return bait__ast__U8_TYPE
+		_t285 = bait__ast__U8_TYPE
 	} else if (expr instanceof bait__ast__ComptimeVar) {
-		return bait__checker__Checker_comptime_var(c, expr)
+		_t285 = bait__checker__Checker_comptime_var(c, expr)
 	} else if (expr instanceof bait__ast__EnumVal) {
-		return bait__checker__Checker_enum_val(c, expr)
+		_t285 = bait__checker__Checker_enum_val(c, expr)
 	} else if (expr instanceof bait__ast__FloatLiteral) {
-		return bait__ast__F64_TYPE
+		_t285 = bait__ast__F64_TYPE
 	} else if (expr instanceof bait__ast__HashExpr) {
-		return bait__checker__Checker_hash_expr(c, expr)
+		_t285 = bait__checker__Checker_hash_expr(c, expr)
 	} else if (expr instanceof bait__ast__Ident) {
-		return bait__checker__Checker_ident(c, expr)
+		_t285 = bait__checker__Checker_ident(c, expr)
 	} else if (expr instanceof bait__ast__IfMatch) {
-		return bait__checker__Checker_if_match(c, expr)
+		_t285 = bait__checker__Checker_if_match(c, expr)
 	} else if (expr instanceof bait__ast__IndexExpr) {
-		return bait__checker__Checker_index_expr(c, expr)
+		_t285 = bait__checker__Checker_index_expr(c, expr)
 	} else if (expr instanceof bait__ast__InfixExpr) {
-		return bait__checker__Checker_infix_expr(c, expr)
+		_t285 = bait__checker__Checker_infix_expr(c, expr)
 	} else if (expr instanceof bait__ast__IntegerLiteral) {
-		return bait__ast__I32_TYPE
+		_t285 = bait__ast__I32_TYPE
 	} else if (expr instanceof bait__ast__MapInit) {
-		return bait__checker__Checker_map_init(c, expr)
+		_t285 = bait__checker__Checker_map_init(c, expr)
 	} else if (expr instanceof bait__ast__ParExpr) {
-		return bait__checker__Checker_par_expr(c, expr)
+		_t285 = bait__checker__Checker_par_expr(c, expr)
 	} else if (expr instanceof bait__ast__PrefixExpr) {
-		return bait__checker__Checker_prefix_expr(c, expr)
+		_t285 = bait__checker__Checker_prefix_expr(c, expr)
 	} else if (expr instanceof bait__ast__SelectorExpr) {
-		return bait__checker__Checker_selector_expr(c, expr)
+		_t285 = bait__checker__Checker_selector_expr(c, expr)
 	} else if (expr instanceof bait__ast__StringLiteral) {
-		return bait__checker__Checker_string_literal(c, expr)
+		_t285 = bait__checker__Checker_string_literal(c, expr)
 	} else if (expr instanceof bait__ast__StringInterLiteral) {
-		return bait__checker__Checker_string_inter_literal(c, expr)
+		_t285 = bait__checker__Checker_string_inter_literal(c, expr)
 	} else if (expr instanceof bait__ast__StructInit) {
-		return bait__checker__Checker_struct_init(c, expr)
+		_t285 = bait__checker__Checker_struct_init(c, expr)
 	} else if (expr instanceof bait__ast__TypeOf) {
-		return bait__checker__Checker_type_of(c, expr)
+		_t285 = bait__checker__Checker_type_of(c, expr)
 	} else {
-		const e = expr
+			const e = expr
 		bait__checker__Checker_error(c, from_js_string(`unexpected expr: ${bait__ast__EmptyExpr_str(e, 0).str}`), e.pos)
-		return bait__ast__PLACEHOLDER_TYPE
+		_t285 = bait__ast__PLACEHOLDER_TYPE
 	}
+	return _t285
 }
 
 function bait__checker__Checker_anon_fun(c, node) {
@@ -5537,7 +5539,7 @@ function bait__util__shell_escape(s) {
 
 
 const bait__util__VERSION = from_js_string("0.0.6")
-const bait__util__FULL_VERSION = from_js_string(`${bait__util__VERSION.str} ${from_js_string("c402b02").str}`)
+const bait__util__FULL_VERSION = from_js_string(`${bait__util__VERSION.str} ${from_js_string("08ac361").str}`)
 
 function bait__gen__js__Gen_comptime_var(g, node) {
 	bait__gen__js__Gen_write(g, from_js_string("from_js_string(\""))
@@ -6910,7 +6912,9 @@ function bait__gen__c__Gen_equality_fun(g, typ) {
 
 
 function bait__gen__c__Gen_expr(g, expr) {
-	if (expr instanceof bait__ast__ArrayInit) {
+	if (expr instanceof bait__ast__AnonFun) {
+		panic(from_js_string("not implemented"))
+	} else if (expr instanceof bait__ast__ArrayInit) {
 		bait__gen__c__Gen_array_init(g, expr)
 	} else if (expr instanceof bait__ast__AsCast) {
 		bait__gen__c__Gen_as_cast(g, expr)
@@ -6918,6 +6922,14 @@ function bait__gen__c__Gen_expr(g, expr) {
 		bait__gen__c__Gen_bool_literal(g, expr)
 	} else if (expr instanceof bait__ast__CallExpr) {
 		bait__gen__c__Gen_call_expr(g, expr)
+	} else if (expr instanceof bait__ast__CharLiteral) {
+		panic(from_js_string("not implemented"))
+	} else if (expr instanceof bait__ast__ComptimeVar) {
+		panic(from_js_string("not implemented"))
+	} else if (expr instanceof bait__ast__EnumVal) {
+		panic(from_js_string("not implemented"))
+	} else if (expr instanceof bait__ast__FloatLiteral) {
+		panic(from_js_string("not implemented"))
 	} else if (expr instanceof bait__ast__HashExpr) {
 		bait__gen__c__Gen_hash_expr(g, expr)
 	} else if (expr instanceof bait__ast__Ident) {
@@ -6930,6 +6942,8 @@ function bait__gen__c__Gen_expr(g, expr) {
 		bait__gen__c__Gen_infix_expr(g, expr)
 	} else if (expr instanceof bait__ast__IntegerLiteral) {
 		bait__gen__c__Gen_integer_literal(g, expr)
+	} else if (expr instanceof bait__ast__MapInit) {
+		panic(from_js_string("not implemented"))
 	} else if (expr instanceof bait__ast__ParExpr) {
 		bait__gen__c__Gen_par_expr(g, expr)
 	} else if (expr instanceof bait__ast__PrefixExpr) {
@@ -6944,7 +6958,8 @@ function bait__gen__c__Gen_expr(g, expr) {
 		bait__gen__c__Gen_struct_init(g, expr)
 	} else if (expr instanceof bait__ast__TypeOf) {
 		bait__gen__c__Gen_type_of(g, expr)
-	} else {
+	} else if (expr instanceof bait__ast__EmptyExpr) {
+		panic(from_js_string("unexpected EmptyExpr"))
 	}
 }
 
@@ -7398,10 +7413,14 @@ function bait__gen__c__Gen_stmts(g, stmts) {
 }
 
 function bait__gen__c__Gen_stmt(g, stmt) {
-	if (stmt instanceof bait__ast__AssignStmt) {
+	if (stmt instanceof bait__ast__AssertStmt) {
+		panic(from_js_string("Not implemented"))
+	} else if (stmt instanceof bait__ast__AssignStmt) {
 		bait__gen__c__Gen_assign_stmt(g, stmt)
 	} else if (stmt instanceof bait__ast__ConstDecl) {
 		bait__gen__c__Gen_const_decl(g, stmt)
+	} else if (stmt instanceof bait__ast__EnumDecl) {
+		panic(from_js_string("Not implemented"))
 	} else if (stmt instanceof bait__ast__ExprStmt) {
 		bait__gen__c__Gen_expr_stmt(g, stmt)
 	} else if (stmt instanceof bait__ast__ForLoop) {
@@ -7412,6 +7431,8 @@ function bait__gen__c__Gen_stmt(g, stmt) {
 		bait__gen__c__Gen_for_in_loop(g, stmt)
 	} else if (stmt instanceof bait__ast__FunDecl) {
 		bait__gen__c__Gen_fun_decl(g, stmt)
+	} else if (stmt instanceof bait__ast__GlobalDecl) {
+		panic(from_js_string("Not implemented"))
 	} else if (stmt instanceof bait__ast__IfMatch) {
 		bait__gen__c__Gen_if_match(g, stmt)
 	} else if (stmt instanceof bait__ast__InterfaceDecl) {
@@ -7422,7 +7443,8 @@ function bait__gen__c__Gen_stmt(g, stmt) {
 		bait__gen__c__Gen_return_stmt(g, stmt)
 	} else if (stmt instanceof bait__ast__StructDecl) {
 	} else if (stmt instanceof bait__ast__TypeDecl) {
-	} else {
+	} else if (stmt instanceof bait__ast__EmptyStmt) {
+		panic(from_js_string("unexpected EmptyStmt"))
 	}
 }
 
