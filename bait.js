@@ -648,6 +648,11 @@ function os__rmdir_all(dir) {
 	JS.fs.rmdirSync(dir.str, { recursive: true })
 }
 
+function os__read_bytes(path) {
+	const js_arr = [...JS.fs.readFileSync(path.str)]
+	return from_js_arr(js_arr)
+}
+
 function os__read_file(path) {
 	return from_js_string(JS.fs.readFileSync(path.str).toString())
 }
@@ -5862,7 +5867,7 @@ function bait__util__shell_escape(s) {
 
 
 const bait__util__VERSION = from_js_string("0.0.6")
-const bait__util__FULL_VERSION = from_js_string(`${bait__util__VERSION.str} ${from_js_string("58c52dd").str}`)
+const bait__util__FULL_VERSION = from_js_string(`${bait__util__VERSION.str} ${from_js_string("620c669").str}`)
 
 function bait__gen__js__Gen_comptime_var(g, node) {
 	bait__gen__js__Gen_write(g, from_js_string("from_js_string(\""))
@@ -8373,7 +8378,7 @@ function bait__builder__run_tests(prefs) {
 
 const bait__util__tools__VERBOSE = Array_contains(os__ARGS, from_js_string("--verbose")) || Array_contains(os__ARGS, from_js_string("-v"))
 function bait__util__tools__launch_tool(name, args) {
-	const base_path = os__join_path(from_js_string("/home/john/Documents/privat/bait"), new bait_Array({ data: [from_js_string("cli"), from_js_string("tools"), name], length: 3 }))
+	const base_path = os__join_path(from_js_string("/home/runner/work/bait/bait"), new bait_Array({ data: [from_js_string("cli"), from_js_string("tools"), name], length: 3 }))
 	const tool_source = bait__util__tools__find_tool_source(base_path)
 	const tool_exe = string_add(base_path, from_js_string(".js"))
 	const baitexe = os__executable()
