@@ -1631,8 +1631,7 @@ function bait__preference__backend_from_string(s) {
 	} else if (string_eq(s, from_js_string("c"))) {
 		_t61 = bait__preference__Backend.c
 	} else {
-			panic(from_js_string(`Invalid backend: ${s.str}`))
-		_t61 = bait__preference__Backend.js
+		_t61 = panic(from_js_string(`Invalid backend: ${s.str}`))
 	}
 	return _t61
 }
@@ -2329,15 +2328,15 @@ function bait__ast__new_type(t) {
 }
 
 function bait__ast__Type_idx(t) {
-	return i32((t) % 65536)
+	return (t & 0xffff)
 }
 
 function bait__ast__Type_set_nr_amp(t, n) {
-	return bait__ast__new_type(i32(bait__ast__Type_idx(t) + (i32(n * 65536))))
+	return bait__ast__new_type((t & 0xff00ffff | i32(n << 16)))
 }
 
 function bait__ast__Type_get_nr_amp(t) {
-	return i32((i32(t - bait__ast__Type_idx(t))) / 65536)
+	return (t >> 16 & 0xff)
 }
 
 function bait__ast__Type_is_int(t) {
@@ -5919,7 +5918,7 @@ function bait__util__shell_escape(s) {
 
 
 const bait__util__VERSION = from_js_string("0.0.6")
-const bait__util__FULL_VERSION = from_js_string(`${bait__util__VERSION.str} ${from_js_string("a9814af").str}`)
+const bait__util__FULL_VERSION = from_js_string(`${bait__util__VERSION.str} ${from_js_string("d17d88f").str}`)
 
 function bait__gen__js__Gen_comptime_var(g, node) {
 	bait__gen__js__Gen_write(g, from_js_string("from_js_string(\""))
@@ -7329,7 +7328,6 @@ function bait__gen__c__Gen_equality_fun(g, typ) {
 	}
 	bait__errors__generic_error(from_js_string(`cannot generate equality function for type ${sym.name.str}`))
 	exit(1)
-	return from_js_string("")
 }
 
 
