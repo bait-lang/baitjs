@@ -117,6 +117,11 @@ function Array_contains(a, el) {
 	return i32(Array_index_any(a, el) >= 0)
 }
 
+function Array_delete(a, idx) {
+	a.data.splice(idx, 1)
+	a.length = i32(a.length - 1)
+}
+
 function Array_slice(a, start, end) {
 	return new bait_Array({ data: a.data.slice(start, end), length: i32(end - start) })
 }
@@ -6003,7 +6008,7 @@ function bait__util__shell_escape(s) {
 
 
 const bait__util__VERSION = from_js_string("0.0.6")
-const bait__util__FULL_VERSION = from_js_string(`${bait__util__VERSION.str} ${from_js_string("275ab54").str}`)
+const bait__util__FULL_VERSION = from_js_string(`${bait__util__VERSION.str} ${from_js_string("38b64b7").str}`)
 
 function bait__gen__js__Gen_comptime_var(g, node) {
 	bait__gen__js__Gen_write(g, from_js_string("from_js_string(\""))
