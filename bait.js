@@ -5201,7 +5201,7 @@ function bait__checker__Checker_method_call(c, node) {
 		bait__checker__Checker_error(c, from_js_string(`expected ${i32_str(i32(def.params.length - arg_offset)).str} arguments but got ${i32_str(node.args.length).str}`), node.pos)
 		return node.return_type
 	}
-	if (eq(final_sym.kind, bait__ast__TypeKind.array) && Array_contains(new bait_Array({ data: [from_js_string("push"), from_js_string("push_many_with_len"), from_js_string("contains")], length: 3 }), node.name)) {
+	if (eq(final_sym.kind, bait__ast__TypeKind.array) && Array_contains(new bait_Array({ data: [from_js_string("push"), from_js_string("push_many_with_len")], length: 2 }), node.name)) {
 		let arg = Array_get(node.args, 0)
 		const info = final_sym.info
 		c.expected_type = info.elem_type
@@ -6072,7 +6072,7 @@ function bait__util__shell_escape(s) {
 
 
 const bait__util__VERSION = from_js_string("0.0.6")
-const bait__util__FULL_VERSION = from_js_string(`${bait__util__VERSION.str} ${from_js_string("6a7996b").str}`)
+const bait__util__FULL_VERSION = from_js_string(`${bait__util__VERSION.str} ${from_js_string("46f460d").str}`)
 
 function bait__gen__js__Gen_comptime_var(g, node) {
 	bait__gen__js__Gen_write(g, from_js_string("from_js_string(\""))
@@ -6862,7 +6862,7 @@ function bait__gen__js__Gen_get_concrete_name(g, name, concrete_types) {
 		const t = Array_get(concrete_types, _t634)
 		full_name = string_add(full_name, string_add(from_js_string("_"), bait__ast__Table_get_sym(g.table, t).name))
 	}
-	return full_name
+	return bait__gen__js__js_name(full_name)
 }
 
 function bait__gen__js__Gen_concrete_sym(g, typ) {
