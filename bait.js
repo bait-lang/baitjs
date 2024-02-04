@@ -516,12 +516,44 @@ function f64_str(n) {
 }
 
 
+function string_all_before(s, search) {
+	const idx = string_index(s, search)
+	if (eq(idx, -1)) {
+		return s
+	}
+	return string_substr(s, 0, idx)
+}
+
+function string_all_before_last(s, search) {
+	const idx = string_last_index(s, search)
+	if (eq(idx, -1)) {
+		return s
+	}
+	return string_substr(s, 0, idx)
+}
+
+function string_all_after(s, search) {
+	const idx = string_index(s, search)
+	if (eq(idx, -1)) {
+		return s
+	}
+	return string_substr(s, i32(idx + 1), s.length)
+}
+
+function string_all_after_last(s, search) {
+	const idx = string_last_index(s, search)
+	if (eq(idx, -1)) {
+		return s
+	}
+	return string_substr(s, i32(idx + 1), s.length)
+}
+
 function string_trim_left(s, cutset) {
 	let pos = 0
 	while (i32(pos < s.length)) {
 		let found = false
-		for (let _t12 = 0; _t12 < cutset.length; _t12++) {
-			const c = string_get(cutset, _t12)
+		for (let _t16 = 0; _t16 < cutset.length; _t16++) {
+			const c = string_get(cutset, _t16)
 			if (eq(string_get(s, pos), c)) {
 				found = true
 				break
@@ -539,8 +571,8 @@ function string_trim_right(s, cutset) {
 	let pos = i32(s.length - 1)
 	while (i32(pos >= 0)) {
 		let found = false
-		for (let _t15 = 0; _t15 < cutset.length; _t15++) {
-			const c = string_get(cutset, _t15)
+		for (let _t19 = 0; _t19 < cutset.length; _t19++) {
+			const c = string_get(cutset, _t19)
 			if (eq(string_get(s, pos), c)) {
 				found = true
 				break
@@ -577,38 +609,6 @@ function string_index(s, search) {
 
 function string_last_index(s, search) {
 	return s.str.lastIndexOf(search.str)
-}
-
-function string_all_before(s, search) {
-	const idx = string_index(s, search)
-	if (eq(idx, -1)) {
-		return s
-	}
-	return string_substr(s, 0, idx)
-}
-
-function string_all_before_last(s, search) {
-	const idx = string_last_index(s, search)
-	if (eq(idx, -1)) {
-		return s
-	}
-	return string_substr(s, 0, idx)
-}
-
-function string_all_after(s, search) {
-	const idx = string_index(s, search)
-	if (eq(idx, -1)) {
-		return s
-	}
-	return string_substr(s, i32(idx + 1), s.length)
-}
-
-function string_all_after_last(s, search) {
-	const idx = string_last_index(s, search)
-	if (eq(idx, -1)) {
-		return s
-	}
-	return string_substr(s, i32(idx + 1), s.length)
 }
 
 function string_repeat(s, count) {
@@ -731,6 +731,11 @@ function Array_string_to_js_arr(arr) {
 
 
 
+function os__exists_dir(path) {
+	return os__exists(path) && os__is_dir(path)
+}
+
+
 const os__ARGS = from_js_string_arr(JS.process.argv)
 const os__PATH_SEP = from_js_string(JS.path.sep)
 function os__user_args() {
@@ -809,10 +814,6 @@ function os__dir(path) {
 		return from_js_string("/")
 	}
 	return string_substr(path, 0, pos)
-}
-
-function os__exists_dir(path) {
-	return os__exists(path) && os__is_dir(path)
 }
 
 function os__is_dir(path) {
@@ -6228,7 +6229,7 @@ function bait__util__shell_escape(s) {
 
 
 const bait__util__VERSION = from_js_string("0.0.6")
-const bait__util__FULL_VERSION = from_js_string(`${bait__util__VERSION.str} ${from_js_string("378f846").str}`)
+const bait__util__FULL_VERSION = from_js_string(`${bait__util__VERSION.str} ${from_js_string("fe7c7b4").str}`)
 
 function bait__gen__js__Gen_comptime_var(g, node) {
 	bait__gen__js__Gen_write(g, from_js_string("from_js_string(\""))
