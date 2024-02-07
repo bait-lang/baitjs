@@ -1771,7 +1771,8 @@ function bait__ast__LoopControlStmt({ kind = 0, label = from_js_string(""), pos 
 	this.label = label
 	this.pos = pos
 }
-function bait__ast__GlobalDecl({ name = from_js_string(""), expr = undefined, pos = new bait__token__Pos({}) }) {
+function bait__ast__GlobalDecl({ typ = 0, name = from_js_string(""), expr = undefined, pos = new bait__token__Pos({}) }) {
+	this.typ = typ
 	this.name = name
 	this.expr = expr
 	this.pos = pos
@@ -5878,8 +5879,8 @@ function bait__checker__Checker_for_in_loop(c, node) {
 }
 
 function bait__checker__Checker_global_decl(c, node) {
-	const typ = bait__checker__Checker_expr(c, node.expr)
-	bait__ast__Scope_update_type(c.table.global_scope, node.name, typ)
+	node.typ = bait__checker__Checker_expr(c, node.expr)
+	bait__ast__Scope_update_type(c.table.global_scope, node.name, node.typ)
 }
 
 function bait__checker__Checker_interface_decl(c, node) {
@@ -6144,7 +6145,7 @@ function bait__util__shell_escape(s) {
 
 
 const bait__util__VERSION = from_js_string("0.0.6")
-const bait__util__FULL_VERSION = from_js_string(`${bait__util__VERSION.str} ${from_js_string("1e90c39").str}`)
+const bait__util__FULL_VERSION = from_js_string(`${bait__util__VERSION.str} ${from_js_string("1b4eeff").str}`)
 
 function bait__gen__js__Gen_comptime_var(g, node) {
 	bait__gen__js__Gen_write(g, from_js_string("from_js_string(\""))
@@ -7443,7 +7444,7 @@ function bait__gen__js__Gen_struct_init(g, node) {
 
 
 const bait__gen__c__C_RESERVED = new bait_Array({ data: [from_js_string("auto"), from_js_string("break"), from_js_string("case"), from_js_string("char"), from_js_string("const"), from_js_string("continue"), from_js_string("default"), from_js_string("do"), from_js_string("double"), from_js_string("else"), from_js_string("enum"), from_js_string("extern"), from_js_string("float"), from_js_string("for"), from_js_string("goto"), from_js_string("if"), from_js_string("inline"), from_js_string("int"), from_js_string("long"), from_js_string("register"), from_js_string("restrict"), from_js_string("return"), from_js_string("short"), from_js_string("signed"), from_js_string("sizeof"), from_js_string("static"), from_js_string("struct"), from_js_string("switch"), from_js_string("typedef"), from_js_string("union"), from_js_string("unsigned"), from_js_string("void"), from_js_string("volatile"), from_js_string("while"), from_js_string("main"), from_js_string("exit")], length: 36 })
-function bait__gen__c__Gen({ pref = new bait__preference__Prefs({}), table = new bait__ast__Table({}), path = from_js_string(""), pkg = from_js_string(""), main_inits_out = from_js_string(""), type_defs_out = from_js_string(""), fun_decls_out = from_js_string(""), type_impls_out = from_js_string(""), out = from_js_string(""), indent = -1, empty_line = true, stmt_offsets = new bait_Array({ data: [], length: 0 }), foreign_imports = new bait_Array({ data: [], length: 0 }), generated_eq_funs = new bait_Array({ data: [], length: 0 }), tmp_counter = 0, cur_concrete_types = new map({ data: new Map([]), length: 0 }), is_lhs_assign = false, is_array_map_set = false, is_for_loop_head = false }) {
+function bait__gen__c__Gen({ pref = new bait__preference__Prefs({}), table = new bait__ast__Table({}), path = from_js_string(""), pkg = from_js_string(""), main_inits_out = from_js_string(""), type_defs_out = from_js_string(""), fun_decls_out = from_js_string(""), type_impls_out = from_js_string(""), globals_out = from_js_string(""), out = from_js_string(""), indent = -1, empty_line = true, stmt_offsets = new bait_Array({ data: [], length: 0 }), foreign_imports = new bait_Array({ data: [], length: 0 }), generated_eq_funs = new bait_Array({ data: [], length: 0 }), tmp_counter = 0, cur_concrete_types = new map({ data: new Map([]), length: 0 }), is_lhs_assign = false, is_array_map_set = false, is_for_loop_head = false }) {
 	this.pref = pref
 	this.table = table
 	this.path = path
@@ -7452,6 +7453,7 @@ function bait__gen__c__Gen({ pref = new bait__preference__Prefs({}), table = new
 	this.type_defs_out = type_defs_out
 	this.fun_decls_out = fun_decls_out
 	this.type_impls_out = type_impls_out
+	this.globals_out = globals_out
 	this.out = out
 	this.indent = indent
 	this.empty_line = empty_line
@@ -7479,7 +7481,7 @@ function bait__gen__c__gen(files, table, pref) {
 	if (!g.pref.is_library) {
 		bait__gen__c__Gen_c_main(g)
 	}
-	return string_add(string_add(string_add(string_add(string_add(bait__gen__c__Gen_headers(g), g.type_defs_out), g.fun_decls_out), g.type_impls_out), from_js_string("\n")), g.out)
+	return string_add(string_add(string_add(string_add(string_add(string_add(bait__gen__c__Gen_headers(g), g.type_defs_out), g.fun_decls_out), g.type_impls_out), g.globals_out), from_js_string("\n")), g.out)
 }
 
 function bait__gen__c__Gen_process_imports(g, imports) {
@@ -8122,7 +8124,7 @@ function bait__gen__c__Gen_stmt(g, stmt) {
 	} else if (stmt instanceof bait__ast__FunDecl) {
 		bait__gen__c__Gen_fun_decl(g, stmt)
 	} else if (stmt instanceof bait__ast__GlobalDecl) {
-		panic(from_js_string("Not implemented"))
+		bait__gen__c__Gen_global_decl(g, stmt)
 	} else if (stmt instanceof bait__ast__IfMatch) {
 		bait__gen__c__Gen_if_match(g, stmt)
 	} else if (stmt instanceof bait__ast__InterfaceDecl) {
@@ -8251,6 +8253,13 @@ function bait__gen__c__Gen_for_in_loop(g, node) {
 
 function bait__gen__c__Gen_loop_control_stmt(g, node) {
 	bait__gen__c__Gen_writeln(g, string_add(bait__token__Token_c_repr(node.kind), from_js_string(";")))
+}
+
+function bait__gen__c__Gen_global_decl(g, node) {
+	const name = bait__gen__c__c_name(node.name)
+	const expr = bait__gen__c__Gen_expr_string(g, node.expr)
+	const typ = bait__gen__c__Gen_typ(g, node.typ)
+	g.globals_out = string_add(g.globals_out, from_js_string(`${typ.str} ${name.str} = ${expr.str};\n`))
 }
 
 function bait__gen__c__Gen_interface_decl(g, node) {
