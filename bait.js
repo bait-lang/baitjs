@@ -4721,6 +4721,7 @@ function bait__checker__Checker_comptime_if_condition(c, node) {
 
 
 function bait__checker__Checker_expr(c, expr) {
+	const expected_save = c.expected_type
 	let _t322 = undefined
 	if (expr instanceof bait__ast__AnonFun) {
 		_t322 = bait__checker__Checker_anon_fun(c, expr)
@@ -4773,7 +4774,9 @@ function bait__checker__Checker_expr(c, expr) {
 	} else if (expr instanceof bait__ast__EmptyExpr) {
 		_t322 = panic(from_js_string(`unexpected EmptyExpr at ${bait__token__Pos_str(expr.pos).str}`))
 	}
-	return _t322
+	const t = _t322
+	c.expected_type = expected_save
+	return t
 }
 
 function bait__checker__Checker_array_init(c, node) {
@@ -6145,7 +6148,7 @@ function bait__util__shell_escape(s) {
 
 
 const bait__util__VERSION = from_js_string("0.0.6")
-const bait__util__FULL_VERSION = from_js_string(`${bait__util__VERSION.str} ${from_js_string("5b1b611").str}`)
+const bait__util__FULL_VERSION = from_js_string(`${bait__util__VERSION.str} ${from_js_string("944e2a7").str}`)
 
 function bait__gen__js__Gen_comptime_var(g, node) {
 	bait__gen__js__Gen_write(g, from_js_string("from_js_string(\""))
