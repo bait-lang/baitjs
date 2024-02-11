@@ -7343,7 +7343,7 @@ function bait__util__shell_escape(s) {
 
 
 const bait__util__VERSION = from_js_string("0.0.6")
-const bait__util__FULL_VERSION = from_js_string(`${bait__util__VERSION.str} ${from_js_string("4af9670").str}`)
+const bait__util__FULL_VERSION = from_js_string(`${bait__util__VERSION.str} ${from_js_string("c0a4bb5").str}`)
 
 function bait__gen__js__Gen_comptime_var(g, node) {
 	bait__gen__js__Gen_write(g, from_js_string("from_js_string(\""))
@@ -7947,6 +7947,7 @@ function bait__gen__js__Gen_if_match(g, node) {
 		}
 	}
 	bait__gen__js__Gen_writeln(g, from_js_string("}"))
+	bait__gen__js__Gen_save_stmt_offset(g)
 	if (node.is_expr) {
 		bait__gen__js__Gen_write(g, cut)
 		bait__gen__js__Gen_write(g, tmp)
@@ -9497,6 +9498,7 @@ function bait__gen__c__Gen_if_match(g, node) {
 		}
 	}
 	bait__gen__c__Gen_writeln(g, from_js_string("}"))
+	bait__gen__c__Gen_save_stmt_offset(g)
 	if (node.is_expr) {
 		bait__gen__c__Gen_write(g, cut)
 		bait__gen__c__Gen_write(g, tmp)
