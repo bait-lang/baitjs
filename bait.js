@@ -2603,7 +2603,7 @@ function bait__ast__Table_register_builtins(t) {
 	bait__ast__Table_register_sym(t, new bait__ast__TypeSymbol({ name: from_js_string("bool") }))
 	bait__ast__Table_register_sym(t, new bait__ast__TypeSymbol({ name: from_js_string("string"), kind: bait__ast__TypeKind.string }))
 	bait__ast__Table_register_sym(t, new bait__ast__TypeSymbol({ name: from_js_string("Array"), kind: bait__ast__TypeKind.array }))
-	bait__ast__Table_register_sym(t, new bait__ast__TypeSymbol({ name: from_js_string("map"), kind: bait__ast__TypeKind.map }))
+	bait__ast__Table_register_sym(t, new bait__ast__TypeSymbol({ name: from_js_string("Map"), kind: bait__ast__TypeKind.map }))
 	bait__ast__Table_register_sym(t, new bait__ast__TypeSymbol({ name: from_js_string("any") }))
 }
 
@@ -7580,7 +7580,7 @@ function bait__util__shell_escape(s) {
 
 
 const bait__util__VERSION = from_js_string("0.0.6")
-const bait__util__FULL_VERSION = from_js_string(`${bait__util__VERSION.str} ${from_js_string("dd77124").str}`)
+const bait__util__FULL_VERSION = from_js_string(`${bait__util__VERSION.str} ${from_js_string("35452e3").str}`)
 
 function bait__gen__js__Gen_comptime_var(g, node) {
 	bait__gen__js__Gen_write(g, from_js_string("from_js_string(\""))
@@ -7798,13 +7798,13 @@ function bait__gen__js__Gen_index_expr(g, node) {
 	if (eq(sym.kind, bait__ast__TypeKind.map)) {
 		if (g.is_lhs_assign && !node.is_selector) {
 			g.is_array_map_set = true
-			bait__gen__js__Gen_write(g, from_js_string("map_set("))
+			bait__gen__js__Gen_write(g, from_js_string("Map_set("))
 			bait__gen__js__Gen_expr(g, node.left)
 			bait__gen__js__Gen_write(g, from_js_string(", "))
 			bait__gen__js__Gen_expr(g, node.index)
 			bait__gen__js__Gen_write(g, from_js_string(", "))
 		} else {
-			bait__gen__js__Gen_write(g, from_js_string("map_get_set("))
+			bait__gen__js__Gen_write(g, from_js_string("Map_get_set("))
 			bait__gen__js__Gen_expr(g, node.left)
 			bait__gen__js__Gen_write(g, from_js_string(", "))
 			bait__gen__js__Gen_expr(g, node.index)
@@ -7886,7 +7886,7 @@ function bait__gen__js__Gen_infix_expr(g, node) {
 }
 
 function bait__gen__js__Gen_map_init(g, node) {
-	bait__gen__js__Gen_write(g, from_js_string("new map({ data: new Map(["))
+	bait__gen__js__Gen_write(g, from_js_string("new bait_Map({ data: new Map(["))
 	for (let i = 0; i < node.keys.length; i++) {
 		const key = Array_get(node.keys, i)
 		bait__gen__js__Gen_write(g, from_js_string("["))
@@ -8683,11 +8683,11 @@ function bait__gen__js__Gen_for_in_loop(g, node) {
 function bait__gen__js__Gen_for_in_map(g, node) {
 	const container = bait__gen__js__Gen_expr_string(g, node.expr)
 	const keys_var = bait__gen__js__Gen_new_temp_var(g)
-	bait__gen__js__Gen_writeln(g, from_js_string(`const ${keys_var.str} = map_keys(${container.str})`))
+	bait__gen__js__Gen_writeln(g, from_js_string(`const ${keys_var.str} = Map_keys(${container.str})`))
 	const i = bait__gen__js__Gen_new_temp_var(g)
 	bait__gen__js__Gen_writeln(g, from_js_string(`for (let ${i.str} = 0; ${i.str} < ${keys_var.str}.length; ${i.str}++) {`))
 	bait__gen__js__Gen_writeln(g, from_js_string(`\tconst ${bait__gen__js__js_name(node.idxvar).str} = Array_get(${keys_var.str}, ${i.str})`))
-	bait__gen__js__Gen_writeln(g, from_js_string(`\tconst ${bait__gen__js__js_name(node.valvar.name).str} = map_get(${container.str}, ${node.idxvar.str})`))
+	bait__gen__js__Gen_writeln(g, from_js_string(`\tconst ${bait__gen__js__js_name(node.valvar.name).str} = Map_get(${container.str}, ${node.idxvar.str})`))
 	bait__gen__js__Gen_stmts(g, node.stmts)
 	bait__gen__js__Gen_writeln(g, from_js_string("}"))
 }
@@ -10441,7 +10441,7 @@ function bait__builder__run_tests(prefs) {
 
 const bait__util__tools__VERBOSE = Array_contains_string(os__ARGS, from_js_string("--verbose")) || Array_contains_string(os__ARGS, from_js_string("-v"))
 function bait__util__tools__launch_tool(name, args) {
-	const base_path = os__join_path(from_js_string("/home/runner/work/bait/bait"), new bait_Array({ data: [from_js_string("cli"), from_js_string("tools"), name], length: 3 }))
+	const base_path = os__join_path(from_js_string("/home/runner/.bait/baitjs"), new bait_Array({ data: [from_js_string("cli"), from_js_string("tools"), name], length: 3 }))
 	const tool_source = bait__util__tools__find_tool_source(base_path)
 	const tool_exe = string_add(base_path, from_js_string(".js"))
 	const baitexe = os__executable()
