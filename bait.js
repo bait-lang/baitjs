@@ -23,6 +23,7 @@ function bait__token__ComptimeVar_str(it) {
 		case bait__token__ComptimeVar.pkg: return from_js_string("pkg")
 		case bait__token__ComptimeVar.file: return from_js_string("file")
 		case bait__token__ComptimeVar.abs_file: return from_js_string("abs_file")
+		case bait__token__ComptimeVar.dir: return from_js_string("dir")
 		case bait__token__ComptimeVar.line: return from_js_string("line")
 		case bait__token__ComptimeVar.file_line: return from_js_string("file_line")
 		case bait__token__ComptimeVar.fun_: return from_js_string("fun_")
@@ -707,7 +708,7 @@ function os__dir(path) {
 	if (eq(pos, 0) && string_eq(os__PATH_SEP, from_js_string("/"))) {
 		return from_js_string("/")
 	}
-	return string_substr(path, 0, pos)
+	return string_trim_right(string_substr(path, 0, pos), os__PATH_SEP)
 }
 
 function os__exists_dir(path) {
@@ -895,12 +896,13 @@ const bait__token__ComptimeVar = {
 	pkg: 1,
 	file: 2,
 	abs_file: 3,
-	line: 4,
-	file_line: 5,
-	fun_: 6,
-	baitexe: 7,
-	baitdir: 8,
-	baithash: 9,
+	dir: 4,
+	line: 5,
+	file_line: 6,
+	fun_: 7,
+	baitexe: 8,
+	baitdir: 9,
+	baithash: 10,
 }
 function bait__token__comptime_var_from_string(name) {
 	let _t39 = undefined
@@ -910,6 +912,8 @@ function bait__token__comptime_var_from_string(name) {
 		_t39 = bait__token__ComptimeVar.file
 	} else if (string_eq(name, from_js_string("ABS_FILE"))) {
 		_t39 = bait__token__ComptimeVar.abs_file
+	} else if (string_eq(name, from_js_string("DIR"))) {
+		_t39 = bait__token__ComptimeVar.dir
 	} else if (string_eq(name, from_js_string("LINE"))) {
 		_t39 = bait__token__ComptimeVar.line
 	} else if (string_eq(name, from_js_string("FILE_LINE"))) {
@@ -3386,7 +3390,7 @@ function bait__parser__Parser_comptime_var(p) {
 	const name = _t185.data
 	const kind = bait__token__comptime_var_from_string(name)
 	if (eq(kind, bait__token__ComptimeVar.unknown)) {
-		let _t187 = bait__parser__Parser_error(p, from_js_string(`unsupported comptime var \`$${name.str}\``))
+		let _t187 = bait__parser__Parser_error(p, from_js_string(`invalid comptime var \`$${name.str}\``))
 		if (_t187.is_error) {
 			return _t187
 		}
@@ -7642,7 +7646,7 @@ function bait__util__shell_escape(s) {
 
 
 const bait__util__VERSION = from_js_string("0.0.6")
-const bait__util__FULL_VERSION = from_js_string(`${bait__util__VERSION.str} ${from_js_string("86e8fb7").str}`)
+const bait__util__FULL_VERSION = from_js_string(`${bait__util__VERSION.str} ${from_js_string("d347c47").str}`)
 
 function bait__gen__js__Gen_comptime_var(g, node) {
 	bait__gen__js__Gen_write(g, from_js_string("from_js_string(\""))
@@ -7658,6 +7662,8 @@ function bait__gen__js__Gen_get_comptime_val(g, kind, pos) {
 		_t868 = string_replace(os__abs_path(g.path), from_js_string("\\"), from_js_string("\\\\"))
 	} else if (eq(kind, bait__token__ComptimeVar.file)) {
 		_t868 = string_replace(g.path, from_js_string("\\"), from_js_string("\\\\"))
+	} else if (eq(kind, bait__token__ComptimeVar.dir)) {
+		_t868 = os__dir(bait__gen__js__Gen_get_comptime_val(g, bait__token__ComptimeVar.abs_file, pos))
 	} else if (eq(kind, bait__token__ComptimeVar.line)) {
 		_t868 = i32_str(pos.line)
 	} else if (eq(kind, bait__token__ComptimeVar.file_line)) {
@@ -9242,6 +9248,8 @@ function bait__gen__c__Gen_get_comptime_val(g, kind, pos) {
 		_t1022 = string_replace(os__abs_path(g.path), from_js_string("\\"), from_js_string("\\\\"))
 	} else if (eq(kind, bait__token__ComptimeVar.file)) {
 		_t1022 = string_replace(g.path, from_js_string("\\"), from_js_string("\\\\"))
+	} else if (eq(kind, bait__token__ComptimeVar.dir)) {
+		_t1022 = os__dir(bait__gen__c__Gen_get_comptime_val(g, bait__token__ComptimeVar.abs_file, pos))
 	} else if (eq(kind, bait__token__ComptimeVar.line)) {
 		_t1022 = i32_str(pos.line)
 	} else if (eq(kind, bait__token__ComptimeVar.file_line)) {
