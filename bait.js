@@ -3084,7 +3084,7 @@ function hash__crc32__generate_table(poly) {
 	return c
 }
 
-function hash__crc32__CrcTable_checksum(c, data) {
+function hash__crc32__CrcTable_sum(c, data) {
 	let crc = MAX_U32
 	for (let _t141 = 0; _t141 < data.length; _t141++) {
 		const byte = Array_get(data, _t141)
@@ -3093,9 +3093,9 @@ function hash__crc32__CrcTable_checksum(c, data) {
 	return u32(~crc & BigInt(MAX_U32))
 }
 
-function hash__crc32__checksum(data) {
+function hash__crc32__sum(data) {
 	const c = hash__crc32__generate_table(hash__crc32__IEEE)
-	return hash__crc32__CrcTable_checksum(c, data)
+	return hash__crc32__CrcTable_sum(c, data)
 }
 
 
@@ -4405,7 +4405,7 @@ function bait__parser__new_default() {
 function bait__parser__Parser_init(p, text, path, expected_pkg) {
 	bait__lexer__Lexer_init(p.lexer, text, bait__lexer__CommentMode.discard)
 	p.path = path
-	p.file_hash = u32_str(hash__crc32__checksum(string_bytes(path)))
+	p.file_hash = u32_str(hash__crc32__sum(string_bytes(path)))
 	p.pkg_name = expected_pkg
 	p.eofs = 0
 	p.import_aliases = new bait_Map({ data: new Map([]), length: 0 })
@@ -7646,7 +7646,7 @@ function bait__util__shell_escape(s) {
 
 
 const bait__util__VERSION = from_js_string("0.0.6")
-const bait__util__FULL_VERSION = from_js_string(`${bait__util__VERSION.str} ${from_js_string("d347c47").str}`)
+const bait__util__FULL_VERSION = from_js_string(`${bait__util__VERSION.str} ${from_js_string("2286c3c").str}`)
 
 function bait__gen__js__Gen_comptime_var(g, node) {
 	bait__gen__js__Gen_write(g, from_js_string("from_js_string(\""))
