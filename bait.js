@@ -6197,6 +6197,10 @@ function bait__checker__Checker_comptime_if_condition(c, node) {
 			return eq(c.prefs.backend, bait__preference__Backend.c)
 		} else if (string_eq(node.name, from_js_string("JS"))) {
 			return eq(c.prefs.backend, bait__preference__Backend.js)
+		} else if (string_eq(node.name, from_js_string("LINUX"))) {
+			return eq(c.prefs.os, bait__preference__OperatingSystem.linux)
+		} else if (string_eq(node.name, from_js_string("WINDOWS"))) {
+			return eq(c.prefs.os, bait__preference__OperatingSystem.windows)
 		} else {
 			bait__checker__Checker_error(c, from_js_string(`invalid $if condition "${node.name.str}"`), node.pos)
 			return false
@@ -7672,7 +7676,7 @@ function bait__util__shell_escape(s) {
 
 
 const bait__util__VERSION = from_js_string("0.0.7")
-const bait__util__FULL_VERSION = from_js_string(`${bait__util__VERSION.str} ${from_js_string("7bd190a").str}`)
+const bait__util__FULL_VERSION = from_js_string(`${bait__util__VERSION.str} ${from_js_string("3c9ae41").str}`)
 
 let _t870 = undefined
 if (string_eq(os__platform(), from_js_string("windows"))) {
