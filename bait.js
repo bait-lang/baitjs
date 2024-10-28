@@ -7676,7 +7676,7 @@ function bait__util__shell_escape(s) {
 
 
 const bait__util__VERSION = from_js_string("0.0.7")
-const bait__util__FULL_VERSION = from_js_string(`${bait__util__VERSION.str} ${from_js_string("3c9ae41").str}`)
+const bait__util__FULL_VERSION = from_js_string(`${bait__util__VERSION.str} ${from_js_string("ad4e12f").str}`)
 
 let _t870 = undefined
 if (string_eq(os__platform(), from_js_string("windows"))) {
@@ -10446,6 +10446,10 @@ function bait__builder__Builder_code_gen_c(b) {
 		b.prefs.out_name = string_add(b.prefs.out_name, from_js_string(".bin"))
 	}
 	bait__builder__ensure_dir_exists(os__dir(b.prefs.out_name))
+	if (string_ends_with(b.prefs.out_name, from_js_string(".c"))) {
+		os__write_file(b.prefs.out_name, res)
+		return 0
+	}
 	const tmp_c_path = os__join_path(os__tmp_dir(), new bait_Array({ data: [string_add(os__file_name(b.prefs.out_name), from_js_string(".c"))], length: 1 }))
 	os__write_file(tmp_c_path, res)
 	let cflags = from_js_string("")
@@ -10475,8 +10479,8 @@ function bait__builder__Builder_print_infos(b, infos) {
 	if (b.prefs.hide_warnings) {
 		return 
 	}
-	for (let _t1151 = 0; _t1151 < infos.length; _t1151++) {
-		const info = Array_get(infos, _t1151)
+	for (let _t1152 = 0; _t1152 < infos.length; _t1152++) {
+		const info = Array_get(infos, _t1152)
 		bait__errors__Message_print(info)
 	}
 }
@@ -10484,24 +10488,24 @@ function bait__builder__Builder_print_infos(b, infos) {
 function bait__builder__Builder_print_errors_and_warnings(b, parser_errs) {
 	let nr_warns = 0
 	let nr_errors = 0
-	for (let _t1152 = 0; _t1152 < b.parsed_files.length; _t1152++) {
-		const f = Array_get(b.parsed_files, _t1152)
+	for (let _t1153 = 0; _t1153 < b.parsed_files.length; _t1153++) {
+		const f = Array_get(b.parsed_files, _t1153)
 		nr_warns = i32(nr_warns + f.warnings.length)
 		nr_errors = i32(nr_errors + f.errors.length)
 		bait__builder__Builder_print_infos(b, f.infos)
 		if (b.prefs.warn_is_error) {
-			for (let _t1154 = 0; _t1154 < f.warnings.length; _t1154++) {
-				const warn = Array_get(f.warnings, _t1154)
+			for (let _t1155 = 0; _t1155 < f.warnings.length; _t1155++) {
+				const warn = Array_get(f.warnings, _t1155)
 				bait__errors__error(warn.path, warn.pos, warn.msg)
 			}
 		} else if (!b.prefs.hide_warnings) {
-			for (let _t1155 = 0; _t1155 < f.warnings.length; _t1155++) {
-				const warn = Array_get(f.warnings, _t1155)
+			for (let _t1156 = 0; _t1156 < f.warnings.length; _t1156++) {
+				const warn = Array_get(f.warnings, _t1156)
 				bait__errors__Message_print(warn)
 			}
 		}
-		for (let _t1156 = 0; _t1156 < f.errors.length; _t1156++) {
-			const err = Array_get(f.errors, _t1156)
+		for (let _t1157 = 0; _t1157 < f.errors.length; _t1157++) {
+			const err = Array_get(f.errors, _t1157)
 			bait__errors__Message_print(err)
 			if (parser_errs) {
 				return true
@@ -10509,8 +10513,8 @@ function bait__builder__Builder_print_errors_and_warnings(b, parser_errs) {
 		}
 	}
 	nr_errors = i32(nr_errors + b.checker.errors.length)
-	for (let _t1158 = 0; _t1158 < b.checker.errors.length; _t1158++) {
-		const err = Array_get(b.checker.errors, _t1158)
+	for (let _t1159 = 0; _t1159 < b.checker.errors.length; _t1159++) {
+		const err = Array_get(b.checker.errors, _t1159)
 		bait__errors__Message_print(err)
 	}
 	return i32(nr_errors > 0) || (b.prefs.warn_is_error && i32(nr_warns > 0))
@@ -10546,8 +10550,8 @@ function bait__builder__get_project_root(abs_dir) {
 
 function bait__builder__order_pkgs(ordered, pkg, deps, looked) {
 	Array_push(looked, pkg)
-	for (let _t1164 = 0; _t1164 < Map_get_set(deps, pkg, new bait_Array({ data: [], length: 0 })).length; _t1164++) {
-		const d = Array_get(Map_get_set(deps, pkg, new bait_Array({ data: [], length: 0 })), _t1164)
+	for (let _t1165 = 0; _t1165 < Map_get_set(deps, pkg, new bait_Array({ data: [], length: 0 })).length; _t1165++) {
+		const d = Array_get(Map_get_set(deps, pkg, new bait_Array({ data: [], length: 0 })), _t1165)
 		if (Array_contains_string(looked, d)) {
 			continue
 		}
@@ -10567,8 +10571,8 @@ function bait__builder__ensure_dir_exists(dir) {
 
 function bait__builder__run_tests(prefs) {
 	let files_to_test = new bait_Array({ data: [], length: 0 })
-	for (let _t1168 = 0; _t1168 < prefs.args.length; _t1168++) {
-		const a = Array_get(prefs.args, _t1168)
+	for (let _t1169 = 0; _t1169 < prefs.args.length; _t1169++) {
+		const a = Array_get(prefs.args, _t1169)
 		if (os__exists(a) && string_ends_with(a, from_js_string(".bt")) && string_contains(a, from_js_string("_test."))) {
 			Array_push(files_to_test, a)
 		} else if (os__exists_dir(a)) {
