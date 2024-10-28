@@ -7497,7 +7497,7 @@ function bait__checker__Checker_check_init_field_values(c, init, info) {
 	for (let _t829 = 0; _t829 < info.fields.length; _t829++) {
 		const def_field = Array_get(info.fields, _t829)
 		const def_sym = bait__ast__Table_get_sym(c.table, def_field.typ)
-		let is_required = eq(def_sym.kind, bait__ast__TypeKind.sum_type)
+		let is_required = eq(def_sym.kind, bait__ast__TypeKind.sum_type) || eq(def_sym.kind, bait__ast__TypeKind.fun_)
 		for (let _t830 = 0; _t830 < def_field.attrs.length; _t830++) {
 			const attr = Array_get(def_field.attrs, _t830)
 			if (string_eq(attr.name, from_js_string("required"))) {
@@ -7679,7 +7679,7 @@ function bait__util__shell_escape(s) {
 
 
 const bait__util__VERSION = from_js_string("0.0.7")
-const bait__util__FULL_VERSION = from_js_string(`${bait__util__VERSION.str} ${from_js_string("325aa01").str}`)
+const bait__util__FULL_VERSION = from_js_string(`${bait__util__VERSION.str} ${from_js_string("a87516f").str}`)
 
 let _t870 = undefined
 if (string_eq(os__platform(), from_js_string("windows"))) {
