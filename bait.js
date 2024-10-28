@@ -6740,6 +6740,9 @@ function bait__checker__Checker_method_call(c, node) {
 		if (i32(bait__ast__Type_get_nr_amp(left_expr_type) < bait__ast__Type_get_nr_amp(Array_get(def.params, 0).typ))) {
 			node.left = new bait__ast__PrefixExpr({ op: bait__token__Token.amp, right: node.left })
 			node.left_type = bait__ast__Type_set_nr_amp(node.left_type, 1)
+		} else if (i32(bait__ast__Type_get_nr_amp(Array_get(def.params, 0).typ) < bait__ast__Type_get_nr_amp(left_expr_type))) {
+			node.left = new bait__ast__PrefixExpr({ op: bait__token__Token.mul, right: node.left })
+			node.left_type = bait__ast__Type_set_nr_amp(node.left_type, 0)
 		}
 	}
 	bait__checker__Checker_check_fun_attrs_on_call(c, node, def)
@@ -7676,7 +7679,7 @@ function bait__util__shell_escape(s) {
 
 
 const bait__util__VERSION = from_js_string("0.0.7")
-const bait__util__FULL_VERSION = from_js_string(`${bait__util__VERSION.str} ${from_js_string("ad4e12f").str}`)
+const bait__util__FULL_VERSION = from_js_string(`${bait__util__VERSION.str} ${from_js_string("325aa01").str}`)
 
 let _t870 = undefined
 if (string_eq(os__platform(), from_js_string("windows"))) {
@@ -9523,7 +9526,8 @@ function bait__gen__c__Gen_bool_literal(g, node) {
 }
 
 function bait__gen__c__Gen_char_literal(g, node) {
-	bait__gen__c__Gen_write(g, from_js_string(`'${node.val.str}'`))
+	const val = bait__util__escape_char(node.val, u8("'"))
+	bait__gen__c__Gen_write(g, from_js_string(`'${val.str}'`))
 }
 
 function bait__gen__c__Gen_enum_val(g, node) {
