@@ -5133,6 +5133,7 @@ _t453.data
 	let pub_idx = -1
 	let pub_mut_idx = -1
 	let global_idx = -1
+	let one_time_pub = false
 	let field_is_mut = false
 	let field_is_pub = false
 	let field_is_global = false
@@ -5144,7 +5145,8 @@ _t453.data
 	}
 _t459.data
 	while (!eq(p.tok, bait__token__Token.rcur)) {
-		if (eq(p.tok, bait__token__Token.key_mut)) {
+		if (eq(p.tok, bait__token__Token.key_mut) && eq(bait__parser__Parser_peek(p), bait__token__Token.colon)) {
+			bait__parser__Parser_warn(p, from_js_string("Modifier groups are deprecated. Please define modifiers per field"))
 			if (!eq(mut_idx, -1)) {
 				let _t462 = bait__parser__Parser_error(p, from_js_string("redefinition of \"mut\" section"))
 				if (_t462.is_error) {
@@ -5165,7 +5167,8 @@ _t463.data
 			field_is_global = false
 		} else if (eq(p.tok, bait__token__Token.key_pub)) {
 			bait__parser__Parser_next(p)
-			if (eq(p.tok, bait__token__Token.key_mut)) {
+			if (eq(p.tok, bait__token__Token.key_mut) && eq(bait__parser__Parser_peek(p), bait__token__Token.colon)) {
+				bait__parser__Parser_warn(p, from_js_string("Modifier groups are deprecated. Please define modifiers per field"))
 				if (!eq(pub_mut_idx, -1)) {
 					let _t466 = bait__parser__Parser_error(p, from_js_string("redefinition of \"pub mut\" section"))
 					if (_t466.is_error) {
@@ -5179,65 +5182,90 @@ _t466.data
 				field_is_mut = true
 				field_is_pub = true
 				field_is_global = false
-			} else {
+				let _t467 = bait__parser__Parser_check(p, bait__token__Token.colon)
+				if (_t467.is_error) {
+					return _t467
+				}
+_t467.data
+			} else if (eq(p.tok, bait__token__Token.colon)) {
+				bait__parser__Parser_warn(p, from_js_string("Modifier groups are deprecated. Please define modifiers per field"))
 				if (!eq(pub_idx, -1)) {
-					let _t468 = bait__parser__Parser_error(p, from_js_string("redefinition of \"pub\" section"))
-					if (_t468.is_error) {
-						return _t468
+					let _t469 = bait__parser__Parser_error(p, from_js_string("redefinition of \"pub\" section"))
+					if (_t469.is_error) {
+						return _t469
 					}
-_t468.data
+_t469.data
 					return new Result({ data: new bait__ast__InterfaceDecl({}) })
 				}
 				pub_idx = fields.length
 				field_is_mut = false
 				field_is_pub = true
 				field_is_global = false
-			}
-			let _t469 = bait__parser__Parser_check(p, bait__token__Token.colon)
-			if (_t469.is_error) {
-				return _t469
-			}
-_t469.data
-		} else if (eq(p.tok, bait__token__Token.key_global)) {
-			if (!eq(global_idx, -1)) {
-				let _t471 = bait__parser__Parser_error(p, from_js_string("redefinition of \"global\" section"))
-				if (_t471.is_error) {
-					return _t471
+				let _t470 = bait__parser__Parser_check(p, bait__token__Token.colon)
+				if (_t470.is_error) {
+					return _t470
 				}
-_t471.data
+_t470.data
+			} else {
+				one_time_pub = true
+			}
+		} else if (eq(p.tok, bait__token__Token.key_global) && eq(bait__parser__Parser_peek(p), bait__token__Token.colon)) {
+			bait__parser__Parser_warn(p, from_js_string("Modifier groups are deprecated. Please define modifiers per field"))
+			if (!eq(global_idx, -1)) {
+				let _t472 = bait__parser__Parser_error(p, from_js_string("redefinition of \"global\" section"))
+				if (_t472.is_error) {
+					return _t472
+				}
+_t472.data
 				return new Result({ data: new bait__ast__InterfaceDecl({}) })
 			}
 			bait__parser__Parser_next(p)
-			let _t472 = bait__parser__Parser_check(p, bait__token__Token.colon)
-			if (_t472.is_error) {
-				return _t472
+			let _t473 = bait__parser__Parser_check(p, bait__token__Token.colon)
+			if (_t473.is_error) {
+				return _t473
 			}
-_t472.data
+_t473.data
 			global_idx = fields.length
 			field_is_mut = true
 			field_is_pub = true
 			field_is_global = true
 		}
-		let _t473 = bait__parser__Parser_check_name(p)
-		if (_t473.is_error) {
-			return _t473
+		let pub2 = field_is_pub
+		let mut2 = field_is_mut
+		let glob2 = field_is_global
+		if (eq(p.tok, bait__token__Token.key_pub)) {
+			bait__parser__Parser_next(p)
+			pub2 = true
 		}
-		const fname = _t473.data
+		if (eq(p.tok, bait__token__Token.key_mut)) {
+			bait__parser__Parser_next(p)
+			mut2 = true
+		}
+		if (eq(p.tok, bait__token__Token.key_global)) {
+			bait__parser__Parser_next(p)
+			glob2 = true
+		}
+		let _t477 = bait__parser__Parser_check_name(p)
+		if (_t477.is_error) {
+			return _t477
+		}
+		const fname = _t477.data
 		if (eq(p.tok, bait__token__Token.lpar)) {
-			let _t475 = bait__parser__Parser_interface_method(p, fname, typ)
-			if (_t475.is_error) {
-				return _t475
+			let _t479 = bait__parser__Parser_interface_method(p, fname, typ)
+			if (_t479.is_error) {
+				return _t479
 			}
-			const m = _t475.data
+			const m = _t479.data
 			Array_push(methods, m)
 			Array_push(tsym.methods, m)
 			continue
 		}
-		let _t476 = bait__parser__Parser_parse_type(p)
-		if (_t476.is_error) {
-			return _t476
+		let _t480 = bait__parser__Parser_parse_type(p)
+		if (_t480.is_error) {
+			return _t480
 		}
-		Array_push(fields, new bait__ast__StructField({ name: fname, typ: _t476.data, is_mut: field_is_mut, is_pub: field_is_pub, is_global: field_is_global }))
+		Array_push(fields, new bait__ast__StructField({ name: fname, typ: _t480.data, is_mut: mut2, is_pub: pub2 || one_time_pub, is_global: glob2 }))
+		one_time_pub = false
 	}
 	bait__parser__Parser_next(p)
 	tsym.info = new bait__ast__StructInfo({ fields: fields })
@@ -5245,48 +5273,48 @@ _t472.data
 }
 
 function bait__parser__Parser_interface_method(p, name, rec_type) {
-	let _t477 = bait__parser__Parser_check(p, bait__token__Token.lpar)
-	if (_t477.is_error) {
-		return _t477
+	let _t481 = bait__parser__Parser_check(p, bait__token__Token.lpar)
+	if (_t481.is_error) {
+		return _t481
 	}
-_t477.data
+_t481.data
 	let params = new bait_Array({ data: [new bait__ast__Param({ name: from_js_string("_"), typ: rec_type })], length: 1 })
-	let _t478 = bait__parser__Parser_fun_params(p)
-	if (_t478.is_error) {
-		return _t478
+	let _t482 = bait__parser__Parser_fun_params(p)
+	if (_t482.is_error) {
+		return _t482
 	}
-	Array_push_many(params, _t478.data)
+	Array_push_many(params, _t482.data)
 	const par_line = p.pos.line
-	let _t479 = bait__parser__Parser_check(p, bait__token__Token.rpar)
-	if (_t479.is_error) {
-		return _t479
+	let _t483 = bait__parser__Parser_check(p, bait__token__Token.rpar)
+	if (_t483.is_error) {
+		return _t483
 	}
-_t479.data
+_t483.data
 	let return_type = bait__ast__VOID_TYPE
 	if (eq(p.pos.line, par_line)) {
-		let _t481 = bait__parser__Parser_parse_type(p)
-		if (_t481.is_error) {
-			return _t481
+		let _t485 = bait__parser__Parser_parse_type(p)
+		if (_t485.is_error) {
+			return _t485
 		}
-		return_type = _t481.data
+		return_type = _t485.data
 	}
 	return new Result({ data: new bait__ast__FunDecl({ lang: bait__ast__Language.js, name: name, params: params, return_type: return_type, is_pub: true, is_method: true }) })
 }
 
 function bait__parser__Parser_return_stmt(p) {
 	const pos = p.pos
-	let _t482 = bait__parser__Parser_check(p, bait__token__Token.key_return)
-	if (_t482.is_error) {
-		return _t482
+	let _t486 = bait__parser__Parser_check(p, bait__token__Token.key_return)
+	if (_t486.is_error) {
+		return _t486
 	}
-_t482.data
+_t486.data
 	let expr = new bait__ast__Void({})
 	if (!eq(p.tok, bait__token__Token.semicolon)) {
-		let _t484 = bait__parser__Parser_expr(p, bait__token__Precedence.lowest)
-		if (_t484.is_error) {
-			return _t484
+		let _t488 = bait__parser__Parser_expr(p, bait__token__Precedence.lowest)
+		if (_t488.is_error) {
+			return _t488
 		}
-		expr = _t484.data
+		expr = _t488.data
 	}
 	bait__parser__Parser_skip(p, bait__token__Token.semicolon)
 	return new Result({ data: new bait__ast__ReturnStmt({ expr: expr, pos: pos }) })
@@ -5296,16 +5324,16 @@ function bait__parser__Parser_type_decl(p) {
 	const pos = p.pos
 	const is_pub = bait__parser__Parser_check_pub(p)
 	bait__parser__Parser_next(p)
-	let _t485 = bait__parser__Parser_parse_lang(p)
-	if (_t485.is_error) {
-		return _t485
+	let _t489 = bait__parser__Parser_parse_lang(p)
+	if (_t489.is_error) {
+		return _t489
 	}
-	const lang = _t485.data
-	let _t486 = bait__parser__Parser_check_name(p)
-	if (_t486.is_error) {
-		return _t486
+	const lang = _t489.data
+	let _t490 = bait__parser__Parser_check_name(p)
+	if (_t490.is_error) {
+		return _t490
 	}
-	let name = _t486.data
+	let name = _t490.data
 	if (eq(lang, bait__ast__Language.bait)) {
 		name = bait__parser__Parser_prepend_pkg(p, name)
 	} else {
@@ -5314,18 +5342,18 @@ function bait__parser__Parser_type_decl(p) {
 	if (bait__ast__Table_type_exists(p.table, name) && !string_eq(p.pkg_name, from_js_string("builtin"))) {
 		Array_push(p.table.redefined_types, name)
 	}
-	let _t489 = bait__parser__Parser_check(p, bait__token__Token.decl_assign)
-	if (_t489.is_error) {
-		return _t489
+	let _t493 = bait__parser__Parser_check(p, bait__token__Token.decl_assign)
+	if (_t493.is_error) {
+		return _t493
 	}
-_t489.data
+_t493.data
 	const is_fun_type = eq(p.tok, bait__token__Token.key_fun)
 	let variants = new bait_Array({ data: [], length: 0 })
-	let _t490 = bait__parser__Parser_parse_type(p)
-	if (_t490.is_error) {
-		return _t490
+	let _t494 = bait__parser__Parser_parse_type(p)
+	if (_t494.is_error) {
+		return _t494
 	}
-	Array_push(variants, _t490.data)
+	Array_push(variants, _t494.data)
 	if (is_fun_type) {
 		const sym = bait__ast__Table_get_sym(p.table, Array_get(variants, 0))
 		const typ = bait__ast__Table_register_sym(p.table, new bait__ast__TypeSymbol({ kind: bait__ast__TypeKind.fun_, name: name, is_pub: is_pub, pkg: p.pkg_name, info: sym.info }))
@@ -5337,11 +5365,11 @@ _t489.data
 	}
 	while (eq(p.tok, bait__token__Token.pipe)) {
 		bait__parser__Parser_next(p)
-		let _t493 = bait__parser__Parser_parse_type(p)
-		if (_t493.is_error) {
-			return _t493
+		let _t497 = bait__parser__Parser_parse_type(p)
+		if (_t497.is_error) {
+			return _t497
 		}
-		Array_push(variants, _t493.data)
+		Array_push(variants, _t497.data)
 	}
 	const typ = bait__ast__Table_register_sym(p.table, new bait__ast__TypeSymbol({ kind: bait__ast__TypeKind.sum_type, name: name, is_pub: is_pub, pkg: p.pkg_name, info: new bait__ast__SumTypeInfo({ variants: variants }) }))
 	return new Result({ data: new bait__ast__TypeDecl({ lang: lang, name: name, typ: typ, pos: pos }) })
@@ -5351,71 +5379,74 @@ _t489.data
 function bait__parser__Parser_struct_decl(p) {
 	const pos = p.pos
 	const is_pub = bait__parser__Parser_check_pub(p)
-	let _t494 = bait__parser__Parser_check(p, bait__token__Token.key_struct)
-	if (_t494.is_error) {
-		return _t494
-	}
-_t494.data
-	let _t495 = bait__parser__Parser_parse_lang(p)
-	if (_t495.is_error) {
-		return _t495
-	}
-	const lang = _t495.data
-	let _t496 = bait__parser__Parser_check_name(p)
-	if (_t496.is_error) {
-		return _t496
-	}
-	let name = _t496.data
-	if (!eq(lang, bait__ast__Language.bait)) {
-		name = bait__ast__Language_prepend_to(lang, name)
-	}
-	let _t498 = bait__parser__Parser_generic_type_names(p)
+	let _t498 = bait__parser__Parser_check(p, bait__token__Token.key_struct)
 	if (_t498.is_error) {
 		return _t498
 	}
-	const generic_names = _t498.data
+_t498.data
+	let _t499 = bait__parser__Parser_parse_lang(p)
+	if (_t499.is_error) {
+		return _t499
+	}
+	const lang = _t499.data
+	let _t500 = bait__parser__Parser_check_name(p)
+	if (_t500.is_error) {
+		return _t500
+	}
+	let name = _t500.data
+	if (!eq(lang, bait__ast__Language.bait)) {
+		name = bait__ast__Language_prepend_to(lang, name)
+	}
+	let _t502 = bait__parser__Parser_generic_type_names(p)
+	if (_t502.is_error) {
+		return _t502
+	}
+	const generic_names = _t502.data
 	let mut_idx = -1
 	let pub_idx = -1
 	let pub_mut_idx = -1
 	let global_idx = -1
+	let one_time_pub = false
 	let field_is_mut = false
 	let field_is_pub = false
 	let field_is_global = false
 	let fields = new bait_Array({ data: [], length: 0 })
-	let _t499 = bait__parser__Parser_check(p, bait__token__Token.lcur)
-	if (_t499.is_error) {
-		return _t499
+	let _t503 = bait__parser__Parser_check(p, bait__token__Token.lcur)
+	if (_t503.is_error) {
+		return _t503
 	}
-_t499.data
+_t503.data
 	while (!eq(p.tok, bait__token__Token.rcur)) {
-		if (eq(p.tok, bait__token__Token.key_mut)) {
+		if (eq(p.tok, bait__token__Token.key_mut) && eq(bait__parser__Parser_peek(p), bait__token__Token.colon)) {
+			bait__parser__Parser_warn(p, from_js_string("Modifier groups are deprecated. Please define modifiers per field"))
 			if (!eq(mut_idx, -1)) {
-				let _t502 = bait__parser__Parser_error(p, from_js_string("redefinition of \"mut\" section"))
-				if (_t502.is_error) {
-					return _t502
+				let _t506 = bait__parser__Parser_error(p, from_js_string("redefinition of \"mut\" section"))
+				if (_t506.is_error) {
+					return _t506
 				}
-_t502.data
+_t506.data
 				return new Result({ data: new bait__ast__StructDecl({}) })
 			}
 			bait__parser__Parser_next(p)
-			let _t503 = bait__parser__Parser_check(p, bait__token__Token.colon)
-			if (_t503.is_error) {
-				return _t503
+			let _t507 = bait__parser__Parser_check(p, bait__token__Token.colon)
+			if (_t507.is_error) {
+				return _t507
 			}
-_t503.data
+_t507.data
 			mut_idx = fields.length
 			field_is_mut = true
 			field_is_pub = false
 			field_is_global = false
 		} else if (eq(p.tok, bait__token__Token.key_pub)) {
 			bait__parser__Parser_next(p)
-			if (eq(p.tok, bait__token__Token.key_mut)) {
+			if (eq(p.tok, bait__token__Token.key_mut) && eq(bait__parser__Parser_peek(p), bait__token__Token.colon)) {
+				bait__parser__Parser_warn(p, from_js_string("Modifier groups are deprecated. Please define modifiers per field"))
 				if (!eq(pub_mut_idx, -1)) {
-					let _t506 = bait__parser__Parser_error(p, from_js_string("redefinition of \"pub mut\" section"))
-					if (_t506.is_error) {
-						return _t506
+					let _t510 = bait__parser__Parser_error(p, from_js_string("redefinition of \"pub mut\" section"))
+					if (_t510.is_error) {
+						return _t510
 					}
-_t506.data
+_t510.data
 					return new Result({ data: new bait__ast__StructDecl({}) })
 				}
 				bait__parser__Parser_next(p)
@@ -5423,61 +5454,71 @@ _t506.data
 				field_is_mut = true
 				field_is_pub = true
 				field_is_global = false
-			} else {
+				let _t511 = bait__parser__Parser_check(p, bait__token__Token.colon)
+				if (_t511.is_error) {
+					return _t511
+				}
+_t511.data
+			} else if (eq(p.tok, bait__token__Token.colon)) {
+				bait__parser__Parser_warn(p, from_js_string("Modifier groups are deprecated. Please define modifiers per field"))
 				if (!eq(pub_idx, -1)) {
-					let _t508 = bait__parser__Parser_error(p, from_js_string("redefinition of \"pub\" section"))
-					if (_t508.is_error) {
-						return _t508
+					let _t513 = bait__parser__Parser_error(p, from_js_string("redefinition of \"pub\" section"))
+					if (_t513.is_error) {
+						return _t513
 					}
-_t508.data
+_t513.data
 					return new Result({ data: new bait__ast__StructDecl({}) })
 				}
 				pub_idx = fields.length
 				field_is_mut = false
 				field_is_pub = true
 				field_is_global = false
-			}
-			let _t509 = bait__parser__Parser_check(p, bait__token__Token.colon)
-			if (_t509.is_error) {
-				return _t509
-			}
-_t509.data
-		} else if (eq(p.tok, bait__token__Token.key_global)) {
-			if (!eq(global_idx, -1)) {
-				let _t511 = bait__parser__Parser_error(p, from_js_string("redefinition of \"global\" section"))
-				if (_t511.is_error) {
-					return _t511
+				let _t514 = bait__parser__Parser_check(p, bait__token__Token.colon)
+				if (_t514.is_error) {
+					return _t514
 				}
-_t511.data
+_t514.data
+			} else {
+				one_time_pub = true
+			}
+		} else if (eq(p.tok, bait__token__Token.key_global) && eq(bait__parser__Parser_peek(p), bait__token__Token.colon)) {
+			bait__parser__Parser_warn(p, from_js_string("Modifier groups are deprecated. Please define modifiers per field"))
+			if (!eq(global_idx, -1)) {
+				let _t516 = bait__parser__Parser_error(p, from_js_string("redefinition of \"global\" section"))
+				if (_t516.is_error) {
+					return _t516
+				}
+_t516.data
 				return new Result({ data: new bait__ast__StructDecl({}) })
 			}
 			bait__parser__Parser_next(p)
-			let _t512 = bait__parser__Parser_check(p, bait__token__Token.colon)
-			if (_t512.is_error) {
-				return _t512
+			let _t517 = bait__parser__Parser_check(p, bait__token__Token.colon)
+			if (_t517.is_error) {
+				return _t517
 			}
-_t512.data
+_t517.data
 			global_idx = fields.length
 			field_is_mut = true
 			field_is_pub = true
 			field_is_global = true
 		}
-		let _t513 = bait__parser__Parser_parse_attributes(p)
-		if (_t513.is_error) {
-			return _t513
+		let _t518 = bait__parser__Parser_parse_attributes(p)
+		if (_t518.is_error) {
+			return _t518
 		}
-_t513.data
-		let _t514 = bait__parser__Parser_struct_decl_field(p, field_is_mut, field_is_pub, field_is_global)
-		if (_t514.is_error) {
-			return _t514
+_t518.data
+		let _t519 = bait__parser__Parser_struct_decl_field(p, field_is_mut, field_is_pub || one_time_pub, field_is_global)
+		if (_t519.is_error) {
+			return _t519
 		}
-		Array_push(fields, _t514.data)
+		Array_push(fields, _t519.data)
+		one_time_pub = false
 	}
-	let _t515 = bait__parser__Parser_check(p, bait__token__Token.rcur)
-	if (_t515.is_error) {
-		return _t515
+	let _t520 = bait__parser__Parser_check(p, bait__token__Token.rcur)
+	if (_t520.is_error) {
+		return _t520
 	}
-_t515.data
+_t520.data
 	const name_with_pkg = bait__parser__Parser_prepend_pkg(p, name)
 	if (bait__ast__Table_type_exists(p.table, name_with_pkg) && !string_eq(p.pkg_name, from_js_string("builtin"))) {
 		Array_push(p.table.redefined_types, name_with_pkg)
@@ -5489,26 +5530,41 @@ _t515.data
 
 function bait__parser__Parser_struct_decl_field(p, is_mut, is_pub, is_global) {
 	const pos = p.pos
-	let _t517 = bait__parser__Parser_check_name(p)
-	if (_t517.is_error) {
-		return _t517
+	let pub2 = is_pub
+	let mut2 = is_mut
+	let glob2 = is_global
+	if (eq(p.tok, bait__token__Token.key_pub)) {
+		bait__parser__Parser_next(p)
+		pub2 = true
 	}
-	const fname = _t517.data
-	let _t518 = bait__parser__Parser_parse_type(p)
-	if (_t518.is_error) {
-		return _t518
+	if (eq(p.tok, bait__token__Token.key_mut)) {
+		bait__parser__Parser_next(p)
+		mut2 = true
 	}
-	const ftyp = _t518.data
+	if (eq(p.tok, bait__token__Token.key_global)) {
+		bait__parser__Parser_next(p)
+		glob2 = true
+	}
+	let _t525 = bait__parser__Parser_check_name(p)
+	if (_t525.is_error) {
+		return _t525
+	}
+	const fname = _t525.data
+	let _t526 = bait__parser__Parser_parse_type(p)
+	if (_t526.is_error) {
+		return _t526
+	}
+	const ftyp = _t526.data
 	let expr = new bait__ast__EmptyExpr({})
 	if (eq(p.tok, bait__token__Token.decl_assign)) {
 		bait__parser__Parser_next(p)
-		let _t520 = bait__parser__Parser_expr(p, bait__token__Precedence.lowest)
-		if (_t520.is_error) {
-			return _t520
+		let _t528 = bait__parser__Parser_expr(p, bait__token__Precedence.lowest)
+		if (_t528.is_error) {
+			return _t528
 		}
-		expr = _t520.data
+		expr = _t528.data
 	}
-	const field = new bait__ast__StructField({ name: fname, typ: ftyp, expr: expr, pos: pos, is_mut: is_mut, is_pub: is_pub, is_global: is_global, attrs: p.attributes })
+	const field = new bait__ast__StructField({ name: fname, typ: ftyp, expr: expr, pos: pos, is_mut: mut2, is_pub: pub2, is_global: glob2, attrs: p.attributes })
 	p.attributes = new bait_Array({ data: [], length: 0 })
 	return new Result({ data: field })
 }
@@ -5516,58 +5572,58 @@ function bait__parser__Parser_struct_decl_field(p, is_mut, is_pub, is_global) {
 function bait__parser__Parser_struct_init(p) {
 	const pos = p.pos
 	const name = p.val
-	let _t521 = bait__parser__Parser_parse_type(p)
-	if (_t521.is_error) {
-		return _t521
+	let _t529 = bait__parser__Parser_parse_type(p)
+	if (_t529.is_error) {
+		return _t529
 	}
-	let typ = _t521.data
-	let _t522 = bait__parser__Parser_concrete_types(p)
-	if (_t522.is_error) {
-		return _t522
+	let typ = _t529.data
+	let _t530 = bait__parser__Parser_concrete_types(p)
+	if (_t530.is_error) {
+		return _t530
 	}
-	const conc_types = _t522.data
+	const conc_types = _t530.data
 	if (i32(conc_types.length > 0)) {
 		const parent = bait__ast__Table_get_sym(p.table, typ)
 		typ = bait__ast__Table_register_sym(p.table, new bait__ast__TypeSymbol({ kind: bait__ast__TypeKind.generic_inst, parent: typ, pkg: parent.pkg, info: new bait__ast__GenericInst({ concrete_types: conc_types }) }))
 	}
-	let _t524 = bait__parser__Parser_check(p, bait__token__Token.lcur)
-	if (_t524.is_error) {
-		return _t524
+	let _t532 = bait__parser__Parser_check(p, bait__token__Token.lcur)
+	if (_t532.is_error) {
+		return _t532
 	}
-_t524.data
+_t532.data
 	let fields = new bait_Array({ data: [], length: 0 })
 	while (!eq(p.tok, bait__token__Token.rcur)) {
-		let _t525 = bait__parser__Parser_struct_init_field(p)
-		if (_t525.is_error) {
-			return _t525
+		let _t533 = bait__parser__Parser_struct_init_field(p)
+		if (_t533.is_error) {
+			return _t533
 		}
-		Array_push(fields, _t525.data)
+		Array_push(fields, _t533.data)
 	}
-	let _t526 = bait__parser__Parser_check(p, bait__token__Token.rcur)
-	if (_t526.is_error) {
-		return _t526
+	let _t534 = bait__parser__Parser_check(p, bait__token__Token.rcur)
+	if (_t534.is_error) {
+		return _t534
 	}
-_t526.data
+_t534.data
 	return new Result({ data: new bait__ast__StructInit({ name: name, typ: typ, fields: fields, pos: pos, concrete_types: conc_types }) })
 }
 
 function bait__parser__Parser_struct_init_field(p) {
 	const pos = p.pos
-	let _t527 = bait__parser__Parser_check_name(p)
-	if (_t527.is_error) {
-		return _t527
+	let _t535 = bait__parser__Parser_check_name(p)
+	if (_t535.is_error) {
+		return _t535
 	}
-	const name = _t527.data
-	let _t528 = bait__parser__Parser_check(p, bait__token__Token.assign)
-	if (_t528.is_error) {
-		return _t528
+	const name = _t535.data
+	let _t536 = bait__parser__Parser_check(p, bait__token__Token.assign)
+	if (_t536.is_error) {
+		return _t536
 	}
-_t528.data
-	let _t529 = bait__parser__Parser_expr(p, bait__token__Precedence.lowest)
-	if (_t529.is_error) {
-		return _t529
+_t536.data
+	let _t537 = bait__parser__Parser_expr(p, bait__token__Precedence.lowest)
+	if (_t537.is_error) {
+		return _t537
 	}
-	const expr = _t529.data
+	const expr = _t537.data
 	return new Result({ data: new bait__ast__StructInitField({ name: name, expr: expr, pos: pos }) })
 }
 
@@ -5578,11 +5634,11 @@ function bait__parser__Parser_parse_type(p) {
 		if (eq(p.tok, bait__token__Token.lcur)) {
 			return new Result({ data: bait__ast__Table_register_sym(p.table, new bait__ast__TypeSymbol({ kind: bait__ast__TypeKind.result, name: from_js_string("Result[void]"), parent: bait__ast__VOID_TYPE })) })
 		}
-		let _t532 = bait__parser__Parser_parse_type(p)
-		if (_t532.is_error) {
-			return _t532
+		let _t540 = bait__parser__Parser_parse_type(p)
+		if (_t540.is_error) {
+			return _t540
 		}
-		const typ = _t532.data
+		const typ = _t540.data
 		const tsym = bait__ast__Table_get_sym(p.table, typ)
 		return new Result({ data: bait__ast__Table_register_sym(p.table, new bait__ast__TypeSymbol({ kind: bait__ast__TypeKind.result, name: string_add(string_add(from_js_string("Result["), tsym.name), from_js_string("]")), parent: typ })) })
 	}
@@ -5593,47 +5649,47 @@ function bait__parser__Parser_parse_type(p) {
 	}
 	if (eq(p.tok, bait__token__Token.lsqr)) {
 		bait__parser__Parser_next(p)
-		let _t534 = bait__parser__Parser_check(p, bait__token__Token.rsqr)
-		if (_t534.is_error) {
-			return _t534
+		let _t542 = bait__parser__Parser_check(p, bait__token__Token.rsqr)
+		if (_t542.is_error) {
+			return _t542
 		}
-_t534.data
-		let _t535 = bait__parser__Parser_parse_type(p)
-		if (_t535.is_error) {
-			return _t535
+_t542.data
+		let _t543 = bait__parser__Parser_parse_type(p)
+		if (_t543.is_error) {
+			return _t543
 		}
-		const elem_type = _t535.data
+		const elem_type = _t543.data
 		return new Result({ data: bait__ast__Table_find_or_register_array(p.table, elem_type) })
 	}
 	if (eq(p.tok, bait__token__Token.key_fun)) {
-		let _t537 = bait__parser__Parser_parse_fun_type(p)
-		if (_t537.is_error) {
-			return _t537
+		let _t545 = bait__parser__Parser_parse_fun_type(p)
+		if (_t545.is_error) {
+			return _t545
 		}
-		return new Result({ data: _t537.data })
+		return new Result({ data: _t545.data })
 	}
 	if (string_eq(p.val, from_js_string("map"))) {
 		bait__parser__Parser_next(p)
-		let _t539 = bait__parser__Parser_parse_map_type(p)
-		if (_t539.is_error) {
-			return _t539
+		let _t547 = bait__parser__Parser_parse_map_type(p)
+		if (_t547.is_error) {
+			return _t547
 		}
-		return new Result({ data: _t539.data })
+		return new Result({ data: _t547.data })
 	}
 	if (eq(p.tok, bait__token__Token.semicolon)) {
 		bait__parser__Parser_next(p)
 		return new Result({ data: bait__ast__PLACEHOLDER_TYPE })
 	}
-	let _t541 = bait__parser__Parser_parse_lang(p)
-	if (_t541.is_error) {
-		return _t541
+	let _t549 = bait__parser__Parser_parse_lang(p)
+	if (_t549.is_error) {
+		return _t549
 	}
-	const lang = _t541.data
-	let _t542 = bait__parser__Parser_parse_name_type(p, lang)
-	if (_t542.is_error) {
-		return _t542
+	const lang = _t549.data
+	let _t550 = bait__parser__Parser_parse_name_type(p, lang)
+	if (_t550.is_error) {
+		return _t550
 	}
-	let typ = _t542.data
+	let typ = _t550.data
 	if (i32(nr_amp > 0)) {
 		typ = bait__ast__Type_set_nr_amp(typ, nr_amp)
 	}
@@ -5644,102 +5700,102 @@ function bait__parser__Parser_parse_name_type(p, lang) {
 	if (!eq(p.tok, bait__token__Token.name)) {
 		return new Result({ data: bait__ast__PLACEHOLDER_TYPE })
 	}
-	let _t545 = bait__parser__Parser_check_name(p)
-	if (_t545.is_error) {
-		return _t545
+	let _t553 = bait__parser__Parser_check_name(p)
+	if (_t553.is_error) {
+		return _t553
 	}
-	let name = bait__ast__Language_prepend_to(lang, _t545.data)
+	let name = bait__ast__Language_prepend_to(lang, _t553.data)
 	if (eq(p.tok, bait__token__Token.dot)) {
 		if (eq(lang, bait__ast__Language.js)) {
 			bait__parser__Parser_next(p)
-			let _t548 = bait__parser__Parser_check_name(p)
-			if (_t548.is_error) {
-				return _t548
+			let _t556 = bait__parser__Parser_check_name(p)
+			if (_t556.is_error) {
+				return _t556
 			}
-			name = string_add(name, string_add(from_js_string("."), _t548.data))
+			name = string_add(name, string_add(from_js_string("."), _t556.data))
 		} else {
 			const pkg = Map_get_set(p.import_aliases, name, from_js_string(""))
 			bait__parser__Parser_next(p)
-			let _t549 = bait__parser__Parser_check_name(p)
-			if (_t549.is_error) {
-				return _t549
+			let _t557 = bait__parser__Parser_check_name(p)
+			if (_t557.is_error) {
+				return _t557
 			}
-			name = string_add(string_add(pkg, from_js_string(".")), _t549.data)
+			name = string_add(string_add(pkg, from_js_string(".")), _t557.data)
 		}
 	} else if (i32(p.expr_pkg.length > 0)) {
 		name = bait__parser__Parser_prepend_expr_pkg(p, name)
 	} else if (!string_contains(name, from_js_string(".")) && !Map_contains(p.table.type_idxs, name)) {
 		name = bait__parser__Parser_prepend_pkg(p, name)
 	}
-	let _t550 = undefined
+	let _t558 = undefined
 	if (string_eq(name, from_js_string("i8"))) {
-		_t550 = bait__ast__I8_TYPE
+		_t558 = bait__ast__I8_TYPE
 	} else if (string_eq(name, from_js_string("i16"))) {
-		_t550 = bait__ast__I16_TYPE
+		_t558 = bait__ast__I16_TYPE
 	} else if (string_eq(name, from_js_string("i32"))) {
-		_t550 = bait__ast__I32_TYPE
+		_t558 = bait__ast__I32_TYPE
 	} else if (string_eq(name, from_js_string("i64"))) {
-		_t550 = bait__ast__I64_TYPE
+		_t558 = bait__ast__I64_TYPE
 	} else if (string_eq(name, from_js_string("u8"))) {
-		_t550 = bait__ast__U8_TYPE
+		_t558 = bait__ast__U8_TYPE
 	} else if (string_eq(name, from_js_string("u16"))) {
-		_t550 = bait__ast__U16_TYPE
+		_t558 = bait__ast__U16_TYPE
 	} else if (string_eq(name, from_js_string("u32"))) {
-		_t550 = bait__ast__U32_TYPE
+		_t558 = bait__ast__U32_TYPE
 	} else if (string_eq(name, from_js_string("u64"))) {
-		_t550 = bait__ast__U64_TYPE
+		_t558 = bait__ast__U64_TYPE
 	} else if (string_eq(name, from_js_string("f32"))) {
-		_t550 = bait__ast__F32_TYPE
+		_t558 = bait__ast__F32_TYPE
 	} else if (string_eq(name, from_js_string("f64"))) {
-		_t550 = bait__ast__F64_TYPE
+		_t558 = bait__ast__F64_TYPE
 	} else if (string_eq(name, from_js_string("bool"))) {
-		_t550 = bait__ast__BOOL_TYPE
+		_t558 = bait__ast__BOOL_TYPE
 	} else if (string_eq(name, from_js_string("string"))) {
-		_t550 = bait__ast__STRING_TYPE
+		_t558 = bait__ast__STRING_TYPE
 	} else if (string_eq(name, from_js_string("any"))) {
-		_t550 = bait__ast__ANY_TYPE
+		_t558 = bait__ast__ANY_TYPE
 	} else {
-		_t550 = bait__ast__Table_find_type_or_add_placeholder(p.table, name, p.pkg_name)
+		_t558 = bait__ast__Table_find_type_or_add_placeholder(p.table, name, p.pkg_name)
 	}
-	return new Result({ data: _t550 })
+	return new Result({ data: _t558 })
 }
 
 function bait__parser__Parser_parse_fun_type(p) {
 	bait__parser__Parser_next(p)
-	let _t551 = bait__parser__Parser_check(p, bait__token__Token.lpar)
-	if (_t551.is_error) {
-		return _t551
+	let _t559 = bait__parser__Parser_check(p, bait__token__Token.lpar)
+	if (_t559.is_error) {
+		return _t559
 	}
-_t551.data
+_t559.data
 	let param_types = new bait_Array({ data: [], length: 0 })
 	while (!eq(p.tok, bait__token__Token.rpar)) {
-		let _t552 = bait__parser__Parser_parse_type(p)
-		if (_t552.is_error) {
-			return _t552
+		let _t560 = bait__parser__Parser_parse_type(p)
+		if (_t560.is_error) {
+			return _t560
 		}
-		const typ = _t552.data
+		const typ = _t560.data
 		Array_push(param_types, typ)
 		if (!eq(p.tok, bait__token__Token.rpar)) {
-			let _t554 = bait__parser__Parser_check(p, bait__token__Token.comma)
-			if (_t554.is_error) {
-				return _t554
+			let _t562 = bait__parser__Parser_check(p, bait__token__Token.comma)
+			if (_t562.is_error) {
+				return _t562
 			}
-_t554.data
+_t562.data
 		}
 	}
 	const par_line = p.pos.line
-	let _t555 = bait__parser__Parser_check(p, bait__token__Token.rpar)
-	if (_t555.is_error) {
-		return _t555
+	let _t563 = bait__parser__Parser_check(p, bait__token__Token.rpar)
+	if (_t563.is_error) {
+		return _t563
 	}
-_t555.data
+_t563.data
 	let return_type = bait__ast__VOID_TYPE
 	if (eq(p.pos.line, par_line)) {
-		let _t557 = bait__parser__Parser_parse_type(p)
-		if (_t557.is_error) {
-			return _t557
+		let _t565 = bait__parser__Parser_parse_type(p)
+		if (_t565.is_error) {
+			return _t565
 		}
-		return_type = _t557.data
+		return_type = _t565.data
 	}
 	return new Result({ data: bait__ast__Table_find_or_register_fun(p.table, param_types, return_type, true) })
 }
@@ -5748,33 +5804,33 @@ function bait__parser__Parser_parse_map_type(p) {
 	if (eq(p.tok, bait__token__Token.rpar) && string_eq(p.pkg_name, from_js_string("builtin"))) {
 		return new Result({ data: bait__ast__MAP_TYPE })
 	}
-	let _t559 = bait__parser__Parser_check(p, bait__token__Token.lsqr)
-	if (_t559.is_error) {
-		return _t559
+	let _t567 = bait__parser__Parser_check(p, bait__token__Token.lsqr)
+	if (_t567.is_error) {
+		return _t567
 	}
-_t559.data
-	let _t560 = bait__parser__Parser_parse_type(p)
-	if (_t560.is_error) {
-		return _t560
+_t567.data
+	let _t568 = bait__parser__Parser_parse_type(p)
+	if (_t568.is_error) {
+		return _t568
 	}
-	const key_type = _t560.data
+	const key_type = _t568.data
 	if (!eq(key_type, bait__ast__STRING_TYPE)) {
-		let _t562 = bait__parser__Parser_error(p, from_js_string("map key type must be string"))
-		if (_t562.is_error) {
-			return _t562
+		let _t570 = bait__parser__Parser_error(p, from_js_string("map key type must be string"))
+		if (_t570.is_error) {
+			return _t570
 		}
-_t562.data
+_t570.data
 	}
-	let _t563 = bait__parser__Parser_check(p, bait__token__Token.rsqr)
-	if (_t563.is_error) {
-		return _t563
+	let _t571 = bait__parser__Parser_check(p, bait__token__Token.rsqr)
+	if (_t571.is_error) {
+		return _t571
 	}
-_t563.data
-	let _t564 = bait__parser__Parser_parse_type(p)
-	if (_t564.is_error) {
-		return _t564
+_t571.data
+	let _t572 = bait__parser__Parser_parse_type(p)
+	if (_t572.is_error) {
+		return _t572
 	}
-	const val_type = _t564.data
+	const val_type = _t572.data
 	return new Result({ data: bait__ast__Table_find_or_register_map(p.table, key_type, val_type) })
 }
 
@@ -5785,24 +5841,24 @@ function bait__parser__Parser_generic_type_names(p) {
 	bait__parser__Parser_next(p)
 	let names = new bait_Array({ data: [], length: 0 })
 	while (true) {
-		let _t566 = bait__parser__Parser_check_name(p)
-		if (_t566.is_error) {
-			return _t566
+		let _t574 = bait__parser__Parser_check_name(p)
+		if (_t574.is_error) {
+			return _t574
 		}
-		const name = _t566.data
+		const name = _t574.data
 		if (i32(name.length > 1)) {
-			let _t568 = bait__parser__Parser_error(p, from_js_string("generic types names have to be exactly one character"))
-			if (_t568.is_error) {
-				return _t568
+			let _t576 = bait__parser__Parser_error(p, from_js_string("generic types names have to be exactly one character"))
+			if (_t576.is_error) {
+				return _t576
 			}
-_t568.data
+_t576.data
 		}
 		if (!u8_is_upper(string_get(name, 0))) {
-			let _t570 = bait__parser__Parser_error(p, from_js_string("generic type names have to be capital letters"))
-			if (_t570.is_error) {
-				return _t570
+			let _t578 = bait__parser__Parser_error(p, from_js_string("generic type names have to be capital letters"))
+			if (_t578.is_error) {
+				return _t578
 			}
-_t570.data
+_t578.data
 		}
 		Array_push(names, name)
 		const idx = bait__ast__Table_get_idx(p.table, name)
@@ -5812,11 +5868,11 @@ _t570.data
 		if (eq(p.tok, bait__token__Token.rsqr)) {
 			break
 		}
-		let _t573 = bait__parser__Parser_check(p, bait__token__Token.comma)
-		if (_t573.is_error) {
-			return _t573
+		let _t581 = bait__parser__Parser_check(p, bait__token__Token.comma)
+		if (_t581.is_error) {
+			return _t581
 		}
-_t573.data
+_t581.data
 	}
 	bait__parser__Parser_next(p)
 	return new Result({ data: names })
@@ -5829,17 +5885,17 @@ function bait__parser__Parser_concrete_types(p) {
 	bait__parser__Parser_next(p)
 	let types = new bait_Array({ data: [], length: 0 })
 	while (!eq(p.tok, bait__token__Token.rsqr)) {
-		let _t575 = bait__parser__Parser_parse_type(p)
-		if (_t575.is_error) {
-			return _t575
+		let _t583 = bait__parser__Parser_parse_type(p)
+		if (_t583.is_error) {
+			return _t583
 		}
-		Array_push(types, _t575.data)
+		Array_push(types, _t583.data)
 		if (!eq(p.tok, bait__token__Token.rsqr)) {
-			let _t577 = bait__parser__Parser_check(p, bait__token__Token.comma)
-			if (_t577.is_error) {
-				return _t577
+			let _t585 = bait__parser__Parser_check(p, bait__token__Token.comma)
+			if (_t585.is_error) {
+				return _t585
 			}
-_t577.data
+_t585.data
 		}
 	}
 	bait__parser__Parser_next(p)
@@ -5847,23 +5903,23 @@ _t577.data
 }
 
 function bait__parser__Parser_infer_expr_type(p, expr) {
-	let _t578 = undefined
+	let _t586 = undefined
 	if (expr instanceof bait__ast__BoolLiteral) {
-		_t578 = bait__ast__BOOL_TYPE
+		_t586 = bait__ast__BOOL_TYPE
 	} else if (expr instanceof bait__ast__CharLiteral) {
-		_t578 = bait__ast__U8_TYPE
+		_t586 = bait__ast__U8_TYPE
 	} else if (expr instanceof bait__ast__IntegerLiteral) {
-		_t578 = bait__ast__I32_TYPE
+		_t586 = bait__ast__I32_TYPE
 	} else if (expr instanceof bait__ast__StringLiteral) {
-		_t578 = bait__ast__STRING_TYPE
+		_t586 = bait__ast__STRING_TYPE
 	} else if (expr instanceof bait__ast__StructInit) {
-		_t578 = expr.typ
+		_t586 = expr.typ
 	} else if (expr instanceof bait__ast__MapInit) {
-		_t578 = expr.typ
+		_t586 = expr.typ
 	} else {
-		_t578 = bait__ast__VOID_TYPE
+		_t586 = bait__ast__VOID_TYPE
 	}
-	return _t578
+	return _t586
 }
 
 
@@ -5883,13 +5939,13 @@ function bait__checker__Checker_decl_assign(c, node) {
 	const left = node.left
 	if (bait__ast__Scope_is_known(c.scope, left.name)) {
 		const obj = bait__ast__Scope_get(c.scope, left.name)
-		let _t583 = undefined
+		let _t591 = undefined
 		if (eq(obj.kind, bait__ast__ObjectKind.package_)) {
-			_t583 = from_js_string(`cannot shadow import "${left.name.str}"`)
+			_t591 = from_js_string(`cannot shadow import "${left.name.str}"`)
 		} else {
-			_t583 = from_js_string(`redefinition of ${left.name.str}`)
+			_t591 = from_js_string(`redefinition of ${left.name.str}`)
 		}
-		const msg = _t583
+		const msg = _t591
 		bait__checker__Checker_error(c, msg, node.pos)
 		return 
 	}
@@ -5978,8 +6034,8 @@ function bait__checker__Checker_check_attribute(c, attr, known_list) {
 }
 
 function bait__checker__Checker_check_fun_attrs(c, node) {
-	for (let _t597 = 0; _t597 < node.attrs.length; _t597++) {
-		const attr = Array_get(node.attrs, _t597)
+	for (let _t605 = 0; _t605 < node.attrs.length; _t605++) {
+		const attr = Array_get(node.attrs, _t605)
 		if (!bait__checker__Checker_check_attribute(c, attr, bait__checker__FUN_ATTRS)) {
 			continue
 		}
@@ -6030,8 +6086,8 @@ function bait__checker__Checker_check_fun_attrs_on_call(c, call, def) {
 	let is_deprecated = false
 	let depr_attr = new bait__ast__Attribute({})
 	let depr_date_attr = new bait__ast__Attribute({})
-	for (let _t606 = 0; _t606 < def.attrs.length; _t606++) {
-		const attr = Array_get(def.attrs, _t606)
+	for (let _t614 = 0; _t614 < def.attrs.length; _t614++) {
+		const attr = Array_get(def.attrs, _t614)
 		if (string_eq(attr.name, from_js_string("deprecated_after"))) {
 			depr_date_attr = attr
 			is_deprecated = true
@@ -6056,10 +6112,10 @@ function bait__checker__Checker_check_fun_attrs_on_call(c, call, def) {
 }
 
 function bait__checker__Checker_check_struct_field_attrs(c, node) {
-	for (let _t612 = 0; _t612 < node.fields.length; _t612++) {
-		const field = Array_get(node.fields, _t612)
-		for (let _t613 = 0; _t613 < field.attrs.length; _t613++) {
-			const attr = Array_get(field.attrs, _t613)
+	for (let _t620 = 0; _t620 < node.fields.length; _t620++) {
+		const field = Array_get(node.fields, _t620)
+		for (let _t621 = 0; _t621 < field.attrs.length; _t621++) {
+			const attr = Array_get(field.attrs, _t621)
 			if (!bait__checker__Checker_check_attribute(c, attr, bait__checker__STRUCT_FIELD_ATTRS)) {
 				continue
 			}
@@ -6099,8 +6155,8 @@ function bait__checker__Checker({ prefs = new bait__preference__Prefs({}), table
 	this.errors = errors
 }
 function bait__checker__Checker_check_files(c, files) {
-	for (let _t616 = 0; _t616 < files.length; _t616++) {
-		const f = Array_get(files, _t616)
+	for (let _t624 = 0; _t624 < files.length; _t624++) {
+		const f = Array_get(files, _t624)
 		bait__checker__Checker_check(c, f)
 		f.infos = c.infos
 		f.warnings = c.warnings
@@ -6112,8 +6168,8 @@ function bait__checker__Checker_check_files(c, files) {
 	let resolve_runs = 0
 	while (c.need_generic_resolve && i32(resolve_runs < 100)) {
 		c.need_generic_resolve = false
-		for (let _t617 = 0; _t617 < files.length; _t617++) {
-			const f = Array_get(files, _t617)
+		for (let _t625 = 0; _t625 < files.length; _t625++) {
+			const f = Array_get(files, _t625)
 			if (eq(f.generic_funs.length, 0)) {
 				continue
 			}
@@ -6153,8 +6209,8 @@ function bait__checker__Checker_check(c, file) {
 }
 
 function bait__checker__Checker_check_imports(c, imports) {
-	for (let _t622 = 0; _t622 < imports.length; _t622++) {
-		const imp = Array_get(imports, _t622)
+	for (let _t630 = 0; _t630 < imports.length; _t630++) {
+		const imp = Array_get(imports, _t630)
 		bait__ast__Scope_register(c.scope, imp.alias, new bait__ast__ScopeObject({ kind: bait__ast__ObjectKind.package_ }))
 		if (!c.is_js_file && eq(imp.lang, bait__ast__Language.js)) {
 			bait__checker__Checker_warn(c, from_js_string("JS imports have to be in .js.bt files"), imp.pos)
@@ -6214,59 +6270,59 @@ function bait__checker__Checker_comptime_if_condition(c, node) {
 
 function bait__checker__Checker_expr(c, expr) {
 	const expected_save = c.expected_type
-	let _t626 = undefined
+	let _t634 = undefined
 	if (expr instanceof bait__ast__AnonFun) {
-		_t626 = bait__checker__Checker_anon_fun(c, expr)
+		_t634 = bait__checker__Checker_anon_fun(c, expr)
 	} else if (expr instanceof bait__ast__ArrayInit) {
-		_t626 = bait__checker__Checker_array_init(c, expr)
+		_t634 = bait__checker__Checker_array_init(c, expr)
 	} else if (expr instanceof bait__ast__AsCast) {
-		_t626 = bait__checker__Checker_as_cast(c, expr)
+		_t634 = bait__checker__Checker_as_cast(c, expr)
 	} else if (expr instanceof bait__ast__BoolLiteral) {
-		_t626 = bait__ast__BOOL_TYPE
+		_t634 = bait__ast__BOOL_TYPE
 	} else if (expr instanceof bait__ast__CallExpr) {
-		_t626 = bait__checker__Checker_call_expr(c, expr)
+		_t634 = bait__checker__Checker_call_expr(c, expr)
 	} else if (expr instanceof bait__ast__CharLiteral) {
-		_t626 = bait__ast__U8_TYPE
+		_t634 = bait__ast__U8_TYPE
 	} else if (expr instanceof bait__ast__ComptimeVar) {
-		_t626 = bait__checker__Checker_comptime_var(c, expr)
+		_t634 = bait__checker__Checker_comptime_var(c, expr)
 	} else if (expr instanceof bait__ast__EnumVal) {
-		_t626 = bait__checker__Checker_enum_val(c, expr)
+		_t634 = bait__checker__Checker_enum_val(c, expr)
 	} else if (expr instanceof bait__ast__FloatLiteral) {
-		_t626 = bait__ast__F64_TYPE
+		_t634 = bait__ast__F64_TYPE
 	} else if (expr instanceof bait__ast__HashExpr) {
-		_t626 = bait__checker__Checker_hash_expr(c, expr)
+		_t634 = bait__checker__Checker_hash_expr(c, expr)
 	} else if (expr instanceof bait__ast__Ident) {
-		_t626 = bait__checker__Checker_ident(c, expr)
+		_t634 = bait__checker__Checker_ident(c, expr)
 	} else if (expr instanceof bait__ast__IfMatch) {
-		_t626 = bait__checker__Checker_if_match(c, expr)
+		_t634 = bait__checker__Checker_if_match(c, expr)
 	} else if (expr instanceof bait__ast__IndexExpr) {
-		_t626 = bait__checker__Checker_index_expr(c, expr)
+		_t634 = bait__checker__Checker_index_expr(c, expr)
 	} else if (expr instanceof bait__ast__InfixExpr) {
-		_t626 = bait__checker__Checker_infix_expr(c, expr)
+		_t634 = bait__checker__Checker_infix_expr(c, expr)
 	} else if (expr instanceof bait__ast__IntegerLiteral) {
-		_t626 = bait__checker__Checker_integer_literal(c, expr)
+		_t634 = bait__checker__Checker_integer_literal(c, expr)
 	} else if (expr instanceof bait__ast__MapInit) {
-		_t626 = bait__checker__Checker_map_init(c, expr)
+		_t634 = bait__checker__Checker_map_init(c, expr)
 	} else if (expr instanceof bait__ast__ParExpr) {
-		_t626 = bait__checker__Checker_par_expr(c, expr)
+		_t634 = bait__checker__Checker_par_expr(c, expr)
 	} else if (expr instanceof bait__ast__PrefixExpr) {
-		_t626 = bait__checker__Checker_prefix_expr(c, expr)
+		_t634 = bait__checker__Checker_prefix_expr(c, expr)
 	} else if (expr instanceof bait__ast__SelectorExpr) {
-		_t626 = bait__checker__Checker_selector_expr(c, expr)
+		_t634 = bait__checker__Checker_selector_expr(c, expr)
 	} else if (expr instanceof bait__ast__StringLiteral) {
-		_t626 = bait__checker__Checker_string_literal(c, expr)
+		_t634 = bait__checker__Checker_string_literal(c, expr)
 	} else if (expr instanceof bait__ast__StringInterLiteral) {
-		_t626 = bait__checker__Checker_string_inter_literal(c, expr)
+		_t634 = bait__checker__Checker_string_inter_literal(c, expr)
 	} else if (expr instanceof bait__ast__StructInit) {
-		_t626 = bait__checker__Checker_struct_init(c, expr)
+		_t634 = bait__checker__Checker_struct_init(c, expr)
 	} else if (expr instanceof bait__ast__TypeOf) {
-		_t626 = bait__checker__Checker_type_of(c, expr)
+		_t634 = bait__checker__Checker_type_of(c, expr)
 	} else if (expr instanceof bait__ast__Void) {
-		_t626 = bait__ast__VOID_TYPE
+		_t634 = bait__ast__VOID_TYPE
 	} else if (expr instanceof bait__ast__EmptyExpr) {
-		_t626 = panic(from_js_string(`unexpected EmptyExpr at ${bait__token__Pos_str(expr.pos).str}`))
+		_t634 = panic(from_js_string(`unexpected EmptyExpr at ${bait__token__Pos_str(expr.pos).str}`))
 	}
-	const t = _t626
+	const t = _t634
 	c.expected_type = expected_save
 	return t
 }
@@ -6512,8 +6568,8 @@ function bait__checker__Checker_string_literal(c, node) {
 }
 
 function bait__checker__Checker_string_inter_literal(c, node) {
-	for (let _t670 = 0; _t670 < node.exprs.length; _t670++) {
-		const e = Array_get(node.exprs, _t670)
+	for (let _t678 = 0; _t678 < node.exprs.length; _t678++) {
+		const e = Array_get(node.exprs, _t678)
 		const typ = bait__checker__Checker_expr(c, e)
 		Array_push(node.expr_types, typ)
 	}
@@ -6560,8 +6616,8 @@ function bait__checker__Checker_fun_decl(c, node) {
 			bait__checker__Checker_error(c, from_js_string(`redefinition of ${node.name.str}`), node.pos)
 		}
 		let param_types = new bait_Array({ data: [], length: 0 })
-		for (let _t677 = 0; _t677 < node.params.length; _t677++) {
-			const param = Array_get(node.params, _t677)
+		for (let _t685 = 0; _t685 < node.params.length; _t685++) {
+			const param = Array_get(node.params, _t685)
 			Array_push(param_types, param.typ)
 		}
 		bait__ast__Scope_register(c.scope, node.name, new bait__ast__ScopeObject({ typ: bait__ast__Table_find_or_register_fun(c.table, param_types, node.return_type, false), kind: bait__ast__ObjectKind.function }))
@@ -6598,17 +6654,17 @@ function bait__checker__Checker_fun_instance(c, node) {
 }
 
 function bait__checker__Checker_fun_params(c, params) {
-	for (let _t681 = 0; _t681 < params.length; _t681++) {
-		const p = Array_get(params, _t681)
+	for (let _t689 = 0; _t689 < params.length; _t689++) {
+		const p = Array_get(params, _t689)
 		if (bait__ast__Scope_is_known(c.scope, p.name)) {
 			const obj = bait__ast__Scope_get(c.scope, p.name)
-			let _t683 = undefined
+			let _t691 = undefined
 			if (eq(obj.kind, bait__ast__ObjectKind.package_)) {
-				_t683 = from_js_string(`cannot shadow import "${p.name.str}"`)
+				_t691 = from_js_string(`cannot shadow import "${p.name.str}"`)
 			} else {
-				_t683 = from_js_string(`redefinition of ${p.name.str}`)
+				_t691 = from_js_string(`redefinition of ${p.name.str}`)
 			}
-			const msg = _t683
+			const msg = _t691
 			bait__checker__Checker_error(c, msg, p.pos)
 			continue
 		}
@@ -6627,8 +6683,8 @@ function bait__checker__Checker_fun_params(c, params) {
 }
 
 function bait__checker__Checker_check_main_fun(c, stmts) {
-	for (let _t686 = 0; _t686 < stmts.length; _t686++) {
-		const stmt = Array_get(stmts, _t686)
+	for (let _t694 = 0; _t694 < stmts.length; _t694++) {
+		const stmt = Array_get(stmts, _t694)
 		if (stmt instanceof bait__ast__FunDecl && bait__ast__FunDecl_is_main(stmt)) {
 			c.has_main_fun = true
 		}
@@ -6872,11 +6928,11 @@ function bait__checker__Checker_or_block(c, node) {
 }
 
 function bait__checker__Checker_resolve_generics_funs(c) {
-	for (let _t736 = 0; _t736 < c.file.generic_funs.length; _t736++) {
-		const fn = Array_get(c.file.generic_funs, _t736)
+	for (let _t744 = 0; _t744 < c.file.generic_funs.length; _t744++) {
+		const fn = Array_get(c.file.generic_funs, _t744)
 		const gtypes = Map_get_set(c.table.generic_fun_types, bait__ast__FunDecl_key(fn), new bait_Array({ data: [], length: 0 }))
-		for (let _t737 = 0; _t737 < gtypes.length; _t737++) {
-			const concrete = Array_get(gtypes, _t737)
+		for (let _t745 = 0; _t745 < gtypes.length; _t745++) {
+			const concrete = Array_get(gtypes, _t745)
 			c.cur_concrete_types = concrete
 			bait__checker__Checker_fun_instance(c, fn)
 		}
@@ -6895,13 +6951,13 @@ function bait__checker__Checker_if_match(c, node) {
 	}
 	let cond_sym = new bait__ast__TypeSymbol({})
 	if (node.is_match) {
-		let _t741 = undefined
+		let _t749 = undefined
 		if (node.has_else) {
-			_t741 = 2
+			_t749 = 2
 		} else {
-			_t741 = 1
+			_t749 = 1
 		}
-		const min_branches = _t741
+		const min_branches = _t749
 		if (i32(node.branches.length < min_branches)) {
 			bait__checker__Checker_error(c, from_js_string("match needs at least one non-else branch"), node.pos)
 			return bait__ast__PLACEHOLDER_TYPE
@@ -6982,16 +7038,16 @@ function bait__checker__Checker_check_exhaustive_match(c, info, branch_exprs, no
 	let is_exhaustive = true
 	let unhandled = new bait_Array({ data: [], length: 0 })
 	if (info instanceof bait__ast__EnumInfo) {
-		for (let _t757 = 0; _t757 < info.vals.length; _t757++) {
-			const val = Array_get(info.vals, _t757)
+		for (let _t765 = 0; _t765 < info.vals.length; _t765++) {
+			const val = Array_get(info.vals, _t765)
 			if (!Array_contains_string(branch_exprs, val)) {
 				is_exhaustive = false
 				Array_push(unhandled, val)
 			}
 		}
 	} else if (info instanceof bait__ast__SumTypeInfo) {
-		for (let _t759 = 0; _t759 < info.variants.length; _t759++) {
-			const typ = Array_get(info.variants, _t759)
+		for (let _t767 = 0; _t767 < info.variants.length; _t767++) {
+			const typ = Array_get(info.variants, _t767)
 			const variant = bait__ast__Table_type_name(c.table, typ)
 			if (!Array_contains_string(branch_exprs, variant)) {
 				is_exhaustive = false
@@ -7090,13 +7146,13 @@ function bait__checker__Redefinition({ path = from_js_string(""), pos = new bait
 	this.signature = signature
 }
 function bait__checker__stmt_is_redef(stmt, name, kind) {
-	let _t776 = undefined
+	let _t784 = undefined
 	if (eq(kind, bait__checker__RedefKind.fun_)) {
-		_t776 = stmt instanceof bait__ast__FunDecl && string_eq(stmt.name, name)
+		_t784 = stmt instanceof bait__ast__FunDecl && string_eq(stmt.name, name)
 	} else if (eq(kind, bait__checker__RedefKind.type_)) {
-		_t776 = (stmt instanceof bait__ast__EnumDecl || stmt instanceof bait__ast__InterfaceDecl || stmt instanceof bait__ast__StructDecl || stmt instanceof bait__ast__TypeDecl) && string_eq(stmt.name, name)
+		_t784 = (stmt instanceof bait__ast__EnumDecl || stmt instanceof bait__ast__InterfaceDecl || stmt instanceof bait__ast__StructDecl || stmt instanceof bait__ast__TypeDecl) && string_eq(stmt.name, name)
 	}
-	return _t776
+	return _t784
 }
 
 function bait__checker__Checker_check_redefinitions(c, redefs_list, kind, files) {
@@ -7104,27 +7160,27 @@ function bait__checker__Checker_check_redefinitions(c, redefs_list, kind, files)
 		return 
 	}
 	let unique = new bait_Array({ data: [], length: 0 })
-	for (let _t778 = 0; _t778 < redefs_list.length; _t778++) {
-		const name = Array_get(redefs_list, _t778)
+	for (let _t786 = 0; _t786 < redefs_list.length; _t786++) {
+		const name = Array_get(redefs_list, _t786)
 		if (!Array_contains_string(unique, name)) {
 			Array_push(unique, name)
 		}
 	}
-	for (let _t780 = 0; _t780 < unique.length; _t780++) {
-		const name = Array_get(unique, _t780)
+	for (let _t788 = 0; _t788 < unique.length; _t788++) {
+		const name = Array_get(unique, _t788)
 		let redefinitions = new bait_Array({ data: [], length: 0 })
-		for (let _t781 = 0; _t781 < files.length; _t781++) {
-			const file = Array_get(files, _t781)
-			for (let _t782 = 0; _t782 < file.stmts.length; _t782++) {
-				const stmt = Array_get(file.stmts, _t782)
+		for (let _t789 = 0; _t789 < files.length; _t789++) {
+			const file = Array_get(files, _t789)
+			for (let _t790 = 0; _t790 < file.stmts.length; _t790++) {
+				const stmt = Array_get(file.stmts, _t790)
 				if (bait__checker__stmt_is_redef(stmt, name, kind)) {
 					Array_push(redefinitions, new bait__checker__Redefinition({ path: file.path, pos: (stmt).pos, name: name, signature: bait__checker__Checker_stmt_signature(c, stmt) }))
 				}
 			}
 		}
 		let err = new bait__errors__Message({ kind: bait__errors__Kind.error, msg: from_js_string(`redfinition of "${name.str}"`) })
-		for (let _t784 = 0; _t784 < redefinitions.length; _t784++) {
-			const redef = Array_get(redefinitions, _t784)
+		for (let _t792 = 0; _t792 < redefinitions.length; _t792++) {
+			const redef = Array_get(redefinitions, _t792)
 			Array_push(err.infos, new bait__errors__Message({ kind: bait__errors__Kind.info, path: redef.path, pos: redef.pos, title: from_js_string("conflict"), msg: redef.signature }))
 		}
 		Array_push(c.errors, err)
@@ -7140,21 +7196,21 @@ function bait__checker__Checker_check_type_redefinitions(c, files) {
 }
 
 function bait__checker__Checker_stmt_signature(c, stmt) {
-	let _t785 = undefined
+	let _t793 = undefined
 	if (stmt instanceof bait__ast__EnumDecl) {
-		_t785 = from_js_string("enum")
+		_t793 = from_js_string("enum")
 	} else if (stmt instanceof bait__ast__FunDecl) {
-		_t785 = bait__checker__Checker_fun_signature(c, stmt)
+		_t793 = bait__checker__Checker_fun_signature(c, stmt)
 	} else if (stmt instanceof bait__ast__InterfaceDecl) {
-		_t785 = from_js_string("interface")
+		_t793 = from_js_string("interface")
 	} else if (stmt instanceof bait__ast__StructDecl) {
-		_t785 = from_js_string("struct")
+		_t793 = from_js_string("struct")
 	} else if (stmt instanceof bait__ast__TypeDecl) {
-		_t785 = from_js_string("type")
+		_t793 = from_js_string("type")
 	} else {
-		_t785 = from_js_string("")
+		_t793 = from_js_string("")
 	}
-	return _t785
+	return _t793
 }
 
 function bait__checker__Checker_fun_signature(c, node) {
@@ -7215,8 +7271,8 @@ function bait__checker__Checker_stmt_returns(c, stmt) {
 }
 
 function bait__checker__has_toplevel_return(stmts) {
-	for (let _t796 = 0; _t796 < stmts.length; _t796++) {
-		const stmt = Array_get(stmts, _t796)
+	for (let _t804 = 0; _t804 < stmts.length; _t804++) {
+		const stmt = Array_get(stmts, _t804)
 		if (stmt instanceof bait__ast__ReturnStmt || bait__checker__is_noreturn_call(stmt)) {
 			return true
 		}
@@ -7235,8 +7291,8 @@ function bait__checker__is_noreturn_call(stmt) {
 
 
 function bait__checker__Checker_stmts(c, stmts) {
-	for (let _t800 = 0; _t800 < stmts.length; _t800++) {
-		const stmt = Array_get(stmts, _t800)
+	for (let _t808 = 0; _t808 < stmts.length; _t808++) {
+		const stmt = Array_get(stmts, _t808)
 		bait__checker__Checker_stmt(c, stmt)
 	}
 }
@@ -7476,8 +7532,8 @@ function bait__checker__Checker_struct_init(c, node) {
 	}
 	bait__checker__Checker_check_init_field_values(c, node, sym.info)
 	node.name = sym.name
-	for (let _t825 = 0; _t825 < node.fields.length; _t825++) {
-		const field = Array_get(node.fields, _t825)
+	for (let _t833 = 0; _t833 < node.fields.length; _t833++) {
+		const field = Array_get(node.fields, _t833)
 		const def = bait__ast__TypeSymbol_find_field(sym, field.name, c.table)
 		if (eq(def.name.length, 0)) {
 			bait__checker__Checker_error(c, from_js_string(`struct ${sym.name.str} has no field ${field.name.str}`), node.pos)
@@ -7495,12 +7551,12 @@ function bait__checker__Checker_struct_init(c, node) {
 }
 
 function bait__checker__Checker_check_init_field_values(c, init, info) {
-	for (let _t829 = 0; _t829 < info.fields.length; _t829++) {
-		const def_field = Array_get(info.fields, _t829)
+	for (let _t837 = 0; _t837 < info.fields.length; _t837++) {
+		const def_field = Array_get(info.fields, _t837)
 		const def_sym = bait__ast__Table_get_sym(c.table, def_field.typ)
 		let is_required = eq(def_sym.kind, bait__ast__TypeKind.sum_type) || eq(def_sym.kind, bait__ast__TypeKind.fun_)
-		for (let _t830 = 0; _t830 < def_field.attrs.length; _t830++) {
-			const attr = Array_get(def_field.attrs, _t830)
+		for (let _t838 = 0; _t838 < def_field.attrs.length; _t838++) {
+			const attr = Array_get(def_field.attrs, _t838)
 			if (string_eq(attr.name, from_js_string("required"))) {
 				is_required = true
 			}
@@ -7512,8 +7568,8 @@ function bait__checker__Checker_check_init_field_values(c, init, info) {
 			continue
 		}
 		let is_present = false
-		for (let _t834 = 0; _t834 < init.fields.length; _t834++) {
-			const inited = Array_get(init.fields, _t834)
+		for (let _t842 = 0; _t842 < init.fields.length; _t842++) {
+			const inited = Array_get(init.fields, _t842)
 			if (string_eq(inited.name, def_field.name)) {
 				is_present = true
 				break
@@ -7614,8 +7670,8 @@ function bait__checker__Checker_does_type_exist(c, sym, pos) {
 	}
 	if (eq(sym.kind, bait__ast__TypeKind.sum_type)) {
 		const info = sym.info
-		for (let _t860 = 0; _t860 < info.variants.length; _t860++) {
-			const variant = Array_get(info.variants, _t860)
+		for (let _t868 = 0; _t868 < info.variants.length; _t868++) {
+			const variant = Array_get(info.variants, _t868)
 			const var_sym = bait__ast__Table_get_sym(c.table, variant)
 			if (!bait__checker__Checker_does_type_exist(c, var_sym, pos)) {
 				return false
@@ -7625,8 +7681,8 @@ function bait__checker__Checker_does_type_exist(c, sym, pos) {
 	}
 	if (eq(sym.kind, bait__ast__TypeKind.fun_)) {
 		const info = sym.info
-		for (let _t863 = 0; _t863 < info.param_types.length; _t863++) {
-			const param_type = Array_get(info.param_types, _t863)
+		for (let _t871 = 0; _t871 < info.param_types.length; _t871++) {
+			const param_type = Array_get(info.param_types, _t871)
 			const param_sym = bait__ast__Table_get_sym(c.table, param_type)
 			if (!bait__checker__Checker_does_type_exist(c, param_sym, pos)) {
 				return false
@@ -7665,13 +7721,13 @@ function bait__util__escape_char(s, esc_char) {
 }
 
 function bait__util__escape_linebreak(s) {
-	let _t869 = undefined
+	let _t877 = undefined
 	if (string_eq(os__platform(), from_js_string("windows"))) {
-		_t869 = string_replace(s, from_js_string("\r\n"), from_js_string("\\r\\n"))
+		_t877 = string_replace(s, from_js_string("\r\n"), from_js_string("\\r\\n"))
 	} else {
-		_t869 = string_replace(s, from_js_string("\n"), from_js_string("\\n"))
+		_t877 = string_replace(s, from_js_string("\n"), from_js_string("\\n"))
 	}
-	return _t869
+	return _t877
 }
 
 function bait__util__shell_escape(s) {
@@ -7680,15 +7736,15 @@ function bait__util__shell_escape(s) {
 
 
 const bait__util__VERSION = from_js_string("0.0.7")
-const bait__util__FULL_VERSION = from_js_string(`${bait__util__VERSION.str} ${from_js_string("cc33c3c").str}`)
+const bait__util__FULL_VERSION = from_js_string(`${bait__util__VERSION.str} ${from_js_string("a913616").str}`)
 
-let _t870 = undefined
+let _t878 = undefined
 if (string_eq(os__platform(), from_js_string("windows"))) {
-	_t870 = from_js_string("\\r\\n")
+	_t878 = from_js_string("\\r\\n")
 } else {
-	_t870 = from_js_string("\\n")
+	_t878 = from_js_string("\\n")
 }
-const bait__gen__js__LB = _t870
+const bait__gen__js__LB = _t878
 function bait__gen__js__Gen_get_str_fun(g, typ) {
 	Array_push(g.table.needed_str_funs, typ)
 	const sym = bait__ast__Table_get_sym(g.table, typ)
@@ -7728,8 +7784,8 @@ function bait__gen__js__Gen_generate_str_fun(g, typ) {
 		if (i32(info.fields.length > 0)) {
 			g.fun_decls_out = string_add(g.fun_decls_out, from_js_string(`\ts += "${bait__gen__js__LB.str}"\n`))
 		}
-		for (let _t876 = 0; _t876 < info.fields.length; _t876++) {
-			const field = Array_get(info.fields, _t876)
+		for (let _t884 = 0; _t884 < info.fields.length; _t884++) {
+			const field = Array_get(info.fields, _t884)
 			if (eq(typ, field.typ)) {
 				g.fun_decls_out = string_add(g.fun_decls_out, from_js_string(`\ts += space + "  ${field.name.str} = ${sym.name.str}{...}${bait__gen__js__LB.str}"\n`))
 				continue
@@ -7770,8 +7826,8 @@ function bait__gen__js__Gen_generate_str_fun(g, typ) {
 	if (eq(sym.kind, bait__ast__TypeKind.sum_type)) {
 		const info = sym.info
 		g.fun_decls_out = string_add(g.fun_decls_out, from_js_string(`function ${name.str}(it, indent) {\n`))
-		for (let _t881 = 0; _t881 < info.variants.length; _t881++) {
-			const bait_var = Array_get(info.variants, _t881)
+		for (let _t889 = 0; _t889 < info.variants.length; _t889++) {
+			const bait_var = Array_get(info.variants, _t889)
 			const var_sym = bait__ast__Table_get_sym(g.table, bait_var)
 			g.fun_decls_out = string_add(g.fun_decls_out, from_js_string(`\tif (it instanceof ${bait__gen__js__js_name(var_sym.name).str}) {
 		return ${bait__gen__js__Gen_get_str_fun(g, bait_var).str}(it, indent)
@@ -7785,8 +7841,8 @@ function bait__gen__js__Gen_generate_str_fun(g, typ) {
 		g.fun_decls_out = string_add(g.fun_decls_out, from_js_string(`function ${name.str}(it) {
 	switch(it) {\n`))
 		const info = sym.info
-		for (let _t883 = 0; _t883 < info.vals.length; _t883++) {
-			const val = Array_get(info.vals, _t883)
+		for (let _t891 = 0; _t891 < info.vals.length; _t891++) {
+			const val = Array_get(info.vals, _t891)
 			g.fun_decls_out = string_add(g.fun_decls_out, from_js_string(`\t\tcase ${bait__gen__js__js_name(sym.name).str}.${val.str}: return from_js_string("${val.str}")\n`))
 		}
 		g.fun_decls_out = string_add(g.fun_decls_out, from_js_string("\t}\n}\n\n"))
@@ -7811,33 +7867,33 @@ function bait__gen__js__Gen_comptime_var(g, node) {
 }
 
 function bait__gen__js__Gen_get_comptime_val(g, kind, pos) {
-	let _t885 = undefined
+	let _t893 = undefined
 	if (eq(kind, bait__token__ComptimeVar.pkg)) {
-		_t885 = g.pkg
+		_t893 = g.pkg
 	} else if (eq(kind, bait__token__ComptimeVar.abs_file)) {
-		_t885 = string_replace(os__abs_path(g.path), from_js_string("\\"), from_js_string("\\\\"))
+		_t893 = string_replace(os__abs_path(g.path), from_js_string("\\"), from_js_string("\\\\"))
 	} else if (eq(kind, bait__token__ComptimeVar.file)) {
-		_t885 = string_replace(g.path, from_js_string("\\"), from_js_string("\\\\"))
+		_t893 = string_replace(g.path, from_js_string("\\"), from_js_string("\\\\"))
 	} else if (eq(kind, bait__token__ComptimeVar.dir)) {
-		_t885 = os__dir(bait__gen__js__Gen_get_comptime_val(g, bait__token__ComptimeVar.abs_file, pos))
+		_t893 = os__dir(bait__gen__js__Gen_get_comptime_val(g, bait__token__ComptimeVar.abs_file, pos))
 	} else if (eq(kind, bait__token__ComptimeVar.line)) {
-		_t885 = i32_str(pos.line)
+		_t893 = i32_str(pos.line)
 	} else if (eq(kind, bait__token__ComptimeVar.file_line)) {
 			const file = bait__gen__js__Gen_get_comptime_val(g, bait__token__ComptimeVar.file, pos)
 		const line = bait__gen__js__Gen_get_comptime_val(g, bait__token__ComptimeVar.line, pos)
-		_t885 = from_js_string(`${file.str}:${line.str}`)
+		_t893 = from_js_string(`${file.str}:${line.str}`)
 	} else if (eq(kind, bait__token__ComptimeVar.fun_)) {
-		_t885 = g.cur_fun.name
+		_t893 = g.cur_fun.name
 	} else if (eq(kind, bait__token__ComptimeVar.baitexe)) {
-		_t885 = bait__gen__js__Gen_comptime_baitexe(g)
+		_t893 = bait__gen__js__Gen_comptime_baitexe(g)
 	} else if (eq(kind, bait__token__ComptimeVar.baitdir)) {
-		_t885 = bait__gen__js__Gen_comptime_baitdir(g)
+		_t893 = bait__gen__js__Gen_comptime_baitdir(g)
 	} else if (eq(kind, bait__token__ComptimeVar.baithash)) {
-		_t885 = bait__gen__js__Gen_comptime_baithash(g)
+		_t893 = bait__gen__js__Gen_comptime_baithash(g)
 	} else if (eq(kind, bait__token__ComptimeVar.unknown)) {
-		_t885 = panic(from_js_string("this should never happen"))
+		_t893 = panic(from_js_string("this should never happen"))
 	}
-	return _t885
+	return _t893
 }
 
 function bait__gen__js__Gen_comptime_baitexe(g) {
@@ -8220,8 +8276,8 @@ function bait__gen__js__Gen_fun_decl(g, node) {
 	}
 	if (i32(node.generic_names.length > 0) && eq(g.cur_concrete_types.length, 0)) {
 		const gtypes = Map_get_set(g.table.generic_fun_types, bait__ast__FunDecl_key(node), new bait_Array({ data: [], length: 0 }))
-		for (let _t920 = 0; _t920 < gtypes.length; _t920++) {
-			const conc_types = Array_get(gtypes, _t920)
+		for (let _t928 = 0; _t928 < gtypes.length; _t928++) {
+			const conc_types = Array_get(gtypes, _t928)
 			for (let i = 0; i < node.generic_names.length; i++) {
 				const gn = Array_get(node.generic_names, i)
 				Map_set(g.cur_concrete_types, gn, Array_get(conc_types, i))
@@ -8455,8 +8511,8 @@ function bait__gen__js__Gen({ pref = new bait__preference__Prefs({}), table = ne
 }
 function bait__gen__js__gen(files, table, pref) {
 	let g = new bait__gen__js__Gen({ pref: pref, table: table, indent: -1, empty_line: true, tmp_counter: -1 })
-	for (let _t949 = 0; _t949 < files.length; _t949++) {
-		const file = Array_get(files, _t949)
+	for (let _t957 = 0; _t957 < files.length; _t957++) {
+		const file = Array_get(files, _t957)
 		g.path = file.path
 		g.pkg = file.pkg_name
 		bait__gen__js__Gen_process_imports(g, file.imports)
@@ -8469,16 +8525,16 @@ function bait__gen__js__gen(files, table, pref) {
 	if (!pref.is_library) {
 		bait__gen__js__Gen_main_call(g)
 	}
-	for (let _t952 = 0; _t952 < g.table.needed_str_funs.length; _t952++) {
-		const typ = Array_get(g.table.needed_str_funs, _t952)
+	for (let _t960 = 0; _t960 < g.table.needed_str_funs.length; _t960++) {
+		const typ = Array_get(g.table.needed_str_funs, _t960)
 		bait__gen__js__Gen_generate_str_fun(g, typ)
 	}
 	return string_add(string_add(string_add(string_add(string_add(bait__gen__js__Gen_headers(g), g.type_defs_out), g.global_out), from_js_string("\n")), g.fun_decls_out), g.out)
 }
 
 function bait__gen__js__Gen_process_imports(g, imports) {
-	for (let _t953 = 0; _t953 < imports.length; _t953++) {
-		const imp = Array_get(imports, _t953)
+	for (let _t961 = 0; _t961 < imports.length; _t961++) {
+		const imp = Array_get(imports, _t961)
 		if (eq(imp.lang, bait__ast__Language.bait) || Map_contains(g.foreign_imports, imp.alias)) {
 			continue
 		}
@@ -8488,9 +8544,9 @@ function bait__gen__js__Gen_process_imports(g, imports) {
 
 function bait__gen__js__Gen_headers(g) {
 	let headers = from_js_string("const JS = {}\n")
-	const _t955 = Map_keys(g.foreign_imports)
-	for (let _t956 = 0; _t956 < _t955.length; _t956++) {
-		const alias = Array_get(_t955, _t956)
+	const _t963 = Map_keys(g.foreign_imports)
+	for (let _t964 = 0; _t964 < _t963.length; _t964++) {
+		const alias = Array_get(_t963, _t964)
 		const name = Map_get(g.foreign_imports, alias)
 		headers = string_add(headers, from_js_string(`${alias.str} = require("${name.str}")\n`))
 	}
@@ -8539,8 +8595,8 @@ function bait__gen__js__Gen_cut_before(g, to) {
 
 function bait__gen__js__Gen_cut_before_any(g, chars) {
 	for (let i = i32(g.out.length - 1); i32(i >= 0); i = i32(i - 1)) {
-		for (let _t959 = 0; _t959 < chars.length; _t959++) {
-			const c = string_get(chars, _t959)
+		for (let _t967 = 0; _t967 < chars.length; _t967++) {
+			const c = string_get(chars, _t967)
 			if (eq(string_get(g.out, i), c)) {
 				let cut = string_substr(g.out, i32(i + 1), g.out.length)
 				g.out = string_substr(g.out, 0, i)
@@ -8562,9 +8618,9 @@ function bait__gen__js__Gen_gen_test_main(g) {
 	if (g.has_test_begin) {
 		bait__gen__js__Gen_writeln(g, from_js_string("testsuite_begin()"))
 	}
-	const _t962 = Map_keys(g.table.fun_decls)
-	for (let _t963 = 0; _t963 < _t962.length; _t963++) {
-		const key = Array_get(_t962, _t963)
+	const _t970 = Map_keys(g.table.fun_decls)
+	for (let _t971 = 0; _t971 < _t970.length; _t971++) {
+		const key = Array_get(_t970, _t971)
 		const func = Map_get(g.table.fun_decls, key)
 		if (func.is_test) {
 			nr_test_funs = i32(nr_test_funs + 1)
@@ -8619,8 +8675,8 @@ function bait__gen__js__Gen_write_default_value(g, typ) {
 
 function bait__gen__js__Gen_get_concrete_name(g, name, concrete_types) {
 	let full_name = name
-	for (let _t969 = 0; _t969 < concrete_types.length; _t969++) {
-		const t = Array_get(concrete_types, _t969)
+	for (let _t977 = 0; _t977 < concrete_types.length; _t977++) {
+		const t = Array_get(concrete_types, _t977)
 		full_name = string_add(full_name, string_add(from_js_string("_"), bait__ast__Table_get_sym(g.table, t).name))
 	}
 	return bait__gen__js__js_name(full_name)
@@ -8646,8 +8702,8 @@ function bait__gen__js__js_name(n) {
 function bait__gen__js__Gen_stmts(g, stmts) {
 	bait__gen__js__Gen_save_stmt_offset(g)
 	g.indent = i32(g.indent + 1)
-	for (let _t972 = 0; _t972 < stmts.length; _t972++) {
-		const stmt = Array_get(stmts, _t972)
+	for (let _t980 = 0; _t980 < stmts.length; _t980++) {
+		const stmt = Array_get(stmts, _t980)
 		bait__gen__js__Gen_stmt(g, stmt)
 	}
 	g.indent = i32(g.indent - 1)
@@ -8830,8 +8886,8 @@ function bait__gen__js__Gen_enum_decl(g, node) {
 	}
 	bait__gen__js__Gen_writeln(g, string_add(string_add(from_js_string("const "), bait__gen__js__js_name(node.name)), from_js_string(" = {")))
 	g.indent = i32(g.indent + 1)
-	for (let _t986 = 0; _t986 < node.fields.length; _t986++) {
-		const field = Array_get(node.fields, _t986)
+	for (let _t994 = 0; _t994 < node.fields.length; _t994++) {
+		const field = Array_get(node.fields, _t994)
 		bait__gen__js__Gen_write(g, from_js_string(`${field.name.str}: `))
 		bait__gen__js__Gen_expr(g, field.expr)
 		bait__gen__js__Gen_writeln(g, from_js_string(","))
@@ -8978,8 +9034,8 @@ function bait__gen__js__Gen_struct_decl(g, node) {
 	}
 	bait__gen__js__Gen_writeln(g, from_js_string("}) {"))
 	g.indent = i32(g.indent + 1)
-	for (let _t999 = 0; _t999 < node.fields.length; _t999++) {
-		const field = Array_get(node.fields, _t999)
+	for (let _t1007 = 0; _t1007 < node.fields.length; _t1007++) {
+		const field = Array_get(node.fields, _t1007)
 		bait__gen__js__Gen_writeln(g, from_js_string(`this.${field.name.str} = ${field.name.str}`))
 	}
 	g.indent = i32(g.indent - 1)
@@ -9084,13 +9140,13 @@ function bait__gen__c__Gen_assert_side_expr(g, node) {
 }
 
 
-let _t1006 = undefined
+let _t1014 = undefined
 if (string_eq(os__platform(), from_js_string("windows"))) {
-	_t1006 = from_js_string("\\r\\n")
+	_t1014 = from_js_string("\\r\\n")
 } else {
-	_t1006 = from_js_string("\\n")
+	_t1014 = from_js_string("\\n")
 }
-const bait__gen__c__LB = _t1006
+const bait__gen__c__LB = _t1014
 function bait__gen__c__Gen_get_str_fun(g, typ) {
 	Array_push(g.table.needed_str_funs, typ)
 	const sym = bait__ast__Table_get_sym(g.table, typ)
@@ -9120,8 +9176,8 @@ function bait__gen__c__Gen_generate_str_fun(g, typ) {
 		if (i32(info.fields.length > 0)) {
 			g.auto_funs_out = string_add(g.auto_funs_out, from_js_string(`\tstrings__Builder_write(&b, from_c_string("${bait__gen__c__LB.str}"));\n`))
 		}
-		for (let _t1011 = 0; _t1011 < info.fields.length; _t1011++) {
-			const field = Array_get(info.fields, _t1011)
+		for (let _t1019 = 0; _t1019 < info.fields.length; _t1019++) {
+			const field = Array_get(info.fields, _t1019)
 			if (eq(typ, field.typ)) {
 				g.auto_funs_out = string_add(g.auto_funs_out, from_js_string(`\tstrings__Builder_write(&b, space);
 	strings__Builder_write(&b, from_c_string("  ${field.name.str} = ${sym.name.str}{...}${bait__gen__c__LB.str}"));\n`))
@@ -9177,8 +9233,8 @@ function bait__gen__c__gen(files, table, pref) {
 	let g = new bait__gen__c__Gen({ pref: pref, table: table })
 	bait__gen__c__Gen_write_types(g)
 	bait__gen__c__Gen_gen_equality_funs(g)
-	for (let _t1013 = 0; _t1013 < files.length; _t1013++) {
-		const file = Array_get(files, _t1013)
+	for (let _t1021 = 0; _t1021 < files.length; _t1021++) {
+		const file = Array_get(files, _t1021)
 		g.path = file.path
 		g.pkg = file.pkg_name
 		bait__gen__c__Gen_process_imports(g, file.imports)
@@ -9191,16 +9247,16 @@ function bait__gen__c__gen(files, table, pref) {
 	if (!g.pref.is_library) {
 		bait__gen__c__Gen_c_main(g)
 	}
-	for (let _t1016 = 0; _t1016 < g.table.needed_str_funs.length; _t1016++) {
-		const typ = Array_get(g.table.needed_str_funs, _t1016)
+	for (let _t1024 = 0; _t1024 < g.table.needed_str_funs.length; _t1024++) {
+		const typ = Array_get(g.table.needed_str_funs, _t1024)
 		bait__gen__c__Gen_generate_str_fun(g, typ)
 	}
 	return string_add(string_add(string_add(string_add(string_add(string_add(string_add(bait__gen__c__Gen_headers(g), g.type_defs_out), g.fun_decls_out), g.type_impls_out), g.auto_funs_out), g.globals_out), from_js_string("\n")), g.out)
 }
 
 function bait__gen__c__Gen_process_imports(g, imports) {
-	for (let _t1017 = 0; _t1017 < imports.length; _t1017++) {
-		const imp = Array_get(imports, _t1017)
+	for (let _t1025 = 0; _t1025 < imports.length; _t1025++) {
+		const imp = Array_get(imports, _t1025)
 		if (eq(imp.lang, bait__ast__Language.bait) || Array_contains_string(g.foreign_imports, imp.name)) {
 			continue
 		}
@@ -9210,8 +9266,8 @@ function bait__gen__c__Gen_process_imports(g, imports) {
 
 function bait__gen__c__Gen_headers(g) {
 	let headers = from_js_string("// Headers and includes\n")
-	for (let _t1019 = 0; _t1019 < g.foreign_imports.length; _t1019++) {
-		const name = Array_get(g.foreign_imports, _t1019)
+	for (let _t1027 = 0; _t1027 < g.foreign_imports.length; _t1027++) {
+		const name = Array_get(g.foreign_imports, _t1027)
 		headers = string_add(headers, from_js_string(`#include <${name.str}>\n`))
 	}
 	return string_add(headers, from_js_string("\n"))
@@ -9224,9 +9280,9 @@ function bait__gen__c__Gen_gen_test_main(g) {
 	if (g.has_test_begin) {
 		bait__gen__c__Gen_writeln(g, from_js_string("testsuite_begin();"))
 	}
-	const _t1021 = Map_keys(g.table.fun_decls)
-	for (let _t1022 = 0; _t1022 < _t1021.length; _t1022++) {
-		const key = Array_get(_t1021, _t1022)
+	const _t1029 = Map_keys(g.table.fun_decls)
+	for (let _t1030 = 0; _t1030 < _t1029.length; _t1030++) {
+		const key = Array_get(_t1029, _t1030)
 		const func = Map_get(g.table.fun_decls, key)
 		if (func.is_test) {
 			nr_test_funs = i32(nr_test_funs + 1)
@@ -9258,8 +9314,8 @@ function bait__gen__c__Gen_c_main(g) {
 
 function bait__gen__c__Gen_get_concrete_name(g, name, concrete_types) {
 	let full_name = name
-	for (let _t1026 = 0; _t1026 < concrete_types.length; _t1026++) {
-		const t = Array_get(concrete_types, _t1026)
+	for (let _t1034 = 0; _t1034 < concrete_types.length; _t1034++) {
+		const t = Array_get(concrete_types, _t1034)
 		full_name = string_add(full_name, string_add(from_js_string("_"), bait__ast__Table_get_sym(g.table, t).name))
 	}
 	return bait__gen__c__c_name(full_name)
@@ -9301,8 +9357,8 @@ function bait__gen__c__Gen_cut_before(g, to) {
 
 function bait__gen__c__Gen_cut_before_any(g, chars) {
 	for (let i = i32(g.out.length - 1); i32(i >= 0); i = i32(i - 1)) {
-		for (let _t1029 = 0; _t1029 < chars.length; _t1029++) {
-			const c = string_get(chars, _t1029)
+		for (let _t1037 = 0; _t1037 < chars.length; _t1037++) {
+			const c = string_get(chars, _t1037)
 			if (eq(string_get(g.out, i), c)) {
 				let cut = string_substr(g.out, i32(i + 1), g.out.length)
 				g.out = string_substr(g.out, 0, i)
@@ -9339,33 +9395,33 @@ function bait__gen__c__Gen_comptime_var(g, node) {
 }
 
 function bait__gen__c__Gen_get_comptime_val(g, kind, pos) {
-	let _t1032 = undefined
+	let _t1040 = undefined
 	if (eq(kind, bait__token__ComptimeVar.pkg)) {
-		_t1032 = g.pkg
+		_t1040 = g.pkg
 	} else if (eq(kind, bait__token__ComptimeVar.abs_file)) {
-		_t1032 = string_replace(os__abs_path(g.path), from_js_string("\\"), from_js_string("\\\\"))
+		_t1040 = string_replace(os__abs_path(g.path), from_js_string("\\"), from_js_string("\\\\"))
 	} else if (eq(kind, bait__token__ComptimeVar.file)) {
-		_t1032 = string_replace(g.path, from_js_string("\\"), from_js_string("\\\\"))
+		_t1040 = string_replace(g.path, from_js_string("\\"), from_js_string("\\\\"))
 	} else if (eq(kind, bait__token__ComptimeVar.dir)) {
-		_t1032 = os__dir(bait__gen__c__Gen_get_comptime_val(g, bait__token__ComptimeVar.abs_file, pos))
+		_t1040 = os__dir(bait__gen__c__Gen_get_comptime_val(g, bait__token__ComptimeVar.abs_file, pos))
 	} else if (eq(kind, bait__token__ComptimeVar.line)) {
-		_t1032 = i32_str(pos.line)
+		_t1040 = i32_str(pos.line)
 	} else if (eq(kind, bait__token__ComptimeVar.file_line)) {
 			const file = bait__gen__c__Gen_get_comptime_val(g, bait__token__ComptimeVar.file, pos)
 		const line = bait__gen__c__Gen_get_comptime_val(g, bait__token__ComptimeVar.line, pos)
-		_t1032 = from_js_string(`${file.str}:${line.str}`)
+		_t1040 = from_js_string(`${file.str}:${line.str}`)
 	} else if (eq(kind, bait__token__ComptimeVar.fun_)) {
-		_t1032 = g.cur_fun.name
+		_t1040 = g.cur_fun.name
 	} else if (eq(kind, bait__token__ComptimeVar.baitexe)) {
-		_t1032 = bait__gen__c__Gen_comptime_baitexe(g)
+		_t1040 = bait__gen__c__Gen_comptime_baitexe(g)
 	} else if (eq(kind, bait__token__ComptimeVar.baitdir)) {
-		_t1032 = bait__gen__c__Gen_comptime_baitdir(g)
+		_t1040 = bait__gen__c__Gen_comptime_baitdir(g)
 	} else if (eq(kind, bait__token__ComptimeVar.baithash)) {
-		_t1032 = bait__gen__c__Gen_comptime_baithash(g)
+		_t1040 = bait__gen__c__Gen_comptime_baithash(g)
 	} else if (eq(kind, bait__token__ComptimeVar.unknown)) {
-		_t1032 = panic(from_js_string("this should never happen"))
+		_t1040 = panic(from_js_string("this should never happen"))
 	}
-	return _t1032
+	return _t1040
 }
 
 function bait__gen__c__Gen_comptime_baitexe(g) {
@@ -9392,8 +9448,8 @@ function bait__gen__c__Gen_comptime_baithash(g) {
 
 
 function bait__gen__c__Gen_gen_equality_funs(g) {
-	for (let _t1036 = 0; _t1036 < g.table.needed_equality_funs.length; _t1036++) {
-		const typ = Array_get(g.table.needed_equality_funs, _t1036)
+	for (let _t1044 = 0; _t1044 < g.table.needed_equality_funs.length; _t1044++) {
+		const typ = Array_get(g.table.needed_equality_funs, _t1044)
 		bait__gen__c__Gen_equality_fun(g, typ)
 	}
 }
@@ -9502,8 +9558,8 @@ function bait__gen__c__Gen_array_init(g, node) {
 	const len = node.exprs.length
 	bait__gen__c__Gen_write(g, from_js_string(`new_array_from_c(${i32_str(len).str}, ${i32_str(len).str}, sizeof(${elem_type.str}), (${elem_type.str}[${i32_str(len).str}]){`))
 	g.indent = i32(g.indent + 1)
-	for (let _t1045 = 0; _t1045 < node.exprs.length; _t1045++) {
-		const expr = Array_get(node.exprs, _t1045)
+	for (let _t1053 = 0; _t1053 < node.exprs.length; _t1053++) {
+		const expr = Array_get(node.exprs, _t1053)
 		bait__gen__c__Gen_expr(g, expr)
 		bait__gen__c__Gen_write(g, from_js_string(", "))
 	}
@@ -9675,8 +9731,8 @@ function bait__gen__c__Gen_struct_init(g, node) {
 	const type_str = bait__gen__c__Gen_typ(g, node.typ)
 	bait__gen__c__Gen_write(g, from_js_string(`(${type_str.str}){`))
 	let inited_fields = new bait_Array({ data: [], length: 0 })
-	for (let _t1057 = 0; _t1057 < node.fields.length; _t1057++) {
-		const field = Array_get(node.fields, _t1057)
+	for (let _t1065 = 0; _t1065 < node.fields.length; _t1065++) {
+		const field = Array_get(node.fields, _t1065)
 		Array_push(inited_fields, field.name)
 	}
 	const info = bait__ast__Table_get_sym(g.table, node.typ).info
@@ -9756,8 +9812,8 @@ function bait__gen__c__Gen_fun_decl(g, node) {
 	}
 	if (i32(node.generic_names.length > 0) && eq(g.cur_concrete_types.length, 0)) {
 		const gtypes = Map_get_set(g.table.generic_fun_types, bait__ast__FunDecl_key(node), new bait_Array({ data: [], length: 0 }))
-		for (let _t1067 = 0; _t1067 < gtypes.length; _t1067++) {
-			const conc_types = Array_get(gtypes, _t1067)
+		for (let _t1075 = 0; _t1075 < gtypes.length; _t1075++) {
+			const conc_types = Array_get(gtypes, _t1075)
 			for (let i = 0; i < node.generic_names.length; i++) {
 				const gn = Array_get(node.generic_names, i)
 				Map_set(g.cur_concrete_types, gn, Array_get(conc_types, i))
@@ -9955,8 +10011,8 @@ function bait__gen__c__Gen_if_match(g, node) {
 function bait__gen__c__Gen_stmts(g, stmts) {
 	bait__gen__c__Gen_save_stmt_offset(g)
 	g.indent = i32(g.indent + 1)
-	for (let _t1095 = 0; _t1095 < stmts.length; _t1095++) {
-		const stmt = Array_get(stmts, _t1095)
+	for (let _t1103 = 0; _t1103 < stmts.length; _t1103++) {
+		const stmt = Array_get(stmts, _t1103)
 		bait__gen__c__Gen_stmt(g, stmt)
 	}
 	g.indent = i32(g.indent - 1)
@@ -10150,19 +10206,19 @@ function bait__gen__c__Gen_typ(g, typ) {
 	const sym = bait__gen__c__Gen_concrete_sym(g, typ)
 	const name = string_replace(string_replace(string_replace(sym.name, from_js_string("[]"), from_js_string("Array_")), from_js_string("C."), from_js_string("")), from_js_string("."), from_js_string("__"))
 	const ptrs = string_repeat(from_js_string("*"), bait__ast__Type_get_nr_amp(typ))
-	let _t1110 = undefined
+	let _t1118 = undefined
 	if (eq(sym.kind, bait__ast__TypeKind.enum_)) {
-		_t1110 = from_js_string("enum ")
+		_t1118 = from_js_string("enum ")
 	} else {
-		_t1110 = from_js_string("")
+		_t1118 = from_js_string("")
 	}
-	const prefix = _t1110
+	const prefix = _t1118
 	return string_add(string_add(prefix, name), ptrs)
 }
 
 function bait__gen__c__Gen_write_types(g) {
-	for (let _t1111 = 0; _t1111 < g.table.type_symbols.length; _t1111++) {
-		const sym = Array_get(g.table.type_symbols, _t1111)
+	for (let _t1119 = 0; _t1119 < g.table.type_symbols.length; _t1119++) {
+		const sym = Array_get(g.table.type_symbols, _t1119)
 		if (string_starts_with(sym.name, from_js_string("C."))) {
 			continue
 		}
@@ -10171,8 +10227,8 @@ function bait__gen__c__Gen_write_types(g) {
 			const info = sym.info
 			g.type_defs_out = string_add(g.type_defs_out, from_js_string(`typedef struct ${cname.str} ${cname.str};\n`))
 			g.type_impls_out = string_add(g.type_impls_out, from_js_string(`struct ${cname.str} {\n`))
-			for (let _t1114 = 0; _t1114 < info.fields.length; _t1114++) {
-				const field = Array_get(info.fields, _t1114)
+			for (let _t1122 = 0; _t1122 < info.fields.length; _t1122++) {
+				const field = Array_get(info.fields, _t1122)
 				const type_str = bait__gen__c__Gen_typ(g, field.typ)
 				const field_name = bait__gen__c__c_name(field.name)
 				g.type_impls_out = string_add(g.type_impls_out, from_js_string(`\t${type_str.str} ${field_name.str};\n`))
@@ -10199,8 +10255,8 @@ function bait__gen__c__Gen_write_types(g) {
 		} else if (eq(sym.kind, bait__ast__TypeKind.enum_)) {
 			const info = sym.info
 			g.type_defs_out = string_add(g.type_defs_out, from_js_string(`enum ${cname.str} {\n`))
-			for (let _t1117 = 0; _t1117 < info.vals.length; _t1117++) {
-				const val = Array_get(info.vals, _t1117)
+			for (let _t1125 = 0; _t1125 < info.vals.length; _t1125++) {
+				const val = Array_get(info.vals, _t1125)
 				g.type_defs_out = string_add(g.type_defs_out, from_js_string(`\t${bait__gen__c__c_name(val).str},\n`))
 			}
 			g.type_defs_out = string_add(g.type_defs_out, from_js_string("};\n"))
@@ -10314,8 +10370,8 @@ function bait__builder__Builder({ prefs = new bait__preference__Prefs({}), parse
 function bait__builder__Builder_bait_files_in_dir(b, dir) {
 	const all_files = os__ls(dir)
 	let files = new bait_Array({ data: [], length: 0 })
-	for (let _t1120 = 0; _t1120 < all_files.length; _t1120++) {
-		const f = Array_get(all_files, _t1120)
+	for (let _t1128 = 0; _t1128 < all_files.length; _t1128++) {
+		const f = Array_get(all_files, _t1128)
 		if (bait__preference__Prefs_should_compile_file(b.prefs, f)) {
 			Array_push(files, os__join_path(dir, new bait_Array({ data: [f], length: 1 })))
 		}
@@ -10350,14 +10406,14 @@ function bait__builder__compile(prefs) {
 	}
 	bait__util__timers__start(from_js_string("PARSE"))
 	let ast_files = new bait_Array({ data: [], length: 0 })
-	for (let _t1126 = 0; _t1126 < paths.length; _t1126++) {
-		const p = Array_get(paths, _t1126)
+	for (let _t1134 = 0; _t1134 < paths.length; _t1134++) {
+		const p = Array_get(paths, _t1134)
 		Array_push(ast_files, bait__builder__Builder_parse_file(b, p, from_js_string("")))
 	}
 	for (let i = 0; i32(i < ast_files.length); i = i32(i + 1)) {
 		const file = Array_get(ast_files, i)
-		for (let _t1127 = 0; _t1127 < file.imports.length; _t1127++) {
-			const imp = Array_get(file.imports, _t1127)
+		for (let _t1135 = 0; _t1135 < file.imports.length; _t1135++) {
+			const imp = Array_get(file.imports, _t1135)
 			if (!eq(imp.lang, bait__ast__Language.bait)) {
 				continue
 			}
@@ -10375,8 +10431,8 @@ function bait__builder__compile(prefs) {
 				continue
 			}
 			let nr_newly_parsed = 0
-			for (let _t1132 = 0; _t1132 < imp_paths.length; _t1132++) {
-				const p = Array_get(imp_paths, _t1132)
+			for (let _t1140 = 0; _t1140 < imp_paths.length; _t1140++) {
+				const p = Array_get(imp_paths, _t1140)
 				const parsed_file = bait__builder__Builder_parse_file(b, p, imp.name)
 				if (eq(parsed_file.path.length, 0)) {
 					bait__builder__Builder_print_infos(b, parsed_file.infos)
@@ -10399,10 +10455,10 @@ function bait__builder__compile(prefs) {
 	}
 	bait__util__timers__start(from_js_string("DEPGRAPH"))
 	let deps = new bait_Map({ data: new Map([]), length: 0 })
-	for (let _t1136 = 0; _t1136 < ast_files.length; _t1136++) {
-		const f = Array_get(ast_files, _t1136)
-		for (let _t1137 = 0; _t1137 < f.imports.length; _t1137++) {
-			const imp = Array_get(f.imports, _t1137)
+	for (let _t1144 = 0; _t1144 < ast_files.length; _t1144++) {
+		const f = Array_get(ast_files, _t1144)
+		for (let _t1145 = 0; _t1145 < f.imports.length; _t1145++) {
+			const imp = Array_get(f.imports, _t1145)
 			if (!eq(imp.lang, bait__ast__Language.bait)) {
 				continue
 			}
@@ -10413,10 +10469,10 @@ function bait__builder__compile(prefs) {
 	let pkg_order = new bait_Array({ data: [], length: 0 })
 	bait__builder__order_pkgs(pkg_order, Array_get(ast_files, 0).pkg_name, deps, looked)
 	let sorted_files = new bait_Array({ data: [], length: 0 })
-	for (let _t1139 = 0; _t1139 < pkg_order.length; _t1139++) {
-		const pkg = Array_get(pkg_order, _t1139)
-		for (let _t1140 = 0; _t1140 < ast_files.length; _t1140++) {
-			const f = Array_get(ast_files, _t1140)
+	for (let _t1147 = 0; _t1147 < pkg_order.length; _t1147++) {
+		const pkg = Array_get(pkg_order, _t1147)
+		for (let _t1148 = 0; _t1148 < ast_files.length; _t1148++) {
+			const f = Array_get(ast_files, _t1148)
 			if (string_eq(f.pkg_name, pkg)) {
 				Array_push(sorted_files, f)
 			}
@@ -10497,8 +10553,8 @@ function bait__builder__Builder_print_infos(b, infos) {
 	if (b.prefs.hide_warnings) {
 		return 
 	}
-	for (let _t1154 = 0; _t1154 < infos.length; _t1154++) {
-		const info = Array_get(infos, _t1154)
+	for (let _t1162 = 0; _t1162 < infos.length; _t1162++) {
+		const info = Array_get(infos, _t1162)
 		bait__errors__Message_print(info)
 	}
 }
@@ -10506,24 +10562,24 @@ function bait__builder__Builder_print_infos(b, infos) {
 function bait__builder__Builder_print_errors_and_warnings(b, parser_errs) {
 	let nr_warns = 0
 	let nr_errors = 0
-	for (let _t1155 = 0; _t1155 < b.parsed_files.length; _t1155++) {
-		const f = Array_get(b.parsed_files, _t1155)
+	for (let _t1163 = 0; _t1163 < b.parsed_files.length; _t1163++) {
+		const f = Array_get(b.parsed_files, _t1163)
 		nr_warns = i32(nr_warns + f.warnings.length)
 		nr_errors = i32(nr_errors + f.errors.length)
 		bait__builder__Builder_print_infos(b, f.infos)
 		if (b.prefs.warn_is_error) {
-			for (let _t1157 = 0; _t1157 < f.warnings.length; _t1157++) {
-				const warn = Array_get(f.warnings, _t1157)
+			for (let _t1165 = 0; _t1165 < f.warnings.length; _t1165++) {
+				const warn = Array_get(f.warnings, _t1165)
 				bait__errors__error(warn.path, warn.pos, warn.msg)
 			}
 		} else if (!b.prefs.hide_warnings) {
-			for (let _t1158 = 0; _t1158 < f.warnings.length; _t1158++) {
-				const warn = Array_get(f.warnings, _t1158)
+			for (let _t1166 = 0; _t1166 < f.warnings.length; _t1166++) {
+				const warn = Array_get(f.warnings, _t1166)
 				bait__errors__Message_print(warn)
 			}
 		}
-		for (let _t1159 = 0; _t1159 < f.errors.length; _t1159++) {
-			const err = Array_get(f.errors, _t1159)
+		for (let _t1167 = 0; _t1167 < f.errors.length; _t1167++) {
+			const err = Array_get(f.errors, _t1167)
 			bait__errors__Message_print(err)
 			if (parser_errs) {
 				return true
@@ -10531,8 +10587,8 @@ function bait__builder__Builder_print_errors_and_warnings(b, parser_errs) {
 		}
 	}
 	nr_errors = i32(nr_errors + b.checker.errors.length)
-	for (let _t1161 = 0; _t1161 < b.checker.errors.length; _t1161++) {
-		const err = Array_get(b.checker.errors, _t1161)
+	for (let _t1169 = 0; _t1169 < b.checker.errors.length; _t1169++) {
+		const err = Array_get(b.checker.errors, _t1169)
 		bait__errors__Message_print(err)
 	}
 	return i32(nr_errors > 0) || (b.prefs.warn_is_error && i32(nr_warns > 0))
@@ -10568,8 +10624,8 @@ function bait__builder__get_project_root(abs_dir) {
 
 function bait__builder__order_pkgs(ordered, pkg, deps, looked) {
 	Array_push(looked, pkg)
-	for (let _t1167 = 0; _t1167 < Map_get_set(deps, pkg, new bait_Array({ data: [], length: 0 })).length; _t1167++) {
-		const d = Array_get(Map_get_set(deps, pkg, new bait_Array({ data: [], length: 0 })), _t1167)
+	for (let _t1175 = 0; _t1175 < Map_get_set(deps, pkg, new bait_Array({ data: [], length: 0 })).length; _t1175++) {
+		const d = Array_get(Map_get_set(deps, pkg, new bait_Array({ data: [], length: 0 })), _t1175)
 		if (Array_contains_string(looked, d)) {
 			continue
 		}
@@ -10589,8 +10645,8 @@ function bait__builder__ensure_dir_exists(dir) {
 
 function bait__builder__run_tests(prefs) {
 	let files_to_test = new bait_Array({ data: [], length: 0 })
-	for (let _t1171 = 0; _t1171 < prefs.args.length; _t1171++) {
-		const a = Array_get(prefs.args, _t1171)
+	for (let _t1179 = 0; _t1179 < prefs.args.length; _t1179++) {
+		const a = Array_get(prefs.args, _t1179)
 		if (os__exists(a) && string_ends_with(a, from_js_string(".bt")) && string_contains(a, from_js_string("_test."))) {
 			Array_push(files_to_test, a)
 		} else if (os__exists_dir(a)) {
