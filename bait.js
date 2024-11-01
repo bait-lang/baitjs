@@ -7740,7 +7740,7 @@ function bait__util__shell_escape(s) {
 
 
 const bait__util__VERSION = from_js_string("0.0.7")
-const bait__util__FULL_VERSION = from_js_string(`${bait__util__VERSION.str} ${from_js_string("78d9261").str}`)
+const bait__util__FULL_VERSION = from_js_string(`${bait__util__VERSION.str} ${from_js_string("e5b55a3").str}`)
 
 let _t878 = undefined
 if (string_eq(os__platform(), from_js_string("windows"))) {
