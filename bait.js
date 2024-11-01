@@ -5243,6 +5243,8 @@ _t473.data
 		}
 		if (eq(p.tok, bait__token__Token.key_global)) {
 			bait__parser__Parser_next(p)
+			pub2 = true
+			mut2 = true
 			glob2 = true
 		}
 		let _t477 = bait__parser__Parser_check_name(p)
@@ -5543,6 +5545,8 @@ function bait__parser__Parser_struct_decl_field(p, is_mut, is_pub, is_global) {
 	}
 	if (eq(p.tok, bait__token__Token.key_global)) {
 		bait__parser__Parser_next(p)
+		pub2 = true
+		mut2 = true
 		glob2 = true
 	}
 	let _t525 = bait__parser__Parser_check_name(p)
@@ -7736,7 +7740,7 @@ function bait__util__shell_escape(s) {
 
 
 const bait__util__VERSION = from_js_string("0.0.7")
-const bait__util__FULL_VERSION = from_js_string(`${bait__util__VERSION.str} ${from_js_string("a913616").str}`)
+const bait__util__FULL_VERSION = from_js_string(`${bait__util__VERSION.str} ${from_js_string("78d9261").str}`)
 
 let _t878 = undefined
 if (string_eq(os__platform(), from_js_string("windows"))) {
