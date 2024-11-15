@@ -7522,7 +7522,7 @@ function bait__checker__Checker_does_type_exist(c, sym, pos) {
 }
 
 
-function bait__util__escape_char(s, esc_char) {
+function bait__util__escape__char(s, esc_char) {
 	let res = from_js_string("")
 	let is_escaped = false
 	let i = 0
@@ -7544,7 +7544,7 @@ function bait__util__escape_char(s, esc_char) {
 	return res
 }
 
-function bait__util__escape_linebreak(s) {
+function bait__util__escape__linebreak(s) {
 	let _t854 = undefined
 	if (string_eq(os__platform(), from_js_string("windows"))) {
 		_t854 = string_replace(s, from_js_string("\r\n"), from_js_string("\\r\\n"))
@@ -7554,13 +7554,10 @@ function bait__util__escape_linebreak(s) {
 	return _t854
 }
 
-function bait__util__shell_escape(s) {
-	return bait__util__escape_char(s, u8("\`"))
+function bait__util__escape__shell(s) {
+	return bait__util__escape__char(s, u8("\`"))
 }
 
-
-const bait__util__VERSION = from_js_string("0.0.7")
-const bait__util__FULL_VERSION = from_js_string(`${bait__util__VERSION.str} ${from_js_string("f5eefe9").str}`)
 
 let _t855 = undefined
 if (string_eq(os__platform(), from_js_string("windows"))) {
@@ -7869,7 +7866,7 @@ function bait__gen__js__Gen_bool_literal(g, node) {
 
 function bait__gen__js__Gen_char_literal(g, node) {
 	bait__gen__js__Gen_write(g, from_js_string("u8(\""))
-	bait__gen__js__Gen_write(g, bait__util__escape_char(node.val, u8("\"")))
+	bait__gen__js__Gen_write(g, bait__util__escape__char(node.val, u8("\"")))
 	bait__gen__js__Gen_write(g, from_js_string("\")"))
 }
 
@@ -8031,7 +8028,7 @@ function bait__gen__js__Gen_selector_expr(g, node) {
 }
 
 function bait__gen__js__Gen_string_literal(g, node) {
-	const val = bait__util__escape_char(bait__util__escape_linebreak(node.val), u8("\""))
+	const val = bait__util__escape__char(bait__util__escape__linebreak(node.val), u8("\""))
 	if (eq(node.lang, bait__ast__Language.js)) {
 		bait__gen__js__Gen_write(g, from_js_string("\""))
 		bait__gen__js__Gen_write(g, val)
@@ -8047,7 +8044,7 @@ function bait__gen__js__Gen_string_inter_literal(g, node) {
 	bait__gen__js__Gen_write(g, from_js_string("from_js_string(`"))
 	for (let i = 0; i < node.vals.length; i++) {
 		const val = Array_get(node.vals, i)
-		bait__gen__js__Gen_write(g, bait__util__escape_char(val, u8("\`")))
+		bait__gen__js__Gen_write(g, bait__util__escape__char(val, u8("\`")))
 		if (i32(i < node.exprs.length)) {
 			bait__gen__js__Gen_write(g, from_js_string("\${"))
 			bait__gen__js__Gen_expr_to_string(g, Array_get(node.exprs, i), Array_get(node.expr_types, i))
@@ -8616,7 +8613,7 @@ function bait__gen__js__Gen_assert_side_expr(g, node) {
 		bait__gen__js__Gen_integer_literal(g, node)
 	} else if (node instanceof bait__ast__StringLiteral) {
 		bait__gen__js__Gen_write(g, from_js_string("'"))
-		bait__gen__js__Gen_write(g, bait__util__escape_linebreak(node.val))
+		bait__gen__js__Gen_write(g, bait__util__escape__linebreak(node.val))
 		bait__gen__js__Gen_write(g, from_js_string("'"))
 	} else if (node instanceof bait__ast__CharLiteral) {
 		bait__gen__js__Gen_write(g, from_js_string("`"))
@@ -8935,7 +8932,7 @@ function bait__gen__c__Gen_assert_side_expr(g, node) {
 		bait__gen__c__Gen_integer_literal(g, node)
 	} else if (node instanceof bait__ast__StringLiteral) {
 		bait__gen__c__Gen_write(g, from_js_string("'"))
-		bait__gen__c__Gen_write(g, bait__util__escape_linebreak(node.val))
+		bait__gen__c__Gen_write(g, bait__util__escape__linebreak(node.val))
 		bait__gen__c__Gen_write(g, from_js_string("'"))
 	} else if (node instanceof bait__ast__CharLiteral) {
 		bait__gen__c__Gen_write(g, from_js_string("`"))
@@ -9423,7 +9420,7 @@ function bait__gen__c__Gen_bool_literal(g, node) {
 }
 
 function bait__gen__c__Gen_char_literal(g, node) {
-	const val = bait__util__escape_char(node.val, u8("'"))
+	const val = bait__util__escape__char(node.val, u8("'"))
 	bait__gen__c__Gen_write(g, from_js_string(`'${val.str}'`))
 }
 
@@ -9545,7 +9542,7 @@ function bait__gen__c__Gen_selector_expr(g, node) {
 }
 
 function bait__gen__c__Gen_string_literal(g, node) {
-	const val = bait__util__escape_char(string_replace(node.val, from_js_string("\n"), from_js_string("\\n")), u8("\""))
+	const val = bait__util__escape__char(string_replace(node.val, from_js_string("\n"), from_js_string("\\n")), u8("\""))
 	bait__gen__c__Gen_write(g, from_js_string("from_c_string(\""))
 	bait__gen__c__Gen_write(g, val)
 	bait__gen__c__Gen_write(g, from_js_string("\")"))
@@ -9556,7 +9553,7 @@ function bait__gen__c__Gen_string_inter_literal(g, node) {
 	bait__gen__c__Gen_write(g, from_js_string(`interpolate(new_array_from_c(${i32_str(len).str}, ${i32_str(len).str}, sizeof(string), (string[${i32_str(len).str}]){`))
 	for (let i = 0; i < node.vals.length; i++) {
 		const val = Array_get(node.vals, i)
-		const esc_val = bait__util__escape_char(string_replace(val, from_js_string("\n"), from_js_string("\\n")), u8("\""))
+		const esc_val = bait__util__escape__char(string_replace(val, from_js_string("\n"), from_js_string("\\n")), u8("\""))
 		bait__gen__c__Gen_write(g, from_js_string(`from_c_string("${esc_val.str}")`))
 		bait__gen__c__Gen_write(g, from_js_string(", "))
 		if (i32(i < node.exprs.length)) {
@@ -10524,6 +10521,14 @@ function bait__builder__run_tests(prefs) {
 }
 
 
+const bait__util__VERSION = from_js_string("0.0.7")
+const bait__util__FULL_VERSION = from_js_string(`${bait__util__VERSION.str} ${from_js_string("406f0ec").str}`)
+
+const bait__util__tools__TOOLS = new bait_Array({ data: [from_js_string("ast"), from_js_string("init"), from_js_string("self"), from_js_string("up"), from_js_string("symlink"), from_js_string("doctor"), from_js_string("help"), from_js_string("test-all"), from_js_string("build-examples"), from_js_string("build-tools"), from_js_string("check-md")], length: 11 })
+function bait__util__tools__is_tool(name) {
+	return Array_contains_string(bait__util__tools__TOOLS, name)
+}
+
 const bait__util__tools__VERBOSE = Array_contains_string(os__ARGS, from_js_string("--verbose")) || Array_contains_string(os__ARGS, from_js_string("-v"))
 function bait__util__tools__launch_tool(name, args) {
 	const base_path = os__join_path(from_js_string("/home/runner/work/bait/bait"), new bait_Array({ data: [from_js_string("cli"), from_js_string("tools"), name], length: 3 }))
@@ -10553,14 +10558,13 @@ function bait__util__tools__find_tool_source(base) {
 }
 
 
-const TOOLS = new bait_Array({ data: [from_js_string("ast"), from_js_string("init"), from_js_string("self"), from_js_string("up"), from_js_string("symlink"), from_js_string("doctor"), from_js_string("help"), from_js_string("test-all"), from_js_string("build-examples"), from_js_string("build-tools"), from_js_string("check-md")], length: 11 })
 function main() {
 	const args = os__user_args()
 	bait__util__timers__start(from_js_string("PREFS"))
 	let prefs = bait__preference__parse_args(args)
 	bait__util__timers__set_show(prefs.show_timings)
 	bait__util__timers__show(from_js_string("PREFS"))
-	if (Array_contains_string(TOOLS, prefs.command)) {
+	if (bait__util__tools__is_tool(prefs.command)) {
 		exit(bait__util__tools__launch_tool(prefs.command, prefs.build_options))
 	}
 	if (string_eq(prefs.command, from_js_string("test"))) {
