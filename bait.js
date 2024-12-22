@@ -6846,6 +6846,7 @@ function bait__checker__Checker_if_match(c, node) {
 		node.typ = c.expected_type
 	}
 	let cond_sym = new bait__ast__TypeSymbol({})
+	let sumtype_match = false
 	if (node.is_match) {
 		let _t700 = undefined
 		if (node.has_else) {
@@ -6860,13 +6861,14 @@ function bait__checker__Checker_if_match(c, node) {
 		}
 		const cond_type = bait__checker__Checker_expr(c, (Array_get(node.branches, 0).cond).left)
 		cond_sym = bait__ast__Table_get_sym(c.table, cond_type)
-		c.is_sumtype_match = eq(cond_sym.kind, bait__ast__TypeKind.sum_type)
+		sumtype_match = eq(cond_sym.kind, bait__ast__TypeKind.sum_type)
 	}
 	let branch_exprs = new bait_Array({ data: [], length: 0 })
 	let nr_branches_return = 0
 	for (let i = 0; i < node.branches.length; i++) {
 		const branch = Array_get(node.branches, i)
 		bait__checker__Checker_open_scope(c)
+		c.is_sumtype_match = sumtype_match
 		if (!node.has_else || i32(i < i32(node.branches.length - 1))) {
 			if (node.is_comptime) {
 				if (bait__checker__Checker_comptime_if_condition(c, branch.cond)) {
@@ -6892,6 +6894,7 @@ function bait__checker__Checker_if_match(c, node) {
 		} else if (node.is_comptime) {
 			node.ct_eval_branch = i
 		}
+		c.is_sumtype_match = false
 		if (node.is_expr) {
 			c.expected_type = node.typ
 		}
@@ -6926,7 +6929,6 @@ function bait__checker__Checker_if_match(c, node) {
 	}
 	c.returns = eq(nr_branches_return, node.branches.length)
 	c.is_if_match_expr = save_is_if_match_expr
-	c.is_sumtype_match = false
 	return node.typ
 }
 
@@ -10795,7 +10797,7 @@ function bait__builder__run_tests(prefs) {
 
 
 const bait__util__VERSION = from_js_string("0.0.7")
-const bait__util__FULL_VERSION = from_js_string(`${bait__util__VERSION.str} ${from_js_string("3372ebe").str}`)
+const bait__util__FULL_VERSION = from_js_string(`${bait__util__VERSION.str} ${from_js_string("bce91ff").str}`)
 
 const bait__util__tools__TOOLS = new bait_Array({ data: [from_js_string("ast"), from_js_string("init"), from_js_string("self"), from_js_string("up"), from_js_string("symlink"), from_js_string("doctor"), from_js_string("help"), from_js_string("test-all"), from_js_string("build-examples"), from_js_string("build-tools"), from_js_string("check-md")], length: 11 })
 function bait__util__tools__is_tool(name) {
