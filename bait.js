@@ -8036,11 +8036,11 @@ function bait__checker__Checker_return_stmt(c, node) {
 	if (!bait__checker__Checker_check_types(c, expr_type, c.cur_fun.return_type)) {
 		let msg = from_js_string("")
 		if (eq(c.cur_fun.return_type, bait__ast__VOID_TYPE)) {
-			msg = from_js_string(`function ${c.cur_fun.name.str} does not return a value`)
+			msg = from_js_string(`function \`${c.cur_fun.name.str}\` should return nothing`)
 		} else {
 			msg = from_js_string(`expected return value of type ${bait__ast__Table_type_name(c.table, c.cur_fun.return_type).str}`)
 		}
-		if (!eq(expr_type, bait__ast__VOID_TYPE)) {
+		if (expr_type > bait__ast__VOID_TYPE) {
 			msg = string_add(msg, from_js_string(`, got ${bait__ast__Table_type_name(c.table, expr_type).str}`))
 		}
 		bait__checker__Checker_error(c, msg, node.pos)
@@ -11741,7 +11741,7 @@ function bait__builder__run_tests(prefs) {
 
 
 const bait__util__VERSION = from_js_string("0.0.8")
-const bait__util__FULL_VERSION = from_js_string(`${bait__util__VERSION.str} ${from_js_string("0ce480a").str}`)
+const bait__util__FULL_VERSION = from_js_string(`${bait__util__VERSION.str} ${from_js_string("4addf6b").str}`)
 
 const bait__util__tools__TOOLS = new bait_Array({ data: [from_js_string("ast"), from_js_string("init"), from_js_string("self"), from_js_string("up"), from_js_string("symlink"), from_js_string("doctor"), from_js_string("help"), from_js_string("test-all"), from_js_string("build-examples"), from_js_string("build-tools"), from_js_string("check-md")], length: 11 })
 function bait__util__tools__is_tool(name) {
