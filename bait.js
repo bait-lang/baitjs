@@ -4160,7 +4160,7 @@ function bait__parser__Parser_expr(p, precedence) {
 				return _t165
 			}
 			node = _t165.data
-		} else if (eq(p.tok, bait__token__Token.lsqr)) {
+		} else if (eq(p.tok, bait__token__Token.lsqr) && eq(p.pos.line, p.prev_pos.line)) {
 			let _t166 = bait__parser__Parser_index_expr(p, node)
 			if (_t166.is_error) {
 				return _t166
@@ -4179,7 +4179,7 @@ function bait__parser__Parser_expr(p, precedence) {
 			}
 			node = _t168.data
 		} else {
-			panic(from_js_string(`precedence not implemented: ${bait__token__Token_str(p.tok).str} at ${bait__token__Pos_str(p.pos).str}`))
+			return new Result({ data: node })
 		}
 	}
 	return new Result({ data: node })
@@ -5436,7 +5436,7 @@ function bait__parser__Parser_import_stmts(p) {
 }
 
 
-function bait__parser__Parser({ pref = new bait__preference__Prefs({}), path = from_js_string(""), file_hash = from_js_string(""), eofs = 0, tok = 0, next_tok = 0, val = from_js_string(""), pos = new bait__token__Pos({}), pkg_name = from_js_string(""), pkg_scope = 0, import_aliases = new bait_Map({ data: new Map([]), length: 0 }), attributes = new bait_Array({ data: [], length: 0 }), expr_pkg = from_js_string(""), is_for_init = false, is_struct_possible = false, table = new bait__ast__Table({}), sema_ctx = null, lexer = new bait__lexer__Lexer({}), infos = new bait_Array({ data: [], length: 0 }), warnings = new bait_Array({ data: [], length: 0 }), error = new bait__errors__Message({}) }) {
+function bait__parser__Parser({ pref = new bait__preference__Prefs({}), path = from_js_string(""), file_hash = from_js_string(""), eofs = 0, tok = 0, next_tok = 0, val = from_js_string(""), prev_pos = new bait__token__Pos({}), pos = new bait__token__Pos({}), pkg_name = from_js_string(""), pkg_scope = 0, import_aliases = new bait_Map({ data: new Map([]), length: 0 }), attributes = new bait_Array({ data: [], length: 0 }), expr_pkg = from_js_string(""), is_for_init = false, is_struct_possible = false, table = new bait__ast__Table({}), sema_ctx = null, lexer = new bait__lexer__Lexer({}), infos = new bait_Array({ data: [], length: 0 }), warnings = new bait_Array({ data: [], length: 0 }), error = new bait__errors__Message({}) }) {
 	this.pref = pref
 	this.path = path
 	this.file_hash = file_hash
@@ -5444,6 +5444,7 @@ function bait__parser__Parser({ pref = new bait__preference__Prefs({}), path = f
 	this.tok = tok
 	this.next_tok = next_tok
 	this.val = val
+	this.prev_pos = prev_pos
 	this.pos = pos
 	this.pkg_name = pkg_name
 	this.pkg_scope = pkg_scope
@@ -5708,6 +5709,7 @@ function bait__parser__Parser_next(p) {
 		p.next_tok = bait__token__Token.error
 	}
 	p.val = bait__lexer__Lexer_val(p.lexer)
+	p.prev_pos = p.pos
 	p.pos = bait__lexer__Lexer_pos(p.lexer)
 }
 
@@ -11937,7 +11939,7 @@ function bait__builder__run_tests(prefs) {
 
 
 const bait__util__VERSION = from_js_string("0.0.8")
-const bait__util__FULL_VERSION = from_js_string(`${bait__util__VERSION.str} ${from_js_string("25a5db5").str}`)
+const bait__util__FULL_VERSION = from_js_string(`${bait__util__VERSION.str} ${from_js_string("4807d74").str}`)
 
 const bait__util__tools__TOOLS = new bait_Array({ data: [from_js_string("ast"), from_js_string("init"), from_js_string("self"), from_js_string("up"), from_js_string("symlink"), from_js_string("doctor"), from_js_string("help"), from_js_string("test-all"), from_js_string("build-examples"), from_js_string("build-tools"), from_js_string("check-md")], length: 11 })
 function bait__util__tools__is_tool(name) {
