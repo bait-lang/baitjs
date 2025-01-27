@@ -8291,7 +8291,7 @@ function bait__checker__Checker_stmt(c, stmt) {
 	} else if (stmt instanceof bait__ast__AssignStmt) {
 		bait__checker__Checker_assign_stmt(c, stmt)
 	} else if (stmt instanceof bait__ast__Block) {
-		bait__checker__Checker_stmts(c, stmt.stmts)
+		bait__checker__Checker_block(c, stmt)
 	} else if (stmt instanceof bait__ast__ConstDecl) {
 		bait__checker__Checker_const_decl(c, stmt)
 	} else if (stmt instanceof bait__ast__ExprStmt) {
@@ -8334,16 +8334,22 @@ function bait__checker__Checker_assert_stmt(c, node) {
 	}
 }
 
+function bait__checker__Checker_block(c, node) {
+	bait__checker__Checker_open_scope(c)
+	bait__checker__Checker_stmts(c, node.stmts)
+	bait__checker__Checker_close_scope(c)
+}
+
 function bait__checker__Checker_const_decl(c, node) {
 	if (!eq(node.lang, bait__ast__Language.bait)) {
 		return 
 	}
-	let _r57_1524 = bait__checker__Checker_non_void_expr(c, node.expr)
-	if (_r57_1524.is_error) {
-		const err = _r57_1524.msg
+	let _r57_1626 = bait__checker__Checker_non_void_expr(c, node.expr)
+	if (_r57_1626.is_error) {
+		const err = _r57_1626.msg
 		return 
 	}
-	node.typ = _r57_1524.data
+	node.typ = _r57_1626.data
 	bait__context__Scope_update_type(Map_get_set(c.sema_ctx.scopes, c.pkg, null), node.name, node.typ)
 }
 
@@ -8469,12 +8475,12 @@ function bait__checker__Checker_for_in_loop(c, node) {
 }
 
 function bait__checker__Checker_static_decl(c, node) {
-	let _r57_4998 = bait__checker__Checker_non_void_expr(c, node.expr)
-	if (_r57_4998.is_error) {
-		const err = _r57_4998.msg
+	let _r57_5100 = bait__checker__Checker_non_void_expr(c, node.expr)
+	if (_r57_5100.is_error) {
+		const err = _r57_5100.msg
 		return 
 	}
-	node.typ = _r57_4998.data
+	node.typ = _r57_5100.data
 	bait__context__Scope_update_type(Map_get_set(c.sema_ctx.scopes, c.pkg, null), node.name, node.typ)
 }
 
@@ -11908,7 +11914,7 @@ function bait__builder__run_tests(prefs) {
 
 
 const bait__util__VERSION = from_js_string("0.0.8")
-const bait__util__FULL_VERSION = from_js_string(`${bait__util__VERSION.str} ${from_js_string("ceee256").str}`)
+const bait__util__FULL_VERSION = from_js_string(`${bait__util__VERSION.str} ${from_js_string("24de391").str}`)
 
 const bait__util__tools__TOOLS = new bait_Array({ data: [from_js_string("ast"), from_js_string("init"), from_js_string("self"), from_js_string("up"), from_js_string("symlink"), from_js_string("doctor"), from_js_string("help"), from_js_string("test-all"), from_js_string("build-examples"), from_js_string("build-tools"), from_js_string("check-md")], length: 11 })
 function bait__util__tools__is_tool(name) {
