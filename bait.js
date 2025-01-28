@@ -11369,7 +11369,7 @@ function bait__transformer__Transformer_stmt(t, stmt) {
 	} else if (stmt instanceof bait__ast__ConstDecl) {
 		return bait__transformer__Transformer_const_decl(t, stmt)
 	} else if (stmt instanceof bait__ast__ExprStmt) {
-		_t810 = bait__transformer__Transformer_expr(t, stmt.expr)
+		stmt.expr = bait__transformer__Transformer_expr(t, stmt.expr)
 	} else if (stmt instanceof bait__ast__EnumDecl) {
 	} else if (stmt instanceof bait__ast__ForLoop) {
 		bait__transformer__Transformer_for_loop(t, stmt)
@@ -11409,6 +11409,7 @@ function bait__transformer__Transformer_expr(t, expr) {
 	} else if (expr instanceof bait__ast__HashExpr) {
 	} else if (expr instanceof bait__ast__Ident) {
 	} else if (expr instanceof bait__ast__IfMatch) {
+		bait__transformer__Transformer_if_match(t, expr)
 	} else if (expr instanceof bait__ast__IndexExpr) {
 		return bait__transformer__Transformer_index_expr(t, expr)
 	} else if (expr instanceof bait__ast__InfixExpr) {
@@ -11464,14 +11465,14 @@ function bait__transformer__Transformer_for_loop(t, node) {
 }
 
 function bait__transformer__Transformer_for_classic_loop(t, node) {
-	_t816 = bait__transformer__Transformer_stmt(t, node.init)
-	_t817 = bait__transformer__Transformer_stmt(t, node.inc)
+	_t815 = bait__transformer__Transformer_stmt(t, node.init)
+	_t816 = bait__transformer__Transformer_stmt(t, node.inc)
 	bait__transformer__Transformer_stmts(t, node.stmts)
 }
 
 function bait__transformer__Transformer_for_in_loop(t, node) {
 	const val_decl = new bait__ast__AssignStmt({ op: bait__token__Token.decl_assign, right_type: node.val_type, left: node.valvar, right: new bait__ast__IndexExpr({ left_type: node.expr_type, left: node.expr, index: node.idxvar }) })
-	node.stmts = Array_concat(new bait_Array({ data: [val_decl], length: 1 }), node.stmts)
+	Array_insert(node.stmts, 0, val_decl)
 	bait__transformer__Transformer_stmts(t, node.stmts)
 	return node
 }
@@ -11485,8 +11486,9 @@ function bait__transformer__Transformer_fun_decl(t, node) {
 }
 
 function bait__transformer__Transformer_if_match(t, node) {
-	for (let _t818 = 0; _t818 < node.branches.length; _t818++) {
-		let branch = Array_get(node.branches, _t818)
+	for (let _t817 = 0; _t817 < node.branches.length; _t817++) {
+		let branch = Array_get(node.branches, _t817)
+		_t818 = bait__transformer__Transformer_expr(t, branch.cond)
 		bait__transformer__Transformer_stmts(t, branch.stmts)
 	}
 }
@@ -11503,7 +11505,7 @@ function bait__transformer__Transformer_call_expr(t, node) {
 	}
 	if (eq(node.or_block.kind, bait__ast__OrKind.block)) {
 		const err_decl = new bait__ast__AssignStmt({ op: bait__token__Token.decl_assign, left: new bait__ast__Ident({ name: from_js_string("err") }), right: new bait__ast__SelectorExpr({ expr: new bait__ast__Ident({ name: node.or_block.uid }), field_name: from_js_string("msg") }) })
-		node.or_block.stmts = Array_concat(new bait_Array({ data: [err_decl], length: 1 }), node.or_block.stmts)
+		Array_insert(node.or_block.stmts, 0, err_decl)
 		if (Array_last(node.or_block.stmts) instanceof bait__ast__ExprStmt) {
 			const idx = i32(node.or_block.stmts.length - 1)
 			Array_set(node.or_block.stmts, idx, new bait__ast__AssignStmt({ op: bait__token__Token.assign, left: new bait__ast__SelectorExpr({ expr: new bait__ast__Ident({ name: node.or_block.uid }), field_name: from_js_string("data") }), right: (Array_get(node.or_block.stmts, idx)).expr }))
@@ -11988,7 +11990,7 @@ function bait__builder__run_tests(prefs) {
 
 
 const bait__util__VERSION = from_js_string("0.0.8")
-const bait__util__FULL_VERSION = from_js_string(`${bait__util__VERSION.str} ${from_js_string("0cc9457").str}`)
+const bait__util__FULL_VERSION = from_js_string(`${bait__util__VERSION.str} ${from_js_string("bb6caa0").str}`)
 
 const bait__util__tools__TOOLS = new bait_Array({ data: [from_js_string("ast"), from_js_string("init"), from_js_string("self"), from_js_string("up"), from_js_string("symlink"), from_js_string("doctor"), from_js_string("help"), from_js_string("test-all"), from_js_string("build-examples"), from_js_string("build-tools"), from_js_string("check-md")], length: 11 })
 function bait__util__tools__is_tool(name) {
