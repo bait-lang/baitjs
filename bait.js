@@ -2912,10 +2912,10 @@ function bait__ast__ArrayInit({ typ = 0, elem_type = 0, exprs = new bait_Array({
 	this.cap_expr = cap_expr
 	this.pos = pos
 }
-function bait__ast__AsCast({ expr_type = 0, expr = undefined, target = 0, pos = new bait__token__Pos({}) }) {
+function bait__ast__AsCast({ expr_type = 0, expr = undefined, bait_target = 0, pos = new bait__token__Pos({}) }) {
 	this.expr_type = expr_type
 	this.expr = expr
-	this.target = target
+	this.target = bait_target
 	this.pos = pos
 }
 function bait__ast__BlankIdent({ pos = new bait__token__Pos({}) }) {
@@ -4416,7 +4416,7 @@ _r37_3281.data
 		return _r37_3308
 	}
 	const bait_target = _r37_3308.data
-	return new Result({ data: new bait__ast__AsCast({ target: bait_target, expr: left, pos: pos }) })
+	return new Result({ data: new bait__ast__AsCast({ bait_target: bait_target, expr: left, pos: pos }) })
 }
 
 function bait__parser__Parser_bool_literal(p) {
@@ -8103,7 +8103,7 @@ function bait__checker__Checker_infix_expr(c, node) {
 		bait__checker__Checker_error(c, err_msg, node.pos)
 	}
 	if (eq(node.left_type, bait__ast__I64_TYPE) || eq(node.left_type, bait__ast__U64_TYPE) || eq(node.left_type, bait__ast__U32_TYPE)) {
-		node.right = new bait__ast__AsCast({ expr: node.right, target: node.left_type })
+		node.right = new bait__ast__AsCast({ expr: node.right, bait_target: node.left_type })
 	}
 	if (bait__token__Token_is_compare(node.op)) {
 		return bait__ast__BOOL_TYPE
@@ -10094,7 +10094,7 @@ function bait__gen__js__Gen_struct_decl(g, node) {
 	bait__gen__js__Gen_write(g, from_js_string("({ "))
 	for (let i = 0; i < node.fields.length; i++) {
 		const field = Array_get(node.fields, i)
-		bait__gen__js__Gen_write(g, from_js_string(`${field.name.str} = `))
+		bait__gen__js__Gen_write(g, from_js_string(`${bait__gen__js__js_esc(field.name).str} = `))
 		if (eq(node.typ, field.typ)) {
 			bait__gen__js__Gen_write(g, from_js_string("this"))
 		} else if (!(field.expr instanceof bait__ast__InvalidExpr)) {
@@ -10113,7 +10113,7 @@ function bait__gen__js__Gen_struct_decl(g, node) {
 	g.indent += 1
 	for (let _t711 = 0; _t711 < node.fields.length; _t711++) {
 		const field = Array_get(node.fields, _t711)
-		bait__gen__js__Gen_writeln(g, from_js_string(`this.${field.name.str} = ${field.name.str}`))
+		bait__gen__js__Gen_writeln(g, from_js_string(`this.${field.name.str} = ${bait__gen__js__js_esc(field.name).str}`))
 	}
 	g.indent -= 1
 	bait__gen__js__Gen_writeln(g, from_js_string("}"))
@@ -10128,7 +10128,7 @@ function bait__gen__js__Gen_struct_init(g, node) {
 	bait__gen__js__Gen_write(g, from_js_string(" "))
 	for (let i = 0; i < node.fields.length; i++) {
 		const field = Array_get(node.fields, i)
-		bait__gen__js__Gen_write(g, from_js_string(`${field.name.str}: `))
+		bait__gen__js__Gen_write(g, from_js_string(`${bait__gen__js__js_esc(field.name).str}: `))
 		bait__gen__js__Gen_expr(g, field.expr)
 		if (i32(i < i32(node.fields.length - 1))) {
 			bait__gen__js__Gen_write(g, from_js_string(", "))
@@ -11990,7 +11990,7 @@ function bait__builder__run_tests(prefs) {
 
 
 const bait__util__VERSION = from_js_string("0.0.8")
-const bait__util__FULL_VERSION = from_js_string(`${bait__util__VERSION.str} ${from_js_string("bb6caa0").str}`)
+const bait__util__FULL_VERSION = from_js_string(`${bait__util__VERSION.str} ${from_js_string("5663dfc").str}`)
 
 const bait__util__tools__TOOLS = new bait_Array({ data: [from_js_string("ast"), from_js_string("init"), from_js_string("self"), from_js_string("up"), from_js_string("symlink"), from_js_string("doctor"), from_js_string("help"), from_js_string("test-all"), from_js_string("build-examples"), from_js_string("build-tools"), from_js_string("check-md")], length: 11 })
 function bait__util__tools__is_tool(name) {
