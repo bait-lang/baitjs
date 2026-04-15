@@ -1002,6 +1002,14 @@ function Map_clear(m) {
 }
 
 
+function bool_str(b) {
+	if (b) {
+		return from_js_string("true")
+	}
+	return from_js_string("false")
+}
+
+
 function u8_ascii(c) {
 	return from_js_string(String.fromCharCode(c))
 }
@@ -1034,8 +1042,8 @@ function u8_is_hex_digit(c) {
 
 function Array_u8_to_string(chars) {
 	let s = from_js_string("")
-	for (let _t10 = 0; _t10 < chars.length; _t10++) {
-		const c = Array_get(chars, _t10)
+	for (let _t11 = 0; _t11 < chars.length; _t11++) {
+		const c = Array_get(chars, _t11)
 		s = string_add(s, u8_ascii(c))
 	}
 	return s
@@ -1328,13 +1336,13 @@ function to_hex(num, len) {
 	let i = (u8(len - 1))
 	while (i32(i >= 0)) {
 		const d = Number((u64(n & BigInt(0xFn))))
-		let _t21 = undefined
+		let _t22 = undefined
 		if (u8(d < 10)) {
-			_t21 = u8(d + u8("0"))
+			_t22 = u8(d + u8("0"))
 		} else {
-			_t21 = u8(d + 87)
+			_t22 = u8(d + 87)
 		}
-		const d2 = _t21
+		const d2 = _t22
 		Array_set(buf, i, d2)
 		n = u64(n >> BigInt(4n))
 		if (eq(n, BigInt(0n))) {
@@ -1350,13 +1358,13 @@ function to_hex_padded(num, len) {
 	let buf = new bait_Array({ data: Array.from({ length: len }, (v, i) => 0), length: len })
 	for (let i = (u8(len - 1)); i32(i >= 0); i -= 1) {
 		const d = Number((u64(n & BigInt(0xFn))))
-		let _t23 = undefined
+		let _t24 = undefined
 		if (u8(d < 10)) {
-			_t23 = u8(d + u8("0"))
+			_t24 = u8(d + u8("0"))
 		} else {
-			_t23 = u8(d + 87)
+			_t24 = u8(d + 87)
 		}
-		const d2 = _t23
+		const d2 = _t24
 		Array_set(buf, i, d2)
 		n = u64(n >> BigInt(4n))
 	}
@@ -1374,8 +1382,8 @@ function string_get(s, i) {
 
 function string_bytes(s) {
 	let arr = new bait_Array({ data: [], length: 0 })
-	for (let _t23 = 0; _t23 < s.length; _t23++) {
-		const c = string_get(s, _t23)
+	for (let _t24 = 0; _t24 < s.length; _t24++) {
+		const c = string_get(s, _t24)
 		Array_push(arr, c)
 	}
 	return arr
@@ -1433,8 +1441,8 @@ function string_split(s, delim) {
 	let res = new bait_Array({ data: [], length: 0 })
 	let i = 0
 	if (eq(delim.length, 0)) {
-		for (let _t26 = 0; _t26 < s.length; _t26++) {
-			const c = string_get(s, _t26)
+		for (let _t27 = 0; _t27 < s.length; _t27++) {
+			const c = string_get(s, _t27)
 			Array_push(res, u8_ascii(c))
 		}
 		return res
@@ -1504,8 +1512,8 @@ function from_js_string_arr(js_arr) {
 
 function Array_string_to_js_arr(arr) {
 	const js_arr = []
-	for (let _t29 = 0; _t29 < arr.length; _t29++) {
-		const s = Array_get(arr, _t29)
+	for (let _t30 = 0; _t30 < arr.length; _t30++) {
+		const s = Array_get(arr, _t30)
 		js_arr.push(s.str)
 	}
 	return js_arr
@@ -1548,13 +1556,6 @@ function Result({ is_error = false, msg = from_js_string(""), data = undefined }
 }
 function error(msg) {
 	return new Result({ is_error: true, msg: msg })
-}
-
-function bool_str(b) {
-	if (b) {
-		return from_js_string("true")
-	}
-	return from_js_string("false")
 }
 
 
@@ -4171,49 +4172,49 @@ function bait__parser__Parser_if_match(p, is_expr) {
 	while (true) {
 		const bpos = p.pos
 		if (is_comptime) {
-			let _r37_384 = bait__parser__Parser_check(p, bait__token__Token.dollar)
-			if (_r37_384.is_error) {
-				return _r37_384
+			let _r38_384 = bait__parser__Parser_check(p, bait__token__Token.dollar)
+			if (_r38_384.is_error) {
+				return _r38_384
 			}
-_r37_384.data
+_r38_384.data
 		}
 		if (eq(p.tok, bait__token__Token.key_else)) {
 			bait__parser__Parser_next(p)
 			if (eq(p.tok, bait__token__Token.lcur)) {
 				has_else = true
-				let _r37_525 = bait__parser__Parser_parse_block(p)
-				if (_r37_525.is_error) {
-					return _r37_525
+				let _r38_525 = bait__parser__Parser_parse_block(p)
+				if (_r38_525.is_error) {
+					return _r38_525
 				}
-				const stmts = _r37_525.data
+				const stmts = _r38_525.data
 				Array_push(branches, new bait__ast__IfBranch({ cond: new bait__ast__InvalidExpr({}), stmts: stmts, pos: bpos }))
 				break
 			}
 			if (is_comptime) {
-				let _r37_679 = bait__parser__Parser_check(p, bait__token__Token.dollar)
-				if (_r37_679.is_error) {
-					return _r37_679
+				let _r38_679 = bait__parser__Parser_check(p, bait__token__Token.dollar)
+				if (_r38_679.is_error) {
+					return _r38_679
 				}
-_r37_679.data
+_r38_679.data
 			}
 		}
-		let _r37_733 = bait__parser__Parser_check(p, bait__token__Token.key_if)
-		if (_r37_733.is_error) {
-			return _r37_733
+		let _r38_733 = bait__parser__Parser_check(p, bait__token__Token.key_if)
+		if (_r38_733.is_error) {
+			return _r38_733
 		}
-_r37_733.data
+_r38_733.data
 		p.is_struct_possible = false
-		let _r37_791 = bait__parser__Parser_expr(p, bait__token__Precedence.lowest)
-		if (_r37_791.is_error) {
-			return _r37_791
+		let _r38_791 = bait__parser__Parser_expr(p, bait__token__Precedence.lowest)
+		if (_r38_791.is_error) {
+			return _r38_791
 		}
-		const cond = _r37_791.data
+		const cond = _r38_791.data
 		p.is_struct_possible = true
-		let _r37_857 = bait__parser__Parser_parse_block(p)
-		if (_r37_857.is_error) {
-			return _r37_857
+		let _r38_857 = bait__parser__Parser_parse_block(p)
+		if (_r38_857.is_error) {
+			return _r38_857
 		}
-		const stmts = _r37_857.data
+		const stmts = _r38_857.data
 		Array_push(branches, new bait__ast__IfBranch({ cond: cond, stmts: stmts, pos: bpos }))
 		if ((is_comptime && !eq(p.tok, bait__token__Token.dollar)) || (!is_comptime && !eq(p.tok, bait__token__Token.key_else))) {
 			break
@@ -4226,55 +4227,55 @@ function bait__parser__Parser_match_as_if_expr(p, is_expr) {
 	const pos = p.pos
 	let has_else = false
 	let branches = new bait_Array({ data: [], length: 0 })
-	let _r37_1323 = bait__parser__Parser_check(p, bait__token__Token.key_match)
-	if (_r37_1323.is_error) {
-		return _r37_1323
+	let _r38_1323 = bait__parser__Parser_check(p, bait__token__Token.key_match)
+	if (_r38_1323.is_error) {
+		return _r38_1323
 	}
-_r37_1323.data
+_r38_1323.data
 	p.is_struct_possible = false
-	let _r37_1384 = bait__parser__Parser_expr(p, bait__token__Precedence.lowest)
-	if (_r37_1384.is_error) {
-		return _r37_1384
+	let _r38_1384 = bait__parser__Parser_expr(p, bait__token__Precedence.lowest)
+	if (_r38_1384.is_error) {
+		return _r38_1384
 	}
-	const cond_left = _r37_1384.data
+	const cond_left = _r38_1384.data
 	p.is_struct_possible = true
-	let _r37_1433 = bait__parser__Parser_check(p, bait__token__Token.lcur)
-	if (_r37_1433.is_error) {
-		return _r37_1433
+	let _r38_1433 = bait__parser__Parser_check(p, bait__token__Token.lcur)
+	if (_r38_1433.is_error) {
+		return _r38_1433
 	}
-_r37_1433.data
+_r38_1433.data
 	while (!eq(p.tok, bait__token__Token.rcur)) {
 		const bpos = p.pos
 		if (eq(p.tok, bait__token__Token.key_else)) {
 			bait__parser__Parser_next(p)
 			has_else = true
-			let _r37_1565 = bait__parser__Parser_parse_block(p)
-			if (_r37_1565.is_error) {
-				return _r37_1565
+			let _r38_1565 = bait__parser__Parser_parse_block(p)
+			if (_r38_1565.is_error) {
+				return _r38_1565
 			}
-			const stmts = _r37_1565.data
+			const stmts = _r38_1565.data
 			Array_push(branches, new bait__ast__IfBranch({ cond: new bait__ast__InvalidExpr({}), stmts: stmts, pos: bpos }))
 			break
 		}
 		p.is_struct_possible = false
-		let _r37_1733 = bait__parser__Parser_expr_list(p)
-		if (_r37_1733.is_error) {
-			return _r37_1733
+		let _r38_1733 = bait__parser__Parser_expr_list(p)
+		if (_r38_1733.is_error) {
+			return _r38_1733
 		}
-		const right_conds = _r37_1733.data
+		const right_conds = _r38_1733.data
 		p.is_struct_possible = true
-		let _r37_1799 = bait__parser__Parser_parse_block(p)
-		if (_r37_1799.is_error) {
-			return _r37_1799
+		let _r38_1799 = bait__parser__Parser_parse_block(p)
+		if (_r38_1799.is_error) {
+			return _r38_1799
 		}
-		const stmts = _r37_1799.data
+		const stmts = _r38_1799.data
 		Array_push(branches, new bait__ast__IfBranch({ cond: bait__parser__Parser_cond_list_to_infix(p, cond_left, right_conds, bpos), stmts: stmts, pos: bpos }))
 	}
-	let _r37_1945 = bait__parser__Parser_check(p, bait__token__Token.rcur)
-	if (_r37_1945.is_error) {
-		return _r37_1945
+	let _r38_1945 = bait__parser__Parser_check(p, bait__token__Token.rcur)
+	if (_r38_1945.is_error) {
+		return _r38_1945
 	}
-_r37_1945.data
+_r38_1945.data
 	return new Result({ data: new bait__ast__IfMatch({ is_expr: is_expr, is_match: true, has_else: has_else, branches: branches, pos: pos }) })
 }
 
@@ -4302,56 +4303,56 @@ function bait__parser__Parser_add_builtin_imports(p) {
 function bait__parser__Parser_foreign_import(p, pos) {
 	const name = p.val
 	bait__parser__Parser_next(p)
-	let _r38_681 = bait__parser__Parser_check(p, bait__token__Token.key_as)
-	if (_r38_681.is_error) {
-		return _r38_681
+	let _r39_681 = bait__parser__Parser_check(p, bait__token__Token.key_as)
+	if (_r39_681.is_error) {
+		return _r39_681
 	}
-_r38_681.data
-	let _r38_706 = bait__parser__Parser_parse_lang(p)
-	if (_r38_706.is_error) {
-		return _r38_706
+_r39_681.data
+	let _r39_706 = bait__parser__Parser_parse_lang(p)
+	if (_r39_706.is_error) {
+		return _r39_706
 	}
-	const lang = _r38_706.data
+	const lang = _r39_706.data
 	let alias = from_js_string("")
 	if (eq(lang, bait__ast__Language.js)) {
-		let _r38_779 = bait__parser__Parser_check_name(p)
-		if (_r38_779.is_error) {
-			return _r38_779
+		let _r39_779 = bait__parser__Parser_check_name(p)
+		if (_r39_779.is_error) {
+			return _r39_779
 		}
-		alias = bait__ast__Language_prepend_to(lang, _r38_779.data)
+		alias = bait__ast__Language_prepend_to(lang, _r39_779.data)
 	} else if (eq(lang, bait__ast__Language.c)) {
-		let _r38_828 = bait__parser__Parser_check_name(p)
-		if (_r38_828.is_error) {
-			return _r38_828
+		let _r39_828 = bait__parser__Parser_check_name(p)
+		if (_r39_828.is_error) {
+			return _r39_828
 		}
-		_t179 = _r38_828.data
+		_t179 = _r39_828.data
 	}
 	return new Result({ data: new bait__ast__Import({ name: name, alias: alias, lang: lang, pos: pos }) })
 }
 
 function bait__parser__Parser_bait_import(p, pos) {
-	let _r38_1043 = bait__parser__Parser_check_name(p)
-	if (_r38_1043.is_error) {
-		return _r38_1043
+	let _r39_1043 = bait__parser__Parser_check_name(p)
+	if (_r39_1043.is_error) {
+		return _r39_1043
 	}
-	let name_parts = new bait_Array({ data: [_r38_1043.data], length: 1 })
+	let name_parts = new bait_Array({ data: [_r39_1043.data], length: 1 })
 	while (eq(p.tok, bait__token__Token.dot)) {
 		bait__parser__Parser_next(p)
-		let _r38_1110 = bait__parser__Parser_check_name(p)
-		if (_r38_1110.is_error) {
-			return _r38_1110
+		let _r39_1110 = bait__parser__Parser_check_name(p)
+		if (_r39_1110.is_error) {
+			return _r39_1110
 		}
-		Array_push(name_parts, _r38_1110.data)
+		Array_push(name_parts, _r39_1110.data)
 	}
 	const name = Array_string_join(name_parts, from_js_string("."))
 	let alias = Array_last(name_parts)
 	if (eq(p.tok, bait__token__Token.key_as)) {
 		bait__parser__Parser_next(p)
-		let _r38_1274 = bait__parser__Parser_check_name(p)
-		if (_r38_1274.is_error) {
-			return _r38_1274
+		let _r39_1274 = bait__parser__Parser_check_name(p)
+		if (_r39_1274.is_error) {
+			return _r39_1274
 		}
-		alias = _r38_1274.data
+		alias = _r39_1274.data
 	}
 	return new Result({ data: new bait__ast__Import({ name: name, alias: alias, pos: pos }) })
 }
@@ -4363,17 +4364,17 @@ function bait__parser__Parser_import_stmts(p) {
 		bait__parser__Parser_next(p)
 		let _t181 = undefined
 		if (eq(p.tok, bait__token__Token.string)) {
-					let _r38_1548 = bait__parser__Parser_foreign_import(p, pos)
-			if (_r38_1548.is_error) {
-				return _r38_1548
+					let _r39_1548 = bait__parser__Parser_foreign_import(p, pos)
+			if (_r39_1548.is_error) {
+				return _r39_1548
 			}
-			_t181 = _r38_1548.data
+			_t181 = _r39_1548.data
 		} else {
-					let _r38_1577 = bait__parser__Parser_bait_import(p, pos)
-			if (_r38_1577.is_error) {
-				return _r38_1577
+					let _r39_1577 = bait__parser__Parser_bait_import(p, pos)
+			if (_r39_1577.is_error) {
+				return _r39_1577
 			}
-			_t181 = _r38_1577.data
+			_t181 = _r39_1577.data
 		}
 		let imp = _t181
 		Map_set(p.import_aliases, imp.alias, imp.name)
@@ -4386,11 +4387,11 @@ function bait__parser__Parser_import_stmts(p) {
 function bait__parser__Parser_fun_decl(p) {
 	const pos = p.pos
 	const is_pub = bait__parser__Parser_check_pub(p)
-	let _r39_260 = bait__parser__Parser_check(p, bait__token__Token.key_fun)
-	if (_r39_260.is_error) {
-		return _r39_260
+	let _r40_260 = bait__parser__Parser_check(p, bait__token__Token.key_fun)
+	if (_r40_260.is_error) {
+		return _r40_260
 	}
-_r39_260.data
+_r40_260.data
 	let lang = bait__ast__Language.bait
 	let is_method = false
 	let params = new bait_Array({ data: [], length: 0 })
@@ -4402,41 +4403,41 @@ _r39_260.data
 			is_mut = true
 			bait__parser__Parser_next(p)
 		}
-		let _r39_566 = bait__parser__Parser_check_name(p)
-		if (_r39_566.is_error) {
-			return _r39_566
+		let _r40_566 = bait__parser__Parser_check_name(p)
+		if (_r40_566.is_error) {
+			return _r40_566
 		}
-		const rec_name = _r39_566.data
-		let _r39_599 = bait__parser__Parser_parse_type(p)
-		if (_r39_599.is_error) {
-			return _r39_599
+		const rec_name = _r40_566.data
+		let _r40_599 = bait__parser__Parser_parse_type(p)
+		if (_r40_599.is_error) {
+			return _r40_599
 		}
-		let rec_type = _r39_599.data
+		let rec_type = _r40_599.data
 		if (is_mut) {
 			rec_type = bait__ast__Type_set_nr_amp(rec_type, 1)
 		}
 		Array_push(params, new bait__ast__Param({ is_mut: is_mut, name: rec_name, typ: rec_type }))
-		let _r39_757 = bait__parser__Parser_check(p, bait__token__Token.rpar)
-		if (_r39_757.is_error) {
-			return _r39_757
+		let _r40_757 = bait__parser__Parser_check(p, bait__token__Token.rpar)
+		if (_r40_757.is_error) {
+			return _r40_757
 		}
-_r39_757.data
+_r40_757.data
 	}
-	let _r39_791 = bait__parser__Parser_parse_ffi_pkg(p)
-	if (_r39_791.is_error) {
-		return _r39_791
+	let _r40_791 = bait__parser__Parser_parse_ffi_pkg(p)
+	if (_r40_791.is_error) {
+		return _r40_791
 	}
-	const ffi = _r39_791.data
+	const ffi = _r40_791.data
 	lang = ffi.lang
 	let key = from_js_string("")
 	if (!eq(lang, bait__ast__Language.bait)) {
 		key = string_add(ffi.pkg, from_js_string("."))
 	}
-	let _r39_925 = bait__parser__Parser_check_name(p)
-	if (_r39_925.is_error) {
-		return _r39_925
+	let _r40_925 = bait__parser__Parser_check_name(p)
+	if (_r40_925.is_error) {
+		return _r40_925
 	}
-	const name = _r39_925.data
+	const name = _r40_925.data
 	key = string_add(key, name)
 	const is_test = string_starts_with(name, from_js_string("test_"))
 	if (is_method) {
@@ -4444,33 +4445,33 @@ _r39_757.data
 	} else if (eq(lang, bait__ast__Language.bait)) {
 		key = bait__parser__Parser_prepend_pkg(p, key)
 	}
-	let _r39_1150 = bait__parser__Parser_generic_type_names(p)
-	if (_r39_1150.is_error) {
-		return _r39_1150
+	let _r40_1150 = bait__parser__Parser_generic_type_names(p)
+	if (_r40_1150.is_error) {
+		return _r40_1150
 	}
-	const generic_names = _r39_1150.data
-	let _r39_1172 = bait__parser__Parser_check(p, bait__token__Token.lpar)
-	if (_r39_1172.is_error) {
-		return _r39_1172
+	const generic_names = _r40_1150.data
+	let _r40_1172 = bait__parser__Parser_check(p, bait__token__Token.lpar)
+	if (_r40_1172.is_error) {
+		return _r40_1172
 	}
-_r39_1172.data
-	let _r39_1199 = bait__parser__Parser_fun_params(p)
-	if (_r39_1199.is_error) {
-		return _r39_1199
+_r40_1172.data
+	let _r40_1199 = bait__parser__Parser_fun_params(p)
+	if (_r40_1199.is_error) {
+		return _r40_1199
 	}
-	Array_push_many(params, _r39_1199.data)
-	let _r39_1222 = bait__parser__Parser_check(p, bait__token__Token.rpar)
-	if (_r39_1222.is_error) {
-		return _r39_1222
+	Array_push_many(params, _r40_1199.data)
+	let _r40_1222 = bait__parser__Parser_check(p, bait__token__Token.rpar)
+	if (_r40_1222.is_error) {
+		return _r40_1222
 	}
-_r39_1222.data
+_r40_1222.data
 	let return_type = bait__ast__VOID_TYPE
 	if (!eq(p.tok, bait__token__Token.lcur) && eq(pos.line, p.pos.line)) {
-		let _r39_1334 = bait__parser__Parser_parse_type(p)
-		if (_r39_1334.is_error) {
-			return _r39_1334
+		let _r40_1334 = bait__parser__Parser_parse_type(p)
+		if (_r40_1334.is_error) {
+			return _r40_1334
 		}
-		return_type = _r39_1334.data
+		return_type = _r40_1334.data
 	}
 	let node = new bait__ast__FunDecl({ is_test: is_test, is_pub: is_pub, name: name, key: key, generic_names: generic_names, params: params, return_type: return_type, noreturn: Array_bait__ast__Attribute_has(p.attributes, from_js_string("noreturn")), attrs: p.attributes, lang: lang, pos: pos })
 	if (is_method) {
@@ -4495,11 +4496,11 @@ _r39_1222.data
 	}
 	p.attributes = new bait_Array({ data: [], length: 0 })
 	if (eq(lang, bait__ast__Language.bait)) {
-		let _r39_2706 = bait__parser__Parser_parse_block(p)
-		if (_r39_2706.is_error) {
-			return _r39_2706
+		let _r40_2706 = bait__parser__Parser_parse_block(p)
+		if (_r40_2706.is_error) {
+			return _r40_2706
 		}
-		node.stmts = _r39_2706.data
+		node.stmts = _r40_2706.data
 	}
 	node.is_method = is_method
 	return new Result({ data: node })
@@ -4507,33 +4508,33 @@ _r39_1222.data
 
 function bait__parser__Parser_anon_fun(p) {
 	const pos = p.pos
-	let _r39_2832 = bait__parser__Parser_check(p, bait__token__Token.key_fun)
-	if (_r39_2832.is_error) {
-		return _r39_2832
+	let _r40_2832 = bait__parser__Parser_check(p, bait__token__Token.key_fun)
+	if (_r40_2832.is_error) {
+		return _r40_2832
 	}
-_r39_2832.data
-	let _r39_2854 = bait__parser__Parser_check(p, bait__token__Token.lpar)
-	if (_r39_2854.is_error) {
-		return _r39_2854
+_r40_2832.data
+	let _r40_2854 = bait__parser__Parser_check(p, bait__token__Token.lpar)
+	if (_r40_2854.is_error) {
+		return _r40_2854
 	}
-_r39_2854.data
-	let _r39_2876 = bait__parser__Parser_fun_params(p)
-	if (_r39_2876.is_error) {
-		return _r39_2876
+_r40_2854.data
+	let _r40_2876 = bait__parser__Parser_fun_params(p)
+	if (_r40_2876.is_error) {
+		return _r40_2876
 	}
-	const params = _r39_2876.data
-	let _r39_2895 = bait__parser__Parser_check(p, bait__token__Token.rpar)
-	if (_r39_2895.is_error) {
-		return _r39_2895
+	const params = _r40_2876.data
+	let _r40_2895 = bait__parser__Parser_check(p, bait__token__Token.rpar)
+	if (_r40_2895.is_error) {
+		return _r40_2895
 	}
-_r39_2895.data
+_r40_2895.data
 	let return_type = bait__ast__VOID_TYPE
 	if (!eq(p.tok, bait__token__Token.lcur)) {
-		let _r39_2980 = bait__parser__Parser_parse_type(p)
-		if (_r39_2980.is_error) {
-			return _r39_2980
+		let _r40_2980 = bait__parser__Parser_parse_type(p)
+		if (_r40_2980.is_error) {
+			return _r40_2980
 		}
-		return_type = _r39_2980.data
+		return_type = _r40_2980.data
 	}
 	let param_types = new bait_Array({ data: [], length: 0 })
 	for (let _t192 = 0; _t192 < params.length; _t192++) {
@@ -4541,11 +4542,11 @@ _r39_2895.data
 		Array_push(param_types, param.typ)
 	}
 	const typ = bait__ast__Table_find_or_register_fun(p.table, param_types, return_type, true)
-	let _r39_3171 = bait__parser__Parser_parse_block(p)
-	if (_r39_3171.is_error) {
-		return _r39_3171
+	let _r40_3171 = bait__parser__Parser_parse_block(p)
+	if (_r40_3171.is_error) {
+		return _r40_3171
 	}
-	const stmts = _r39_3171.data
+	const stmts = _r40_3171.data
 	return new Result({ data: new bait__ast__AnonFun({ decl: new bait__ast__FunDecl({ name: from_js_string(`_anon_${i32_str(p.file_uid).str}_${i32_str(bait__lexer__Lexer_offset(p.lexer)).str}`), params: params, return_type: return_type, stmts: stmts }), typ: typ, pos: pos }) })
 }
 
@@ -4558,22 +4559,22 @@ function bait__parser__Parser_fun_params(p) {
 			is_mut = true
 			bait__parser__Parser_next(p)
 		}
-		let _r39_3620 = bait__parser__Parser_check_name(p)
-		if (_r39_3620.is_error) {
-			return _r39_3620
+		let _r40_3620 = bait__parser__Parser_check_name(p)
+		if (_r40_3620.is_error) {
+			return _r40_3620
 		}
-		let _r39_3645 = bait__parser__Parser_parse_type(p)
-		if (_r39_3645.is_error) {
-			return _r39_3645
+		let _r40_3645 = bait__parser__Parser_parse_type(p)
+		if (_r40_3645.is_error) {
+			return _r40_3645
 		}
-		const param = new bait__ast__Param({ is_mut: is_mut, name: _r39_3620.data, typ: _r39_3645.data, pos: pos })
+		const param = new bait__ast__Param({ is_mut: is_mut, name: _r40_3620.data, typ: _r40_3645.data, pos: pos })
 		Array_push(params, param)
 		if (!eq(p.tok, bait__token__Token.rpar)) {
-			let _r39_3721 = bait__parser__Parser_check(p, bait__token__Token.comma)
-			if (_r39_3721.is_error) {
-				return _r39_3721
+			let _r40_3721 = bait__parser__Parser_check(p, bait__token__Token.comma)
+			if (_r40_3721.is_error) {
+				return _r40_3721
 			}
-_r39_3721.data
+_r40_3721.data
 		}
 	}
 	return new Result({ data: params })
@@ -4581,62 +4582,62 @@ _r39_3721.data
 
 function bait__parser__Parser_fun_call(p, lang) {
 	const pos = p.pos
-	let _r39_3848 = bait__parser__Parser_check_name(p)
-	if (_r39_3848.is_error) {
-		return _r39_3848
+	let _r40_3848 = bait__parser__Parser_check_name(p)
+	if (_r40_3848.is_error) {
+		return _r40_3848
 	}
-	const name = _r39_3848.data
+	const name = _r40_3848.data
 	const pkg = bait__parser__Parser_get_expr_pkg(p)
-	let _r39_3891 = bait__parser__Parser_check(p, bait__token__Token.lpar)
-	if (_r39_3891.is_error) {
-		return _r39_3891
+	let _r40_3891 = bait__parser__Parser_check(p, bait__token__Token.lpar)
+	if (_r40_3891.is_error) {
+		return _r40_3891
 	}
-_r39_3891.data
-	let _r39_3912 = bait__parser__Parser_call_args(p)
-	if (_r39_3912.is_error) {
-		return _r39_3912
+_r40_3891.data
+	let _r40_3912 = bait__parser__Parser_call_args(p)
+	if (_r40_3912.is_error) {
+		return _r40_3912
 	}
-	const args = _r39_3912.data
-	let _r39_3937 = bait__parser__Parser_check(p, bait__token__Token.rpar)
-	if (_r39_3937.is_error) {
-		return _r39_3937
+	const args = _r40_3912.data
+	let _r40_3937 = bait__parser__Parser_check(p, bait__token__Token.rpar)
+	if (_r40_3937.is_error) {
+		return _r40_3937
 	}
-_r39_3937.data
-	let _r39_3963 = bait__parser__Parser_or_block(p)
-	if (_r39_3963.is_error) {
-		return _r39_3963
+_r40_3937.data
+	let _r40_3963 = bait__parser__Parser_or_block(p)
+	if (_r40_3963.is_error) {
+		return _r40_3963
 	}
-	const or_block = _r39_3963.data
+	const or_block = _r40_3963.data
 	return new Result({ data: new bait__ast__CallExpr({ pkg: pkg, name: name, args: args, or_block: or_block, pos: pos, lang: lang }) })
 }
 
 function bait__parser__Parser_method_call(p, left) {
 	const pos = p.pos
-	let _r39_4175 = bait__parser__Parser_check_name(p)
-	if (_r39_4175.is_error) {
-		return _r39_4175
+	let _r40_4175 = bait__parser__Parser_check_name(p)
+	if (_r40_4175.is_error) {
+		return _r40_4175
 	}
-	const name = _r39_4175.data
-	let _r39_4195 = bait__parser__Parser_check(p, bait__token__Token.lpar)
-	if (_r39_4195.is_error) {
-		return _r39_4195
+	const name = _r40_4175.data
+	let _r40_4195 = bait__parser__Parser_check(p, bait__token__Token.lpar)
+	if (_r40_4195.is_error) {
+		return _r40_4195
 	}
-_r39_4195.data
-	let _r39_4216 = bait__parser__Parser_call_args(p)
-	if (_r39_4216.is_error) {
-		return _r39_4216
+_r40_4195.data
+	let _r40_4216 = bait__parser__Parser_call_args(p)
+	if (_r40_4216.is_error) {
+		return _r40_4216
 	}
-	const args = _r39_4216.data
-	let _r39_4241 = bait__parser__Parser_check(p, bait__token__Token.rpar)
-	if (_r39_4241.is_error) {
-		return _r39_4241
+	const args = _r40_4216.data
+	let _r40_4241 = bait__parser__Parser_check(p, bait__token__Token.rpar)
+	if (_r40_4241.is_error) {
+		return _r40_4241
 	}
-_r39_4241.data
-	let _r39_4267 = bait__parser__Parser_or_block(p)
-	if (_r39_4267.is_error) {
-		return _r39_4267
+_r40_4241.data
+	let _r40_4267 = bait__parser__Parser_or_block(p)
+	if (_r40_4267.is_error) {
+		return _r40_4267
 	}
-	const or_block = _r39_4267.data
+	const or_block = _r40_4267.data
 	return new Result({ data: new bait__ast__CallExpr({ is_method: true, left: left, name: name, args: args, or_block: or_block, pos: pos }) })
 }
 
@@ -4644,20 +4645,20 @@ function bait__parser__Parser_call_args(p) {
 	let args = new bait_Array({ data: [], length: 0 })
 	while (!eq(p.tok, bait__token__Token.rpar)) {
 		const is_mut = eq(p.tok, bait__token__Token.key_mut)
-		let _r39_4649 = bait__parser__Parser_expr(p, bait__token__Precedence.lowest)
-		if (_r39_4649.is_error) {
-			return _r39_4649
+		let _r40_4649 = bait__parser__Parser_expr(p, bait__token__Precedence.lowest)
+		if (_r40_4649.is_error) {
+			return _r40_4649
 		}
-		Array_push(args, new bait__ast__CallArg({ is_mut: is_mut, expr: _r39_4649.data }))
+		Array_push(args, new bait__ast__CallArg({ is_mut: is_mut, expr: _r40_4649.data }))
 		if (!eq(p.tok, bait__token__Token.rpar)) {
 			if (eq(p.tok, bait__token__Token.eof)) {
 				break
 			}
-			let _r39_4733 = bait__parser__Parser_check(p, bait__token__Token.comma)
-			if (_r39_4733.is_error) {
-				return _r39_4733
+			let _r40_4733 = bait__parser__Parser_check(p, bait__token__Token.comma)
+			if (_r40_4733.is_error) {
+				return _r40_4733
 			}
-_r39_4733.data
+_r40_4733.data
 		}
 	}
 	return new Result({ data: args })
@@ -4670,11 +4671,11 @@ function bait__parser__Parser_or_block(p) {
 	}
 	if (eq(p.tok, bait__token__Token.key_or) && eq(bait__parser__Parser_peek(p), bait__token__Token.lcur)) {
 		bait__parser__Parser_next(p)
-		let _r39_5049 = bait__parser__Parser_parse_block(p)
-		if (_r39_5049.is_error) {
-			return _r39_5049
+		let _r40_5049 = bait__parser__Parser_parse_block(p)
+		if (_r40_5049.is_error) {
+			return _r40_5049
 		}
-		const stmts = _r39_5049.data
+		const stmts = _r40_5049.data
 		return new Result({ data: new bait__ast__OrBlock({ kind: bait__ast__OrKind.block, stmts: stmts, uid: from_js_string(`_r${i32_str(p.file_uid).str}_${i32_str(bait__lexer__Lexer_offset(p.lexer)).str}`) }) })
 	}
 	return new Result({ data: new bait__ast__OrBlock({ kind: bait__ast__OrKind.none }) })
@@ -4682,42 +4683,42 @@ function bait__parser__Parser_or_block(p) {
 
 
 function bait__parser__Parser_expr(p, precedence) {
-	let _r40_249 = bait__parser__Parser_single_expr(p)
-	if (_r40_249.is_error) {
-		return _r40_249
+	let _r41_249 = bait__parser__Parser_single_expr(p)
+	if (_r41_249.is_error) {
+		return _r41_249
 	}
-	let node = _r40_249.data
+	let node = _r41_249.data
 	while (precedence < bait__token__Token_precedence(p.tok)) {
 		if (eq(p.tok, bait__token__Token.dot)) {
-			let _r40_336 = bait__parser__Parser_dot_expr(p, node)
-			if (_r40_336.is_error) {
-				return _r40_336
+			let _r41_336 = bait__parser__Parser_dot_expr(p, node)
+			if (_r41_336.is_error) {
+				return _r41_336
 			}
-			node = _r40_336.data
+			node = _r41_336.data
 		} else if (eq(p.tok, bait__token__Token.dotdot)) {
-			let _r40_397 = bait__parser__Parser_range_expr(p, node)
-			if (_r40_397.is_error) {
-				return _r40_397
+			let _r41_397 = bait__parser__Parser_range_expr(p, node)
+			if (_r41_397.is_error) {
+				return _r41_397
 			}
-			node = _r40_397.data
+			node = _r41_397.data
 		} else if (eq(p.tok, bait__token__Token.lsqr) && eq(p.pos.line, p.prev_pos.line)) {
-			let _r40_546 = bait__parser__Parser_index_expr(p, node)
-			if (_r40_546.is_error) {
-				return _r40_546
+			let _r41_546 = bait__parser__Parser_index_expr(p, node)
+			if (_r41_546.is_error) {
+				return _r41_546
 			}
-			node = _r40_546.data
+			node = _r41_546.data
 		} else if (eq(p.tok, bait__token__Token.key_as)) {
-			let _r40_604 = bait__parser__Parser_as_cast(p, node)
-			if (_r40_604.is_error) {
-				return _r40_604
+			let _r41_604 = bait__parser__Parser_as_cast(p, node)
+			if (_r41_604.is_error) {
+				return _r41_604
 			}
-			node = _r40_604.data
+			node = _r41_604.data
 		} else if (bait__token__Token_is_infix(p.tok)) {
-			let _r40_665 = bait__parser__Parser_infix_expr(p, node)
-			if (_r40_665.is_error) {
-				return _r40_665
+			let _r41_665 = bait__parser__Parser_infix_expr(p, node)
+			if (_r41_665.is_error) {
+				return _r41_665
 			}
-			node = _r40_665.data
+			node = _r41_665.data
 		} else {
 			return new Result({ data: node })
 		}
@@ -4727,97 +4728,97 @@ function bait__parser__Parser_expr(p, precedence) {
 
 function bait__parser__Parser_single_expr(p) {
 	if (eq(p.tok, bait__token__Token.hash)) {
-		let _r40_809 = bait__parser__Parser_hash_expr(p)
-		if (_r40_809.is_error) {
-			return _r40_809
+		let _r41_809 = bait__parser__Parser_hash_expr(p)
+		if (_r41_809.is_error) {
+			return _r41_809
 		}
-		return new Result({ data: _r40_809.data })
+		return new Result({ data: _r41_809.data })
 	} else if (eq(p.tok, bait__token__Token.char)) {
 		return new Result({ data: bait__parser__Parser_char_literal(p) })
 	} else if (eq(p.tok, bait__token__Token.dollar)) {
-		let _r40_895 = bait__parser__Parser_comptime_expr(p)
-		if (_r40_895.is_error) {
-			return _r40_895
+		let _r41_895 = bait__parser__Parser_comptime_expr(p)
+		if (_r41_895.is_error) {
+			return _r41_895
 		}
-		return new Result({ data: _r40_895.data })
+		return new Result({ data: _r41_895.data })
 	} else if (eq(p.tok, bait__token__Token.dot)) {
-		let _r40_937 = bait__parser__Parser_enum_val(p, false)
-		if (_r40_937.is_error) {
-			return _r40_937
+		let _r41_937 = bait__parser__Parser_enum_val(p, false)
+		if (_r41_937.is_error) {
+			return _r41_937
 		}
-		return new Result({ data: _r40_937.data })
+		return new Result({ data: _r41_937.data })
 	} else if (eq(p.tok, bait__token__Token.dotdot)) {
-		let _r40_1001 = bait__parser__Parser_range_expr(p, new bait__ast__Void({}))
-		if (_r40_1001.is_error) {
-			return _r40_1001
+		let _r41_1001 = bait__parser__Parser_range_expr(p, new bait__ast__Void({}))
+		if (_r41_1001.is_error) {
+			return _r41_1001
 		}
-		return new Result({ data: _r40_1001.data })
+		return new Result({ data: _r41_1001.data })
 	} else if (eq(p.tok, bait__token__Token.float)) {
 		return new Result({ data: bait__parser__Parser_float_literal(p) })
 	} else if (eq(p.tok, bait__token__Token.integer)) {
 		return new Result({ data: bait__parser__Parser_integer_literal(p) })
 	} else if (eq(p.tok, bait__token__Token.lsqr)) {
-		let _r40_1131 = bait__parser__Parser_array_init(p)
-		if (_r40_1131.is_error) {
-			return _r40_1131
+		let _r41_1131 = bait__parser__Parser_array_init(p)
+		if (_r41_1131.is_error) {
+			return _r41_1131
 		}
-		return new Result({ data: _r40_1131.data })
+		return new Result({ data: _r41_1131.data })
 	} else if (eq(p.tok, bait__token__Token.lpar)) {
-		let _r40_1169 = bait__parser__Parser_par_expr(p)
-		if (_r40_1169.is_error) {
-			return _r40_1169
+		let _r41_1169 = bait__parser__Parser_par_expr(p)
+		if (_r41_1169.is_error) {
+			return _r41_1169
 		}
-		return new Result({ data: _r40_1169.data })
+		return new Result({ data: _r41_1169.data })
 	} else if (eq(p.tok, bait__token__Token.name)) {
-		let _r40_1213 = bait__parser__Parser_name_expr(p, bait__ast__Language.bait)
-		if (_r40_1213.is_error) {
-			return _r40_1213
+		let _r41_1213 = bait__parser__Parser_name_expr(p, bait__ast__Language.bait)
+		if (_r41_1213.is_error) {
+			return _r41_1213
 		}
-		return new Result({ data: _r40_1213.data })
+		return new Result({ data: _r41_1213.data })
 	} else if (eq(p.tok, bait__token__Token.string)) {
-		let _r40_1264 = bait__parser__Parser_string_literal(p, bait__ast__Language.bait)
-		if (_r40_1264.is_error) {
-			return _r40_1264
+		let _r41_1264 = bait__parser__Parser_string_literal(p, bait__ast__Language.bait)
+		if (_r41_1264.is_error) {
+			return _r41_1264
 		}
-		return new Result({ data: _r40_1264.data })
+		return new Result({ data: _r41_1264.data })
 	} else if (eq(p.tok, bait__token__Token.key_fun)) {
-		let _r40_1305 = bait__parser__Parser_anon_fun(p)
-		if (_r40_1305.is_error) {
-			return _r40_1305
+		let _r41_1305 = bait__parser__Parser_anon_fun(p)
+		if (_r41_1305.is_error) {
+			return _r41_1305
 		}
-		return new Result({ data: _r40_1305.data })
+		return new Result({ data: _r41_1305.data })
 	} else if (eq(p.tok, bait__token__Token.key_false) || eq(p.tok, bait__token__Token.key_true)) {
 		return new Result({ data: bait__parser__Parser_bool_literal(p) })
 	} else if (eq(p.tok, bait__token__Token.key_if)) {
-		let _r40_1406 = bait__parser__Parser_if_match(p, true)
-		if (_r40_1406.is_error) {
-			return _r40_1406
+		let _r41_1406 = bait__parser__Parser_if_match(p, true)
+		if (_r41_1406.is_error) {
+			return _r41_1406
 		}
-		return new Result({ data: _r40_1406.data })
+		return new Result({ data: _r41_1406.data })
 	} else if (eq(p.tok, bait__token__Token.key_match)) {
-		let _r40_1461 = bait__parser__Parser_match_as_if_expr(p, true)
-		if (_r40_1461.is_error) {
-			return _r40_1461
+		let _r41_1461 = bait__parser__Parser_match_as_if_expr(p, true)
+		if (_r41_1461.is_error) {
+			return _r41_1461
 		}
-		return new Result({ data: _r40_1461.data })
+		return new Result({ data: _r41_1461.data })
 	} else if (eq(p.tok, bait__token__Token.key_mut)) {
-		let _r40_1504 = bait__parser__Parser_ident(p, bait__ast__Language.bait)
-		if (_r40_1504.is_error) {
-			return _r40_1504
+		let _r41_1504 = bait__parser__Parser_ident(p, bait__ast__Language.bait)
+		if (_r41_1504.is_error) {
+			return _r41_1504
 		}
-		return new Result({ data: _r40_1504.data })
+		return new Result({ data: _r41_1504.data })
 	} else if (eq(p.tok, bait__token__Token.amp) || eq(p.tok, bait__token__Token.key_not) || eq(p.tok, bait__token__Token.minus) || eq(p.tok, bait__token__Token.mul) || eq(p.tok, bait__token__Token.tilde)) {
-		let _r40_1576 = bait__parser__Parser_prefix_expr(p)
-		if (_r40_1576.is_error) {
-			return _r40_1576
+		let _r41_1576 = bait__parser__Parser_prefix_expr(p)
+		if (_r41_1576.is_error) {
+			return _r41_1576
 		}
-		return new Result({ data: _r40_1576.data })
+		return new Result({ data: _r41_1576.data })
 	} else if (eq(p.tok, bait__token__Token.key_typeof)) {
-		let _r40_1623 = bait__parser__Parser_typeof_expr(p)
-		if (_r40_1623.is_error) {
-			return _r40_1623
+		let _r41_1623 = bait__parser__Parser_typeof_expr(p)
+		if (_r41_1623.is_error) {
+			return _r41_1623
 		}
-		return new Result({ data: _r40_1623.data })
+		return new Result({ data: _r41_1623.data })
 	} else if (eq(p.tok, bait__token__Token.error)) {
 		return error(p.val)
 	} else {
@@ -4832,11 +4833,11 @@ function bait__parser__Parser_single_expr(p) {
 function bait__parser__Parser_expr_list(p) {
 	let exprs = new bait_Array({ data: [], length: 0 })
 	while (true) {
-		let _r40_1925 = bait__parser__Parser_expr(p, bait__token__Precedence.lowest)
-		if (_r40_1925.is_error) {
-			return _r40_1925
+		let _r41_1925 = bait__parser__Parser_expr(p, bait__token__Precedence.lowest)
+		if (_r41_1925.is_error) {
+			return _r41_1925
 		}
-		Array_push(exprs, _r40_1925.data)
+		Array_push(exprs, _r41_1925.data)
 		if (!eq(p.tok, bait__token__Token.comma)) {
 			break
 		}
@@ -4847,40 +4848,40 @@ function bait__parser__Parser_expr_list(p) {
 
 function bait__parser__Parser_array_init(p) {
 	const pos = p.pos
-	let _r40_2104 = bait__parser__Parser_check(p, bait__token__Token.lsqr)
-	if (_r40_2104.is_error) {
-		return _r40_2104
+	let _r41_2104 = bait__parser__Parser_check(p, bait__token__Token.lsqr)
+	if (_r41_2104.is_error) {
+		return _r41_2104
 	}
-_r40_2104.data
+_r41_2104.data
 	if (eq(p.tok, bait__token__Token.rsqr)) {
 		bait__parser__Parser_next(p)
-		let _r40_2196 = bait__parser__Parser_parse_type(p)
-		if (_r40_2196.is_error) {
-			const err = _r40_2196.msg
-			_r40_2196.data = bait__ast__PLACEHOLDER_TYPE
+		let _r41_2196 = bait__parser__Parser_parse_type(p)
+		if (_r41_2196.is_error) {
+			const err = _r41_2196.msg
+			_r41_2196.data = bait__ast__PLACEHOLDER_TYPE
 		}
-		const elem_type = _r40_2196.data
+		const elem_type = _r41_2196.data
 		const typ = bait__ast__Table_find_or_register_array(p.table, elem_type)
 		let length_expr = new bait__ast__InvalidExpr({})
 		let cap_expr = new bait__ast__InvalidExpr({})
 		if (eq(p.tok, bait__token__Token.lcur)) {
 			bait__parser__Parser_next(p)
 			while (!eq(p.tok, bait__token__Token.rcur)) {
-				let _r40_2495 = bait__parser__Parser_check_name(p)
-				if (_r40_2495.is_error) {
-					return _r40_2495
+				let _r41_2495 = bait__parser__Parser_check_name(p)
+				if (_r41_2495.is_error) {
+					return _r41_2495
 				}
-				const key = _r40_2495.data
-				let _r40_2520 = bait__parser__Parser_check(p, bait__token__Token.assign)
-				if (_r40_2520.is_error) {
-					return _r40_2520
+				const key = _r41_2495.data
+				let _r41_2520 = bait__parser__Parser_check(p, bait__token__Token.assign)
+				if (_r41_2520.is_error) {
+					return _r41_2520
 				}
-_r40_2520.data
-				let _r40_2548 = bait__parser__Parser_expr(p, bait__token__Precedence.lowest)
-				if (_r40_2548.is_error) {
-					return _r40_2548
+_r41_2520.data
+				let _r41_2548 = bait__parser__Parser_expr(p, bait__token__Precedence.lowest)
+				if (_r41_2548.is_error) {
+					return _r41_2548
 				}
-				const expr = _r40_2548.data
+				const expr = _r41_2548.data
 				if (string_eq(key, from_js_string("length"))) {
 					length_expr = expr
 				} else if (string_eq(key, from_js_string("cap"))) {
@@ -4889,46 +4890,46 @@ _r40_2520.data
 					return error(from_js_string(`invalid array init field: ${key.str}`))
 				}
 			}
-			let _r40_2741 = bait__parser__Parser_check(p, bait__token__Token.rcur)
-			if (_r40_2741.is_error) {
-				return _r40_2741
+			let _r41_2741 = bait__parser__Parser_check(p, bait__token__Token.rcur)
+			if (_r41_2741.is_error) {
+				return _r41_2741
 			}
-_r40_2741.data
+_r41_2741.data
 		}
 		return new Result({ data: new bait__ast__ArrayInit({ typ: typ, elem_type: elem_type, length_expr: length_expr, cap_expr: cap_expr, pos: pos }) })
 	}
 	let exprs = new bait_Array({ data: [], length: 0 })
 	while (!eq(p.tok, bait__token__Token.rsqr)) {
-		let _r40_2994 = bait__parser__Parser_expr(p, bait__token__Precedence.lowest)
-		if (_r40_2994.is_error) {
-			return _r40_2994
+		let _r41_2994 = bait__parser__Parser_expr(p, bait__token__Precedence.lowest)
+		if (_r41_2994.is_error) {
+			return _r41_2994
 		}
-		Array_push(exprs, _r40_2994.data)
+		Array_push(exprs, _r41_2994.data)
 		if (eq(p.tok, bait__token__Token.comma)) {
 			bait__parser__Parser_next(p)
 		}
 	}
-	let _r40_3056 = bait__parser__Parser_check(p, bait__token__Token.rsqr)
-	if (_r40_3056.is_error) {
-		return _r40_3056
+	let _r41_3056 = bait__parser__Parser_check(p, bait__token__Token.rsqr)
+	if (_r41_3056.is_error) {
+		return _r41_3056
 	}
-_r40_3056.data
+_r41_3056.data
 	bait__parser__Parser_skip(p, bait__token__Token.semicolon)
 	return new Result({ data: new bait__ast__ArrayInit({ exprs: exprs, pos: pos }) })
 }
 
 function bait__parser__Parser_as_cast(p, left) {
 	const pos = p.pos
-	let _r40_3227 = bait__parser__Parser_check(p, bait__token__Token.key_as)
-	if (_r40_3227.is_error) {
-		return _r40_3227
+	let _r41_3227 = bait__parser__Parser_check(p, bait__token__Token.key_as)
+	if (_r41_3227.is_error) {
+		return _r41_3227
 	}
-_r40_3227.data
-	let _r40_3254 = bait__parser__Parser_parse_type(p)
-	if (_r40_3254.is_error) {
-		return _r40_3254
+_r41_3227.data
+	let _r41_3254 = bait__parser__Parser_parse_type(p)
+	if (_r41_3254.is_error) {
+		return _r41_3254
 	}
-	const bait_target = _r40_3254.data
+	const bait_target = _r41_3254.data
 	return new Result({ data: new bait__ast__AsCast({ bait_target: bait_target, expr: left, pos: pos }) })
 }
 
@@ -4948,27 +4949,27 @@ function bait__parser__Parser_char_literal(p) {
 
 function bait__parser__Parser_comptime_expr(p) {
 	if (eq(bait__parser__Parser_peek(p), bait__token__Token.key_if)) {
-		let _r40_3719 = bait__parser__Parser_if_match(p, false)
-		if (_r40_3719.is_error) {
-			return _r40_3719
+		let _r41_3719 = bait__parser__Parser_if_match(p, false)
+		if (_r41_3719.is_error) {
+			return _r41_3719
 		}
-		return new Result({ data: _r40_3719.data })
+		return new Result({ data: _r41_3719.data })
 	}
-	let _r40_3748 = bait__parser__Parser_comptime_var(p)
-	if (_r40_3748.is_error) {
-		return _r40_3748
+	let _r41_3748 = bait__parser__Parser_comptime_var(p)
+	if (_r41_3748.is_error) {
+		return _r41_3748
 	}
-	return new Result({ data: _r40_3748.data })
+	return new Result({ data: _r41_3748.data })
 }
 
 function bait__parser__Parser_comptime_var(p) {
 	const pos = p.pos
 	bait__parser__Parser_next(p)
-	let _r40_3856 = bait__parser__Parser_check_name(p)
-	if (_r40_3856.is_error) {
-		return _r40_3856
+	let _r41_3856 = bait__parser__Parser_check_name(p)
+	if (_r41_3856.is_error) {
+		return _r41_3856
 	}
-	const name = _r40_3856.data
+	const name = _r41_3856.data
 	const kind = bait__token__comptime_var_from_string(name)
 	if (eq(kind, bait__token__ComptimeVar.unknown)) {
 		return error(from_js_string(`invalid comptime var \`$${name.str}\``))
@@ -4978,23 +4979,23 @@ function bait__parser__Parser_comptime_var(p) {
 
 function bait__parser__Parser_dot_expr(p, left) {
 	const pos = p.pos
-	let _r40_4155 = bait__parser__Parser_check(p, bait__token__Token.dot)
-	if (_r40_4155.is_error) {
-		return _r40_4155
+	let _r41_4155 = bait__parser__Parser_check(p, bait__token__Token.dot)
+	if (_r41_4155.is_error) {
+		return _r41_4155
 	}
-_r40_4155.data
+_r41_4155.data
 	if (eq(bait__parser__Parser_peek(p), bait__token__Token.lpar)) {
-		let _r40_4208 = bait__parser__Parser_method_call(p, left)
-		if (_r40_4208.is_error) {
-			return _r40_4208
+		let _r41_4208 = bait__parser__Parser_method_call(p, left)
+		if (_r41_4208.is_error) {
+			return _r41_4208
 		}
-		return new Result({ data: _r40_4208.data })
+		return new Result({ data: _r41_4208.data })
 	}
-	let _r40_4242 = bait__parser__Parser_check_name(p)
-	if (_r40_4242.is_error) {
-		return _r40_4242
+	let _r41_4242 = bait__parser__Parser_check_name(p)
+	if (_r41_4242.is_error) {
+		return _r41_4242
 	}
-	const name = _r40_4242.data
+	const name = _r41_4242.data
 	return new Result({ data: new bait__ast__SelectorExpr({ expr: left, field_name: name, pos: pos }) })
 }
 
@@ -5002,53 +5003,53 @@ function bait__parser__Parser_enum_val(p, has_name) {
 	const pos = p.pos
 	let name = from_js_string("")
 	if (has_name) {
-		let _r40_4444 = bait__parser__Parser_check_name(p)
-		if (_r40_4444.is_error) {
-			return _r40_4444
+		let _r41_4444 = bait__parser__Parser_check_name(p)
+		if (_r41_4444.is_error) {
+			return _r41_4444
 		}
-		name = _r40_4444.data
+		name = _r41_4444.data
 		if (i32(p.expr_pkg.length > 0)) {
 			name = bait__parser__Parser_prepend_expr_pkg(p, name)
 		} else {
 			name = bait__parser__Parser_prepend_pkg(p, name)
 		}
 	}
-	let _r40_4572 = bait__parser__Parser_check(p, bait__token__Token.dot)
-	if (_r40_4572.is_error) {
-		return _r40_4572
+	let _r41_4572 = bait__parser__Parser_check(p, bait__token__Token.dot)
+	if (_r41_4572.is_error) {
+		return _r41_4572
 	}
-_r40_4572.data
-	let _r40_4599 = bait__parser__Parser_check_name(p)
-	if (_r40_4599.is_error) {
-		return _r40_4599
+_r41_4572.data
+	let _r41_4599 = bait__parser__Parser_check_name(p)
+	if (_r41_4599.is_error) {
+		return _r41_4599
 	}
-	const val = _r40_4599.data
+	const val = _r41_4599.data
 	return new Result({ data: new bait__ast__EnumVal({ name: name, val: val, pos: pos }) })
 }
 
 function bait__parser__Parser_hash_expr(p) {
-	let _r40_4727 = bait__parser__Parser_parse_lang(p)
-	if (_r40_4727.is_error) {
-		return _r40_4727
+	let _r41_4727 = bait__parser__Parser_parse_lang(p)
+	if (_r41_4727.is_error) {
+		return _r41_4727
 	}
-	const lang = _r40_4727.data
+	const lang = _r41_4727.data
 	if (!eq(p.tok, bait__token__Token.string)) {
 		if (eq(lang, bait__ast__Language.js)) {
 			p.expr_pkg = from_js_string("JS")
 		} else if (eq(lang, bait__ast__Language.c)) {
 			p.expr_pkg = from_js_string("C")
 		}
-		let _r40_4866 = bait__parser__Parser_name_expr(p, lang)
-		if (_r40_4866.is_error) {
-			return _r40_4866
+		let _r41_4866 = bait__parser__Parser_name_expr(p, lang)
+		if (_r41_4866.is_error) {
+			return _r41_4866
 		}
-		return new Result({ data: _r40_4866.data })
+		return new Result({ data: _r41_4866.data })
 	}
-	let _r40_4908 = bait__parser__Parser_string_literal(p, bait__ast__Language.bait)
-	if (_r40_4908.is_error) {
-		return _r40_4908
+	let _r41_4908 = bait__parser__Parser_string_literal(p, bait__ast__Language.bait)
+	if (_r41_4908.is_error) {
+		return _r41_4908
 	}
-	const str_node = _r40_4908.data
+	const str_node = _r41_4908.data
 	return new Result({ data: new bait__ast__HashExpr({ lang: lang, val: str_node.val, pos: str_node.pos }) })
 }
 
@@ -5061,31 +5062,31 @@ function bait__parser__Parser_ident(p, lang) {
 	if (p.is_for_init) {
 		is_mut = true
 	}
-	let _r40_5212 = bait__parser__Parser_check_name(p)
-	if (_r40_5212.is_error) {
-		return _r40_5212
+	let _r41_5212 = bait__parser__Parser_check_name(p)
+	if (_r41_5212.is_error) {
+		return _r41_5212
 	}
-	const name = _r40_5212.data
+	const name = _r41_5212.data
 	return new Result({ data: new bait__ast__Ident({ name: name, pkg: bait__parser__Parser_get_expr_pkg(p), is_mut: is_mut, pos: pos, lang: lang }) })
 }
 
 function bait__parser__Parser_index_expr(p, left) {
 	const pos = p.pos
-	let _r40_5412 = bait__parser__Parser_check(p, bait__token__Token.lsqr)
-	if (_r40_5412.is_error) {
-		return _r40_5412
+	let _r41_5412 = bait__parser__Parser_check(p, bait__token__Token.lsqr)
+	if (_r41_5412.is_error) {
+		return _r41_5412
 	}
-_r40_5412.data
-	let _r40_5435 = bait__parser__Parser_expr(p, bait__token__Precedence.lowest)
-	if (_r40_5435.is_error) {
-		return _r40_5435
+_r41_5412.data
+	let _r41_5435 = bait__parser__Parser_expr(p, bait__token__Precedence.lowest)
+	if (_r41_5435.is_error) {
+		return _r41_5435
 	}
-	const index = _r40_5435.data
-	let _r40_5452 = bait__parser__Parser_check(p, bait__token__Token.rsqr)
-	if (_r40_5452.is_error) {
-		return _r40_5452
+	const index = _r41_5435.data
+	let _r41_5452 = bait__parser__Parser_check(p, bait__token__Token.rsqr)
+	if (_r41_5452.is_error) {
+		return _r41_5452
 	}
-_r40_5452.data
+_r41_5452.data
 	bait__parser__Parser_skip(p, bait__token__Token.semicolon)
 	return new Result({ data: new bait__ast__IndexExpr({ left: left, index: index, pos: pos }) })
 }
@@ -5094,11 +5095,11 @@ function bait__parser__Parser_infix_expr(p, left) {
 	const pos = p.pos
 	const op_tok = p.tok
 	bait__parser__Parser_next(p)
-	let _r40_5690 = bait__parser__Parser_expr(p, bait__token__Token_precedence(op_tok))
-	if (_r40_5690.is_error) {
-		return _r40_5690
+	let _r41_5690 = bait__parser__Parser_expr(p, bait__token__Token_precedence(op_tok))
+	if (_r41_5690.is_error) {
+		return _r41_5690
 	}
-	const right = _r40_5690.data
+	const right = _r41_5690.data
 	return new Result({ data: new bait__ast__InfixExpr({ left: left, right: right, op: op_tok, pos: pos }) })
 }
 
@@ -5106,36 +5107,36 @@ function bait__parser__Parser_map_init(p) {
 	const pos = p.pos
 	bait__parser__Parser_next(p)
 	if (eq(p.tok, bait__token__Token.lsqr)) {
-		let _r40_5898 = bait__parser__Parser_parse_map_type(p)
-		if (_r40_5898.is_error) {
-			return _r40_5898
+		let _r41_5898 = bait__parser__Parser_parse_map_type(p)
+		if (_r41_5898.is_error) {
+			return _r41_5898
 		}
-		const map_type = _r40_5898.data
+		const map_type = _r41_5898.data
 		return new Result({ data: new bait__ast__MapInit({ typ: map_type, pos: pos }) })
 	}
 	let keys = new bait_Array({ data: [], length: 0 })
 	let vals = new bait_Array({ data: [], length: 0 })
-	let _r40_6019 = bait__parser__Parser_check(p, bait__token__Token.lcur)
-	if (_r40_6019.is_error) {
-		return _r40_6019
+	let _r41_6019 = bait__parser__Parser_check(p, bait__token__Token.lcur)
+	if (_r41_6019.is_error) {
+		return _r41_6019
 	}
-_r40_6019.data
+_r41_6019.data
 	while (!eq(p.tok, bait__token__Token.rcur)) {
-		let _r40_6066 = bait__parser__Parser_expr(p, bait__token__Precedence.lowest)
-		if (_r40_6066.is_error) {
-			return _r40_6066
+		let _r41_6066 = bait__parser__Parser_expr(p, bait__token__Precedence.lowest)
+		if (_r41_6066.is_error) {
+			return _r41_6066
 		}
-		Array_push(keys, _r40_6066.data)
-		let _r40_6092 = bait__parser__Parser_check(p, bait__token__Token.colon)
-		if (_r40_6092.is_error) {
-			return _r40_6092
+		Array_push(keys, _r41_6066.data)
+		let _r41_6092 = bait__parser__Parser_check(p, bait__token__Token.colon)
+		if (_r41_6092.is_error) {
+			return _r41_6092
 		}
-_r40_6092.data
-		let _r40_6115 = bait__parser__Parser_expr(p, bait__token__Precedence.lowest)
-		if (_r40_6115.is_error) {
-			return _r40_6115
+_r41_6092.data
+		let _r41_6115 = bait__parser__Parser_expr(p, bait__token__Precedence.lowest)
+		if (_r41_6115.is_error) {
+			return _r41_6115
 		}
-		Array_push(vals, _r40_6115.data)
+		Array_push(vals, _r41_6115.data)
 	}
 	bait__parser__Parser_next(p)
 	return new Result({ data: new bait__ast__MapInit({ keys: keys, vals: vals, pos: pos }) })
@@ -5149,16 +5150,16 @@ function bait__parser__Parser_name_expr(p, lang) {
 	}
 	if (eq(bait__parser__Parser_peek(p), bait__token__Token.dot)) {
 		if (eq(lang, bait__ast__Language.js)) {
-			let _r40_6432 = bait__parser__Parser_check_name(p)
-			if (_r40_6432.is_error) {
-				return _r40_6432
+			let _r41_6432 = bait__parser__Parser_check_name(p)
+			if (_r41_6432.is_error) {
+				return _r41_6432
 			}
-			p.expr_pkg = string_add(p.expr_pkg, string_add(from_js_string("."), _r40_6432.data))
-			let _r40_6449 = bait__parser__Parser_check(p, bait__token__Token.dot)
-			if (_r40_6449.is_error) {
-				return _r40_6449
+			p.expr_pkg = string_add(p.expr_pkg, string_add(from_js_string("."), _r41_6432.data))
+			let _r41_6449 = bait__parser__Parser_check(p, bait__token__Token.dot)
+			if (_r41_6449.is_error) {
+				return _r41_6449
 			}
-_r40_6449.data
+_r41_6449.data
 		} else if (Map_contains(p.import_aliases, p.val)) {
 			p.expr_pkg = Map_get_set(p.import_aliases, p.val, from_js_string(""))
 			bait__parser__Parser_next(p)
@@ -5166,49 +5167,49 @@ _r40_6449.data
 		}
 	}
 	if (string_eq(p.val, from_js_string("map"))) {
-		let _r40_6611 = bait__parser__Parser_map_init(p)
-		if (_r40_6611.is_error) {
-			return _r40_6611
+		let _r41_6611 = bait__parser__Parser_map_init(p)
+		if (_r41_6611.is_error) {
+			return _r41_6611
 		}
-		return new Result({ data: _r40_6611.data })
+		return new Result({ data: _r41_6611.data })
 	}
 	if (eq(bait__parser__Parser_peek(p), bait__token__Token.lpar)) {
-		let _r40_6666 = bait__parser__Parser_fun_call(p, lang)
-		if (_r40_6666.is_error) {
-			return _r40_6666
+		let _r41_6666 = bait__parser__Parser_fun_call(p, lang)
+		if (_r41_6666.is_error) {
+			return _r41_6666
 		}
-		return new Result({ data: _r40_6666.data })
+		return new Result({ data: _r41_6666.data })
 	}
 	const capitalised = u8_is_upper(string_get(p.val, 0)) && !string_is_upper(p.val)
 	if (p.is_struct_possible && (eq(bait__parser__Parser_peek(p), bait__token__Token.lcur) || eq(bait__parser__Parser_peek(p), bait__token__Token.lsqr))) {
 		if (capitalised || Array_contains_string(new bait_Array({ data: [from_js_string("string")], length: 1 }), p.val)) {
-			let _r40_6922 = bait__parser__Parser_struct_init(p)
-			if (_r40_6922.is_error) {
-				return _r40_6922
+			let _r41_6922 = bait__parser__Parser_struct_init(p)
+			if (_r41_6922.is_error) {
+				return _r41_6922
 			}
-			return new Result({ data: _r40_6922.data })
+			return new Result({ data: _r41_6922.data })
 		}
 	}
 	if (capitalised && eq(bait__parser__Parser_peek(p), bait__token__Token.dot)) {
-		let _r40_6995 = bait__parser__Parser_enum_val(p, true)
-		if (_r40_6995.is_error) {
-			return _r40_6995
+		let _r41_6995 = bait__parser__Parser_enum_val(p, true)
+		if (_r41_6995.is_error) {
+			return _r41_6995
 		}
-		return new Result({ data: _r40_6995.data })
+		return new Result({ data: _r41_6995.data })
 	}
 	if (eq(bait__parser__Parser_peek(p), bait__token__Token.string) && string_eq(p.val, from_js_string("js"))) {
 		bait__parser__Parser_next(p)
-		let _r40_7086 = bait__parser__Parser_string_literal(p, bait__ast__Language.js)
-		if (_r40_7086.is_error) {
-			return _r40_7086
+		let _r41_7086 = bait__parser__Parser_string_literal(p, bait__ast__Language.js)
+		if (_r41_7086.is_error) {
+			return _r41_7086
 		}
-		return new Result({ data: _r40_7086.data })
+		return new Result({ data: _r41_7086.data })
 	}
-	let _r40_7112 = bait__parser__Parser_ident(p, lang)
-	if (_r40_7112.is_error) {
-		return _r40_7112
+	let _r41_7112 = bait__parser__Parser_ident(p, lang)
+	if (_r41_7112.is_error) {
+		return _r41_7112
 	}
-	return new Result({ data: _r40_7112.data })
+	return new Result({ data: _r41_7112.data })
 }
 
 function bait__parser__Parser_float_literal(p) {
@@ -5226,16 +5227,16 @@ function bait__parser__Parser_integer_literal(p) {
 function bait__parser__Parser_par_expr(p) {
 	const pos = p.pos
 	bait__parser__Parser_next(p)
-	let _r40_7483 = bait__parser__Parser_expr(p, bait__token__Precedence.lowest)
-	if (_r40_7483.is_error) {
-		return _r40_7483
+	let _r41_7483 = bait__parser__Parser_expr(p, bait__token__Precedence.lowest)
+	if (_r41_7483.is_error) {
+		return _r41_7483
 	}
-	const expr = _r40_7483.data
-	let _r40_7505 = bait__parser__Parser_check(p, bait__token__Token.rpar)
-	if (_r40_7505.is_error) {
-		return _r40_7505
+	const expr = _r41_7483.data
+	let _r41_7505 = bait__parser__Parser_check(p, bait__token__Token.rpar)
+	if (_r41_7505.is_error) {
+		return _r41_7505
 	}
-_r40_7505.data
+_r41_7505.data
 	return new Result({ data: new bait__ast__ParExpr({ expr: expr, pos: pos }) })
 }
 
@@ -5243,30 +5244,30 @@ function bait__parser__Parser_prefix_expr(p) {
 	const pos = p.pos
 	const op = p.tok
 	bait__parser__Parser_next(p)
-	let _r40_7672 = bait__parser__Parser_expr(p, bait__token__Precedence.prefix)
-	if (_r40_7672.is_error) {
-		return _r40_7672
+	let _r41_7672 = bait__parser__Parser_expr(p, bait__token__Precedence.prefix)
+	if (_r41_7672.is_error) {
+		return _r41_7672
 	}
-	const right = _r40_7672.data
+	const right = _r41_7672.data
 	return new Result({ data: new bait__ast__PrefixExpr({ op: op, right: right, pos: pos }) })
 }
 
 function bait__parser__Parser_range_expr(p, low) {
 	const pos = p.pos
-	let _r40_7832 = bait__parser__Parser_check(p, bait__token__Token.dotdot)
-	if (_r40_7832.is_error) {
-		return _r40_7832
+	let _r41_7832 = bait__parser__Parser_check(p, bait__token__Token.dotdot)
+	if (_r41_7832.is_error) {
+		return _r41_7832
 	}
-_r40_7832.data
+_r41_7832.data
 	let _t226 = undefined
 	if (eq(p.tok, bait__token__Token.rsqr)) {
 		_t226 = new bait__ast__Void({})
 	} else {
-			let _r40_7906 = bait__parser__Parser_expr(p, bait__token__Precedence.lowest)
-		if (_r40_7906.is_error) {
-			return _r40_7906
+			let _r41_7906 = bait__parser__Parser_expr(p, bait__token__Precedence.lowest)
+		if (_r41_7906.is_error) {
+			return _r41_7906
 		}
-		_t226 = _r40_7906.data
+		_t226 = _r41_7906.data
 	}
 	const high = _t226
 	return new Result({ data: new bait__ast__RangeExpr({ low: low, high: high, pos: pos }) })
@@ -5288,42 +5289,42 @@ function bait__parser__Parser_string_literal(p, lang) {
 			break
 		}
 		bait__parser__Parser_next(p)
-		let _r40_8388 = bait__parser__Parser_check(p, bait__token__Token.lcur)
-		if (_r40_8388.is_error) {
-			return _r40_8388
+		let _r41_8388 = bait__parser__Parser_check(p, bait__token__Token.lcur)
+		if (_r41_8388.is_error) {
+			return _r41_8388
 		}
-_r40_8388.data
-		let _r40_8411 = bait__parser__Parser_expr(p, bait__token__Precedence.lowest)
-		if (_r40_8411.is_error) {
-			return _r40_8411
+_r41_8388.data
+		let _r41_8411 = bait__parser__Parser_expr(p, bait__token__Precedence.lowest)
+		if (_r41_8411.is_error) {
+			return _r41_8411
 		}
-		Array_push(exprs, _r40_8411.data)
+		Array_push(exprs, _r41_8411.data)
 	}
 	return new Result({ data: new bait__ast__StringInterLiteral({ vals: vals, exprs: exprs, pos: pos }) })
 }
 
 function bait__parser__Parser_typeof_expr(p) {
 	const pos = p.pos
-	let _r40_8581 = bait__parser__Parser_check(p, bait__token__Token.key_typeof)
-	if (_r40_8581.is_error) {
-		return _r40_8581
+	let _r41_8581 = bait__parser__Parser_check(p, bait__token__Token.key_typeof)
+	if (_r41_8581.is_error) {
+		return _r41_8581
 	}
-_r40_8581.data
-	let _r40_8601 = bait__parser__Parser_check(p, bait__token__Token.lpar)
-	if (_r40_8601.is_error) {
-		return _r40_8601
+_r41_8581.data
+	let _r41_8601 = bait__parser__Parser_check(p, bait__token__Token.lpar)
+	if (_r41_8601.is_error) {
+		return _r41_8601
 	}
-_r40_8601.data
-	let _r40_8624 = bait__parser__Parser_expr(p, bait__token__Precedence.lowest)
-	if (_r40_8624.is_error) {
-		return _r40_8624
+_r41_8601.data
+	let _r41_8624 = bait__parser__Parser_expr(p, bait__token__Precedence.lowest)
+	if (_r41_8624.is_error) {
+		return _r41_8624
 	}
-	const expr = _r40_8624.data
-	let _r40_8646 = bait__parser__Parser_check(p, bait__token__Token.rpar)
-	if (_r40_8646.is_error) {
-		return _r40_8646
+	const expr = _r41_8624.data
+	let _r41_8646 = bait__parser__Parser_check(p, bait__token__Token.rpar)
+	if (_r41_8646.is_error) {
+		return _r41_8646
 	}
-_r40_8646.data
+_r41_8646.data
 	return new Result({ data: new bait__ast__TypeOf({ expr: expr, pos: pos }) })
 }
 
@@ -5331,35 +5332,35 @@ _r40_8646.data
 function bait__parser__Parser_struct_decl(p) {
 	const pos = p.pos
 	const is_pub = bait__parser__Parser_check_pub(p)
-	let _r41_288 = bait__parser__Parser_check(p, bait__token__Token.key_struct)
-	if (_r41_288.is_error) {
-		return _r41_288
+	let _r42_288 = bait__parser__Parser_check(p, bait__token__Token.key_struct)
+	if (_r42_288.is_error) {
+		return _r42_288
 	}
-_r41_288.data
-	let _r41_312 = bait__parser__Parser_parse_lang(p)
-	if (_r41_312.is_error) {
-		return _r41_312
+_r42_288.data
+	let _r42_312 = bait__parser__Parser_parse_lang(p)
+	if (_r42_312.is_error) {
+		return _r42_312
 	}
-	const lang = _r41_312.data
-	let _r41_340 = bait__parser__Parser_check_name(p)
-	if (_r41_340.is_error) {
-		return _r41_340
+	const lang = _r42_312.data
+	let _r42_340 = bait__parser__Parser_check_name(p)
+	if (_r42_340.is_error) {
+		return _r42_340
 	}
-	let name = _r41_340.data
+	let name = _r42_340.data
 	if (!eq(lang, bait__ast__Language.bait)) {
 		name = bait__ast__Language_prepend_to(lang, name)
 	}
-	let _r41_439 = bait__parser__Parser_generic_type_names(p)
-	if (_r41_439.is_error) {
-		return _r41_439
+	let _r42_439 = bait__parser__Parser_generic_type_names(p)
+	if (_r42_439.is_error) {
+		return _r42_439
 	}
-	const generic_names = _r41_439.data
+	const generic_names = _r42_439.data
 	let fields = new bait_Array({ data: [], length: 0 })
-	let _r41_490 = bait__parser__Parser_check(p, bait__token__Token.lcur)
-	if (_r41_490.is_error) {
-		return _r41_490
+	let _r42_490 = bait__parser__Parser_check(p, bait__token__Token.lcur)
+	if (_r42_490.is_error) {
+		return _r42_490
 	}
-_r41_490.data
+_r42_490.data
 	while (!eq(p.tok, bait__token__Token.rcur)) {
 		const f_is_pub = eq(p.tok, bait__token__Token.key_pub)
 		if (f_is_pub) {
@@ -5376,22 +5377,22 @@ _r41_490.data
 			}
 			bait__parser__Parser_next(p)
 		}
-		let _r41_816 = bait__parser__Parser_parse_attributes(p)
-		if (_r41_816.is_error) {
-			return _r41_816
+		let _r42_816 = bait__parser__Parser_parse_attributes(p)
+		if (_r42_816.is_error) {
+			return _r42_816
 		}
-_r41_816.data
-		let _r41_876 = bait__parser__Parser_struct_decl_field(p, f_is_mut, f_is_pub, f_is_global)
-		if (_r41_876.is_error) {
-			return _r41_876
+_r42_816.data
+		let _r42_876 = bait__parser__Parser_struct_decl_field(p, f_is_mut, f_is_pub, f_is_global)
+		if (_r42_876.is_error) {
+			return _r42_876
 		}
-		Array_push(fields, _r41_876.data)
+		Array_push(fields, _r42_876.data)
 	}
-	let _r41_903 = bait__parser__Parser_check(p, bait__token__Token.rcur)
-	if (_r41_903.is_error) {
-		return _r41_903
+	let _r42_903 = bait__parser__Parser_check(p, bait__token__Token.rcur)
+	if (_r42_903.is_error) {
+		return _r42_903
 	}
-_r41_903.data
+_r42_903.data
 	const tsym = new bait__ast__TypeSymbol({ kind: bait__ast__TypeKind.struct_, mix_name: bait__parser__Parser_prepend_pkg(p, name), is_pub: is_pub, pkg: p.pkg_name, info: new bait__ast__StructInfo({ fields: fields, generic_names: generic_names }) })
 	const typ = bait__ast__Table_register_sym(p.table, tsym)
 	bait__context__Scope_register_unique(p.pkg_scope, name, new bait__context__ScopeObject({ kind: bait__context__ObjectKind.type_, typ: typ }))
@@ -5400,24 +5401,24 @@ _r41_903.data
 
 function bait__parser__Parser_struct_decl_field(p, is_mut, is_pub, is_global) {
 	const pos = p.pos
-	let _r41_1528 = bait__parser__Parser_check_name(p)
-	if (_r41_1528.is_error) {
-		return _r41_1528
+	let _r42_1528 = bait__parser__Parser_check_name(p)
+	if (_r42_1528.is_error) {
+		return _r42_1528
 	}
-	const fname = _r41_1528.data
-	let _r41_1552 = bait__parser__Parser_parse_type(p)
-	if (_r41_1552.is_error) {
-		return _r41_1552
+	const fname = _r42_1528.data
+	let _r42_1552 = bait__parser__Parser_parse_type(p)
+	if (_r42_1552.is_error) {
+		return _r42_1552
 	}
-	const ftyp = _r41_1552.data
+	const ftyp = _r42_1552.data
 	let expr = new bait__ast__InvalidExpr({})
 	if (eq(p.tok, bait__token__Token.decl_assign)) {
 		bait__parser__Parser_next(p)
-		let _r41_1658 = bait__parser__Parser_expr(p, bait__token__Precedence.lowest)
-		if (_r41_1658.is_error) {
-			return _r41_1658
+		let _r42_1658 = bait__parser__Parser_expr(p, bait__token__Precedence.lowest)
+		if (_r42_1658.is_error) {
+			return _r42_1658
 		}
-		expr = _r41_1658.data
+		expr = _r42_1658.data
 	}
 	const field = new bait__ast__StructField({ name: fname, typ: ftyp, expr: expr, pos: pos, is_mut: is_mut || is_global, is_pub: is_pub || is_global, is_global: is_global, attrs: p.attributes })
 	p.attributes = new bait_Array({ data: [], length: 0 })
@@ -5427,58 +5428,58 @@ function bait__parser__Parser_struct_decl_field(p, is_mut, is_pub, is_global) {
 function bait__parser__Parser_struct_init(p) {
 	const pos = p.pos
 	const name = p.val
-	let _r41_2021 = bait__parser__Parser_parse_type(p)
-	if (_r41_2021.is_error) {
-		return _r41_2021
+	let _r42_2021 = bait__parser__Parser_parse_type(p)
+	if (_r42_2021.is_error) {
+		return _r42_2021
 	}
-	let typ = _r41_2021.data
-	let _r41_2048 = bait__parser__Parser_concrete_types(p)
-	if (_r41_2048.is_error) {
-		return _r41_2048
+	let typ = _r42_2021.data
+	let _r42_2048 = bait__parser__Parser_concrete_types(p)
+	if (_r42_2048.is_error) {
+		return _r42_2048
 	}
-	const conc_types = _r41_2048.data
+	const conc_types = _r42_2048.data
 	if (i32(conc_types.length > 0)) {
 		const parent = bait__ast__Table_get_sym(p.table, typ)
 		typ = bait__ast__Table_register_sym(p.table, new bait__ast__TypeSymbol({ kind: bait__ast__TypeKind.generic_inst, parent: typ, pkg: parent.pkg, info: new bait__ast__GenericInst({ concrete_types: conc_types }) }))
 	}
-	let _r41_2305 = bait__parser__Parser_check(p, bait__token__Token.lcur)
-	if (_r41_2305.is_error) {
-		return _r41_2305
+	let _r42_2305 = bait__parser__Parser_check(p, bait__token__Token.lcur)
+	if (_r42_2305.is_error) {
+		return _r42_2305
 	}
-_r41_2305.data
+_r42_2305.data
 	let fields = new bait_Array({ data: [], length: 0 })
 	while (!eq(p.tok, bait__token__Token.rcur)) {
-		let _r41_2397 = bait__parser__Parser_struct_init_field(p)
-		if (_r41_2397.is_error) {
-			return _r41_2397
+		let _r42_2397 = bait__parser__Parser_struct_init_field(p)
+		if (_r42_2397.is_error) {
+			return _r42_2397
 		}
-		Array_push(fields, _r41_2397.data)
+		Array_push(fields, _r42_2397.data)
 	}
-	let _r41_2426 = bait__parser__Parser_check(p, bait__token__Token.rcur)
-	if (_r41_2426.is_error) {
-		return _r41_2426
+	let _r42_2426 = bait__parser__Parser_check(p, bait__token__Token.rcur)
+	if (_r42_2426.is_error) {
+		return _r42_2426
 	}
-_r41_2426.data
+_r42_2426.data
 	return new Result({ data: new bait__ast__StructInit({ name: name, typ: typ, fields: fields, pos: pos, concrete_types: conc_types }) })
 }
 
 function bait__parser__Parser_struct_init_field(p) {
 	const pos = p.pos
-	let _r41_2638 = bait__parser__Parser_check_name(p)
-	if (_r41_2638.is_error) {
-		return _r41_2638
+	let _r42_2638 = bait__parser__Parser_check_name(p)
+	if (_r42_2638.is_error) {
+		return _r42_2638
 	}
-	const name = _r41_2638.data
-	let _r41_2660 = bait__parser__Parser_check(p, bait__token__Token.assign)
-	if (_r41_2660.is_error) {
-		return _r41_2660
+	const name = _r42_2638.data
+	let _r42_2660 = bait__parser__Parser_check(p, bait__token__Token.assign)
+	if (_r42_2660.is_error) {
+		return _r42_2660
 	}
-_r41_2660.data
-	let _r41_2689 = bait__parser__Parser_expr(p, bait__token__Precedence.lowest)
-	if (_r41_2689.is_error) {
-		return _r41_2689
+_r42_2660.data
+	let _r42_2689 = bait__parser__Parser_expr(p, bait__token__Precedence.lowest)
+	if (_r42_2689.is_error) {
+		return _r42_2689
 	}
-	const expr = _r41_2689.data
+	const expr = _r42_2689.data
 	return new Result({ data: new bait__ast__StructInitField({ name: name, expr: expr, pos: pos }) })
 }
 
@@ -5489,11 +5490,11 @@ function bait__parser__Parser_parse_type(p) {
 		if (eq(p.tok, bait__token__Token.lcur)) {
 			return new Result({ data: bait__ast__Table_register_sym(p.table, new bait__ast__TypeSymbol({ kind: bait__ast__TypeKind.result, mix_name: from_js_string("Result[void]"), parent: bait__ast__VOID_TYPE })) })
 		}
-		let _r42_429 = bait__parser__Parser_parse_type(p)
-		if (_r42_429.is_error) {
-			return _r42_429
+		let _r43_429 = bait__parser__Parser_parse_type(p)
+		if (_r43_429.is_error) {
+			return _r43_429
 		}
-		const typ = _r42_429.data
+		const typ = _r43_429.data
 		const tsym = bait__ast__Table_get_sym(p.table, typ)
 		return new Result({ data: bait__ast__Table_register_sym(p.table, new bait__ast__TypeSymbol({ kind: bait__ast__TypeKind.result, mix_name: string_add(string_add(from_js_string("Result["), tsym.mix_name), from_js_string("]")), parent: typ })) })
 	}
@@ -5504,48 +5505,48 @@ function bait__parser__Parser_parse_type(p) {
 	}
 	if (eq(p.tok, bait__token__Token.lsqr)) {
 		bait__parser__Parser_next(p)
-		let _r42_743 = bait__parser__Parser_check(p, bait__token__Token.rsqr)
-		if (_r42_743.is_error) {
-			return _r42_743
+		let _r43_743 = bait__parser__Parser_check(p, bait__token__Token.rsqr)
+		if (_r43_743.is_error) {
+			return _r43_743
 		}
-_r42_743.data
-		let _r42_798 = bait__parser__Parser_parse_type(p)
-		if (_r42_798.is_error) {
-			const err = _r42_798.msg
-			_r42_798.data = bait__ast__PLACEHOLDER_TYPE
+_r43_743.data
+		let _r43_798 = bait__parser__Parser_parse_type(p)
+		if (_r43_798.is_error) {
+			const err = _r43_798.msg
+			_r43_798.data = bait__ast__PLACEHOLDER_TYPE
 		}
-		const elem_type = _r42_798.data
+		const elem_type = _r43_798.data
 		return new Result({ data: bait__ast__Table_find_or_register_array(p.table, elem_type) })
 	}
 	if (eq(p.tok, bait__token__Token.key_fun)) {
-		let _r42_918 = bait__parser__Parser_parse_fun_type(p)
-		if (_r42_918.is_error) {
-			return _r42_918
+		let _r43_918 = bait__parser__Parser_parse_fun_type(p)
+		if (_r43_918.is_error) {
+			return _r43_918
 		}
-		return new Result({ data: _r42_918.data })
+		return new Result({ data: _r43_918.data })
 	}
 	if (string_eq(p.val, from_js_string("map"))) {
 		bait__parser__Parser_next(p)
-		let _r42_996 = bait__parser__Parser_parse_map_type(p)
-		if (_r42_996.is_error) {
-			return _r42_996
+		let _r43_996 = bait__parser__Parser_parse_map_type(p)
+		if (_r43_996.is_error) {
+			return _r43_996
 		}
-		return new Result({ data: _r42_996.data })
+		return new Result({ data: _r43_996.data })
 	}
 	if (eq(p.tok, bait__token__Token.semicolon)) {
 		bait__parser__Parser_next(p)
 		return new Result({ data: bait__ast__PLACEHOLDER_TYPE })
 	}
-	let _r42_1184 = bait__parser__Parser_parse_lang(p)
-	if (_r42_1184.is_error) {
-		return _r42_1184
+	let _r43_1184 = bait__parser__Parser_parse_lang(p)
+	if (_r43_1184.is_error) {
+		return _r43_1184
 	}
-	const lang = _r42_1184.data
-	let _r42_1220 = bait__parser__Parser_parse_name_type(p, lang)
-	if (_r42_1220.is_error) {
-		return _r42_1220
+	const lang = _r43_1184.data
+	let _r43_1220 = bait__parser__Parser_parse_name_type(p, lang)
+	if (_r43_1220.is_error) {
+		return _r43_1220
 	}
-	let typ = _r42_1220.data
+	let typ = _r43_1220.data
 	if (i32(nr_amp > 0)) {
 		typ = bait__ast__Type_set_nr_amp(typ, nr_amp)
 	}
@@ -5553,27 +5554,27 @@ _r42_743.data
 }
 
 function bait__parser__Parser_parse_name_type(p, lang) {
-	let _r42_1394 = bait__parser__Parser_check_name(p)
-	if (_r42_1394.is_error) {
-		return _r42_1394
+	let _r43_1394 = bait__parser__Parser_check_name(p)
+	if (_r43_1394.is_error) {
+		return _r43_1394
 	}
-	let name = bait__ast__Language_prepend_to(lang, _r42_1394.data)
+	let name = bait__ast__Language_prepend_to(lang, _r43_1394.data)
 	if (eq(p.tok, bait__token__Token.dot)) {
 		if (eq(lang, bait__ast__Language.js)) {
 			bait__parser__Parser_next(p)
-			let _r42_1529 = bait__parser__Parser_check_name(p)
-			if (_r42_1529.is_error) {
-				return _r42_1529
+			let _r43_1529 = bait__parser__Parser_check_name(p)
+			if (_r43_1529.is_error) {
+				return _r43_1529
 			}
-			name = string_add(name, string_add(from_js_string("."), _r42_1529.data))
+			name = string_add(name, string_add(from_js_string("."), _r43_1529.data))
 		} else {
 			const pkg = Map_get_set(p.import_aliases, name, from_js_string(""))
 			bait__parser__Parser_next(p)
-			let _r42_1623 = bait__parser__Parser_check_name(p)
-			if (_r42_1623.is_error) {
-				return _r42_1623
+			let _r43_1623 = bait__parser__Parser_check_name(p)
+			if (_r43_1623.is_error) {
+				return _r43_1623
 			}
-			name = string_add(string_add(pkg, from_js_string(".")), _r42_1623.data)
+			name = string_add(string_add(pkg, from_js_string(".")), _r43_1623.data)
 		}
 	} else if (i32(p.expr_pkg.length > 0)) {
 		name = bait__parser__Parser_prepend_expr_pkg(p, name)
@@ -5615,45 +5616,45 @@ function bait__parser__Parser_parse_name_type(p, lang) {
 
 function bait__parser__Parser_parse_fun_type(p) {
 	bait__parser__Parser_next(p)
-	let _r42_2321 = bait__parser__Parser_check(p, bait__token__Token.lpar)
-	if (_r42_2321.is_error) {
-		return _r42_2321
+	let _r43_2321 = bait__parser__Parser_check(p, bait__token__Token.lpar)
+	if (_r43_2321.is_error) {
+		return _r43_2321
 	}
-_r42_2321.data
+_r43_2321.data
 	let param_types = new bait_Array({ data: [], length: 0 })
 	while (!eq(p.tok, bait__token__Token.rpar)) {
-		let _r42_2443 = bait__parser__Parser_check_name(p)
-		if (_r42_2443.is_error) {
-			return _r42_2443
+		let _r43_2443 = bait__parser__Parser_check_name(p)
+		if (_r43_2443.is_error) {
+			return _r43_2443
 		}
-		_t246 = _r42_2443.data
-		let _r42_2476 = bait__parser__Parser_parse_type(p)
-		if (_r42_2476.is_error) {
-			return _r42_2476
+		_t246 = _r43_2443.data
+		let _r43_2476 = bait__parser__Parser_parse_type(p)
+		if (_r43_2476.is_error) {
+			return _r43_2476
 		}
-		const typ = _r42_2476.data
+		const typ = _r43_2476.data
 		Array_push(param_types, typ)
 		if (!eq(p.tok, bait__token__Token.rpar)) {
-			let _r42_2531 = bait__parser__Parser_check(p, bait__token__Token.comma)
-			if (_r42_2531.is_error) {
-				return _r42_2531
+			let _r43_2531 = bait__parser__Parser_check(p, bait__token__Token.comma)
+			if (_r43_2531.is_error) {
+				return _r43_2531
 			}
-_r42_2531.data
+_r43_2531.data
 		}
 	}
 	const par_line = p.pos.line
-	let _r42_2580 = bait__parser__Parser_check(p, bait__token__Token.rpar)
-	if (_r42_2580.is_error) {
-		return _r42_2580
+	let _r43_2580 = bait__parser__Parser_check(p, bait__token__Token.rpar)
+	if (_r43_2580.is_error) {
+		return _r43_2580
 	}
-_r42_2580.data
+_r43_2580.data
 	let return_type = bait__ast__VOID_TYPE
 	if (eq(p.pos.line, par_line)) {
-		let _r42_2673 = bait__parser__Parser_parse_type(p)
-		if (_r42_2673.is_error) {
-			return _r42_2673
+		let _r43_2673 = bait__parser__Parser_parse_type(p)
+		if (_r43_2673.is_error) {
+			return _r43_2673
 		}
-		return_type = _r42_2673.data
+		return_type = _r43_2673.data
 	}
 	return new Result({ data: bait__ast__Table_find_or_register_fun(p.table, param_types, return_type, true) })
 }
@@ -5662,29 +5663,29 @@ function bait__parser__Parser_parse_map_type(p) {
 	if (eq(p.tok, bait__token__Token.rpar) && string_eq(p.pkg_name, from_js_string("builtin"))) {
 		return new Result({ data: bait__ast__MAP_TYPE })
 	}
-	let _r42_2894 = bait__parser__Parser_check(p, bait__token__Token.lsqr)
-	if (_r42_2894.is_error) {
-		return _r42_2894
+	let _r43_2894 = bait__parser__Parser_check(p, bait__token__Token.lsqr)
+	if (_r43_2894.is_error) {
+		return _r43_2894
 	}
-_r42_2894.data
-	let _r42_2917 = bait__parser__Parser_parse_type(p)
-	if (_r42_2917.is_error) {
-		return _r42_2917
+_r43_2894.data
+	let _r43_2917 = bait__parser__Parser_parse_type(p)
+	if (_r43_2917.is_error) {
+		return _r43_2917
 	}
-	const key_type = _r42_2917.data
+	const key_type = _r43_2917.data
 	if (!eq(key_type, bait__ast__STRING_TYPE)) {
 		return error(from_js_string("map key type must be string"))
 	}
-	let _r42_3023 = bait__parser__Parser_check(p, bait__token__Token.rsqr)
-	if (_r42_3023.is_error) {
-		return _r42_3023
+	let _r43_3023 = bait__parser__Parser_check(p, bait__token__Token.rsqr)
+	if (_r43_3023.is_error) {
+		return _r43_3023
 	}
-_r42_3023.data
-	let _r42_3050 = bait__parser__Parser_parse_type(p)
-	if (_r42_3050.is_error) {
-		return _r42_3050
+_r43_3023.data
+	let _r43_3050 = bait__parser__Parser_parse_type(p)
+	if (_r43_3050.is_error) {
+		return _r43_3050
 	}
-	const val_type = _r42_3050.data
+	const val_type = _r43_3050.data
 	return new Result({ data: bait__ast__Table_find_or_register_map(p.table, key_type, val_type) })
 }
 
@@ -5695,11 +5696,11 @@ function bait__parser__Parser_generic_type_names(p) {
 	bait__parser__Parser_next(p)
 	let names = new bait_Array({ data: [], length: 0 })
 	while (true) {
-		let _r42_3267 = bait__parser__Parser_check_name(p)
-		if (_r42_3267.is_error) {
-			return _r42_3267
+		let _r43_3267 = bait__parser__Parser_check_name(p)
+		if (_r43_3267.is_error) {
+			return _r43_3267
 		}
-		const name = _r42_3267.data
+		const name = _r43_3267.data
 		if (i32(name.length > 1)) {
 			return error(from_js_string("generic types names have to be exactly one character"))
 		}
@@ -5714,11 +5715,11 @@ function bait__parser__Parser_generic_type_names(p) {
 		if (eq(p.tok, bait__token__Token.rsqr)) {
 			break
 		}
-		let _r42_3697 = bait__parser__Parser_check(p, bait__token__Token.comma)
-		if (_r42_3697.is_error) {
-			return _r42_3697
+		let _r43_3697 = bait__parser__Parser_check(p, bait__token__Token.comma)
+		if (_r43_3697.is_error) {
+			return _r43_3697
 		}
-_r42_3697.data
+_r43_3697.data
 	}
 	bait__parser__Parser_next(p)
 	return new Result({ data: names })
@@ -5731,17 +5732,17 @@ function bait__parser__Parser_concrete_types(p) {
 	bait__parser__Parser_next(p)
 	let types = new bait_Array({ data: [], length: 0 })
 	while (!eq(p.tok, bait__token__Token.rsqr)) {
-		let _r42_3898 = bait__parser__Parser_parse_type(p)
-		if (_r42_3898.is_error) {
-			return _r42_3898
+		let _r43_3898 = bait__parser__Parser_parse_type(p)
+		if (_r43_3898.is_error) {
+			return _r43_3898
 		}
-		Array_push(types, _r42_3898.data)
+		Array_push(types, _r43_3898.data)
 		if (!eq(p.tok, bait__token__Token.rsqr)) {
-			let _r42_3945 = bait__parser__Parser_check(p, bait__token__Token.comma)
-			if (_r42_3945.is_error) {
-				return _r42_3945
+			let _r43_3945 = bait__parser__Parser_check(p, bait__token__Token.comma)
+			if (_r43_3945.is_error) {
+				return _r43_3945
 			}
-_r42_3945.data
+_r43_3945.data
 		}
 	}
 	bait__parser__Parser_next(p)
@@ -5753,78 +5754,78 @@ function bait__parser__Parser_for_loop(p, label) {
 	const pos = p.pos
 	bait__parser__Parser_next(p)
 	if (eq(bait__parser__Parser_peek(p), bait__token__Token.decl_assign)) {
-		let _r43_302 = bait__parser__Parser_for_classic_loop(p, label, pos)
-		if (_r43_302.is_error) {
-			return _r43_302
+		let _r44_302 = bait__parser__Parser_for_classic_loop(p, label, pos)
+		if (_r44_302.is_error) {
+			return _r44_302
 		}
-		return new Result({ data: _r43_302.data })
+		return new Result({ data: _r44_302.data })
 	}
 	if (eq(bait__parser__Parser_peek(p), bait__token__Token.key_in) || eq(bait__parser__Parser_peek(p), bait__token__Token.comma) || eq(p.tok, bait__token__Token.key_mut)) {
-		let _r43_411 = bait__parser__Parser_for_in_loop(p, label, pos)
-		if (_r43_411.is_error) {
-			return _r43_411
+		let _r44_411 = bait__parser__Parser_for_in_loop(p, label, pos)
+		if (_r44_411.is_error) {
+			return _r44_411
 		}
-		return new Result({ data: _r43_411.data })
+		return new Result({ data: _r44_411.data })
 	}
 	p.is_struct_possible = false
-	let _r43_471 = bait__parser__Parser_expr(p, bait__token__Precedence.lowest)
-	if (_r43_471.is_error) {
-		return _r43_471
+	let _r44_471 = bait__parser__Parser_expr(p, bait__token__Precedence.lowest)
+	if (_r44_471.is_error) {
+		return _r44_471
 	}
-	const cond = _r43_471.data
+	const cond = _r44_471.data
 	p.is_struct_possible = true
-	let _r43_534 = bait__parser__Parser_parse_block(p)
-	if (_r43_534.is_error) {
-		return _r43_534
+	let _r44_534 = bait__parser__Parser_parse_block(p)
+	if (_r44_534.is_error) {
+		return _r44_534
 	}
-	const stmts = _r43_534.data
+	const stmts = _r44_534.data
 	return new Result({ data: new bait__ast__ForLoop({ label: label, cond: cond, stmts: stmts, pos: pos }) })
 }
 
 function bait__parser__Parser_for_classic_loop(p, label, pos) {
 	p.is_for_init = true
-	let _r43_749 = bait__parser__Parser_assign_stmt(p)
-	if (_r43_749.is_error) {
-		return _r43_749
+	let _r44_749 = bait__parser__Parser_assign_stmt(p)
+	if (_r44_749.is_error) {
+		return _r44_749
 	}
-	const init = _r43_749.data
+	const init = _r44_749.data
 	p.is_for_init = false
-	let _r43_797 = bait__parser__Parser_check(p, bait__token__Token.semicolon)
-	if (_r43_797.is_error) {
-		return _r43_797
+	let _r44_797 = bait__parser__Parser_check(p, bait__token__Token.semicolon)
+	if (_r44_797.is_error) {
+		return _r44_797
 	}
-_r43_797.data
-	let _r43_820 = bait__parser__Parser_expr(p, bait__token__Precedence.lowest)
-	if (_r43_820.is_error) {
-		return _r43_820
+_r44_797.data
+	let _r44_820 = bait__parser__Parser_expr(p, bait__token__Precedence.lowest)
+	if (_r44_820.is_error) {
+		return _r44_820
 	}
-	const cond = _r43_820.data
-	let _r43_844 = bait__parser__Parser_check(p, bait__token__Token.semicolon)
-	if (_r43_844.is_error) {
-		return _r43_844
+	const cond = _r44_820.data
+	let _r44_844 = bait__parser__Parser_check(p, bait__token__Token.semicolon)
+	if (_r44_844.is_error) {
+		return _r44_844
 	}
-_r43_844.data
-	let _r43_865 = bait__parser__Parser_stmt(p)
-	if (_r43_865.is_error) {
-		return _r43_865
+_r44_844.data
+	let _r44_865 = bait__parser__Parser_stmt(p)
+	if (_r44_865.is_error) {
+		return _r44_865
 	}
-	const inc = _r43_865.data
-	let _r43_894 = bait__parser__Parser_parse_block(p)
-	if (_r43_894.is_error) {
-		return _r43_894
+	const inc = _r44_865.data
+	let _r44_894 = bait__parser__Parser_parse_block(p)
+	if (_r44_894.is_error) {
+		return _r44_894
 	}
-	const stmts = _r43_894.data
+	const stmts = _r44_894.data
 	return new Result({ data: new bait__ast__ForClassicLoop({ label: label, init: init, cond: cond, inc: inc, stmts: stmts, pos: pos }) })
 }
 
 function bait__parser__Parser_for_in_loop(p, label, pos) {
 	let idxvar = new bait__ast__TmpVar({})
 	if (eq(bait__parser__Parser_peek(p), bait__token__Token.comma)) {
-		let _r43_1198 = bait__parser__Parser_check_name(p)
-		if (_r43_1198.is_error) {
-			return _r43_1198
+		let _r44_1198 = bait__parser__Parser_check_name(p)
+		if (_r44_1198.is_error) {
+			return _r44_1198
 		}
-		idxvar = new bait__ast__Ident({ name: _r43_1198.data })
+		idxvar = new bait__ast__Ident({ name: _r44_1198.data })
 		bait__parser__Parser_next(p)
 	}
 	let is_mut = false
@@ -5832,28 +5833,28 @@ function bait__parser__Parser_for_in_loop(p, label, pos) {
 		is_mut = true
 		bait__parser__Parser_next(p)
 	}
-	let _r43_1348 = bait__parser__Parser_check_name(p)
-	if (_r43_1348.is_error) {
-		return _r43_1348
+	let _r44_1348 = bait__parser__Parser_check_name(p)
+	if (_r44_1348.is_error) {
+		return _r44_1348
 	}
-	let valvar = new bait__ast__Ident({ name: _r43_1348.data, is_mut: is_mut })
-	let _r43_1383 = bait__parser__Parser_check(p, bait__token__Token.key_in)
-	if (_r43_1383.is_error) {
-		return _r43_1383
+	let valvar = new bait__ast__Ident({ name: _r44_1348.data, is_mut: is_mut })
+	let _r44_1383 = bait__parser__Parser_check(p, bait__token__Token.key_in)
+	if (_r44_1383.is_error) {
+		return _r44_1383
 	}
-_r43_1383.data
+_r44_1383.data
 	p.is_struct_possible = false
-	let _r43_1439 = bait__parser__Parser_expr(p, bait__token__Precedence.lowest)
-	if (_r43_1439.is_error) {
-		return _r43_1439
+	let _r44_1439 = bait__parser__Parser_expr(p, bait__token__Precedence.lowest)
+	if (_r44_1439.is_error) {
+		return _r44_1439
 	}
-	const expr = _r43_1439.data
+	const expr = _r44_1439.data
 	p.is_struct_possible = true
-	let _r43_1502 = bait__parser__Parser_parse_block(p)
-	if (_r43_1502.is_error) {
-		return _r43_1502
+	let _r44_1502 = bait__parser__Parser_parse_block(p)
+	if (_r44_1502.is_error) {
+		return _r44_1502
 	}
-	const stmts = _r43_1502.data
+	const stmts = _r44_1502.data
 	return new Result({ data: new bait__ast__ForInLoop({ label: label, idxvar: idxvar, valvar: valvar, expr: expr, stmts: stmts, pos: pos }) })
 }
 
@@ -5861,65 +5862,65 @@ _r43_1383.data
 function bait__parser__Parser_toplevel_stmt(p) {
 	let _t263 = undefined
 	if (eq(p.tok, bait__token__Token.key_pub)) {
-			let _r44_266 = bait__parser__Parser_pub_stmt(p)
-		if (_r44_266.is_error) {
-			return _r44_266
+			let _r45_266 = bait__parser__Parser_pub_stmt(p)
+		if (_r45_266.is_error) {
+			return _r45_266
 		}
-		_t263 = _r44_266.data
+		_t263 = _r45_266.data
 	} else if (eq(p.tok, bait__token__Token.hash)) {
-			let _r44_293 = bait__parser__Parser_expr_stmt(p)
-		if (_r44_293.is_error) {
-			return _r44_293
+			let _r45_293 = bait__parser__Parser_expr_stmt(p)
+		if (_r45_293.is_error) {
+			return _r45_293
 		}
-		_t263 = _r44_293.data
+		_t263 = _r45_293.data
 	} else if (eq(p.tok, bait__token__Token.key_const)) {
-			let _r44_325 = bait__parser__Parser_const_decl(p)
-		if (_r44_325.is_error) {
-			return _r44_325
+			let _r45_325 = bait__parser__Parser_const_decl(p)
+		if (_r45_325.is_error) {
+			return _r45_325
 		}
-		_t263 = _r44_325.data
+		_t263 = _r45_325.data
 	} else if (eq(p.tok, bait__token__Token.key_enum)) {
-			let _r44_355 = bait__parser__Parser_enum_decl(p)
-		if (_r44_355.is_error) {
-			return _r44_355
+			let _r45_355 = bait__parser__Parser_enum_decl(p)
+		if (_r45_355.is_error) {
+			return _r45_355
 		}
-		_t263 = _r44_355.data
+		_t263 = _r45_355.data
 	} else if (eq(p.tok, bait__token__Token.key_fun)) {
-			let _r44_383 = bait__parser__Parser_fun_decl(p)
-		if (_r44_383.is_error) {
-			return _r44_383
+			let _r45_383 = bait__parser__Parser_fun_decl(p)
+		if (_r45_383.is_error) {
+			return _r45_383
 		}
-		_t263 = _r44_383.data
+		_t263 = _r45_383.data
 	} else if (eq(p.tok, bait__token__Token.key_interface)) {
-			let _r44_423 = bait__parser__Parser_interface_decl(p)
-		if (_r44_423.is_error) {
-			return _r44_423
+			let _r45_423 = bait__parser__Parser_interface_decl(p)
+		if (_r45_423.is_error) {
+			return _r45_423
 		}
-		_t263 = _r44_423.data
+		_t263 = _r45_423.data
 	} else if (eq(p.tok, bait__token__Token.key_static)) {
-			let _r44_458 = bait__parser__Parser_static_decl(p)
-		if (_r44_458.is_error) {
-			return _r44_458
+			let _r45_458 = bait__parser__Parser_static_decl(p)
+		if (_r45_458.is_error) {
+			return _r45_458
 		}
-		_t263 = _r44_458.data
+		_t263 = _r45_458.data
 	} else if (eq(p.tok, bait__token__Token.key_struct)) {
-			let _r44_492 = bait__parser__Parser_struct_decl(p)
-		if (_r44_492.is_error) {
-			return _r44_492
+			let _r45_492 = bait__parser__Parser_struct_decl(p)
+		if (_r45_492.is_error) {
+			return _r45_492
 		}
-		_t263 = _r44_492.data
+		_t263 = _r45_492.data
 	} else if (eq(p.tok, bait__token__Token.key_type)) {
-			let _r44_522 = bait__parser__Parser_type_decl(p)
-		if (_r44_522.is_error) {
-			return _r44_522
+			let _r45_522 = bait__parser__Parser_type_decl(p)
+		if (_r45_522.is_error) {
+			return _r45_522
 		}
-		_t263 = _r44_522.data
+		_t263 = _r45_522.data
 	} else {
-			let _r44_559 = bait__parser__Parser_script_mode_or_error(p)
-		if (_r44_559.is_error) {
-			return _r44_559
+			let _r45_559 = bait__parser__Parser_script_mode_or_error(p)
+		if (_r45_559.is_error) {
+			return _r45_559
 		}
-		_t263 = _r44_559.data
+		_t263 = _r45_559.data
 	}
 	return new Result({ data: _t263 })
 }
@@ -5927,41 +5928,41 @@ function bait__parser__Parser_toplevel_stmt(p) {
 function bait__parser__Parser_pub_stmt(p) {
 	let _t264 = undefined
 	if (eq(bait__parser__Parser_peek(p), bait__token__Token.key_const)) {
-			let _r44_664 = bait__parser__Parser_const_decl(p)
-		if (_r44_664.is_error) {
-			return _r44_664
+			let _r45_664 = bait__parser__Parser_const_decl(p)
+		if (_r45_664.is_error) {
+			return _r45_664
 		}
-		_t264 = _r44_664.data
+		_t264 = _r45_664.data
 	} else if (eq(bait__parser__Parser_peek(p), bait__token__Token.key_enum)) {
-			let _r44_694 = bait__parser__Parser_enum_decl(p)
-		if (_r44_694.is_error) {
-			return _r44_694
+			let _r45_694 = bait__parser__Parser_enum_decl(p)
+		if (_r45_694.is_error) {
+			return _r45_694
 		}
-		_t264 = _r44_694.data
+		_t264 = _r45_694.data
 	} else if (eq(bait__parser__Parser_peek(p), bait__token__Token.key_fun)) {
-			let _r44_722 = bait__parser__Parser_fun_decl(p)
-		if (_r44_722.is_error) {
-			return _r44_722
+			let _r45_722 = bait__parser__Parser_fun_decl(p)
+		if (_r45_722.is_error) {
+			return _r45_722
 		}
-		_t264 = _r44_722.data
+		_t264 = _r45_722.data
 	} else if (eq(bait__parser__Parser_peek(p), bait__token__Token.key_interface)) {
-			let _r44_762 = bait__parser__Parser_interface_decl(p)
-		if (_r44_762.is_error) {
-			return _r44_762
+			let _r45_762 = bait__parser__Parser_interface_decl(p)
+		if (_r45_762.is_error) {
+			return _r45_762
 		}
-		_t264 = _r44_762.data
+		_t264 = _r45_762.data
 	} else if (eq(bait__parser__Parser_peek(p), bait__token__Token.key_static)) {
-			let _r44_797 = bait__parser__Parser_static_decl(p)
-		if (_r44_797.is_error) {
-			return _r44_797
+			let _r45_797 = bait__parser__Parser_static_decl(p)
+		if (_r45_797.is_error) {
+			return _r45_797
 		}
-		_t264 = _r44_797.data
+		_t264 = _r45_797.data
 	} else if (eq(bait__parser__Parser_peek(p), bait__token__Token.key_struct)) {
-			let _r44_831 = bait__parser__Parser_struct_decl(p)
-		if (_r44_831.is_error) {
-			return _r44_831
+			let _r45_831 = bait__parser__Parser_struct_decl(p)
+		if (_r45_831.is_error) {
+			return _r45_831
 		}
-		_t264 = _r44_831.data
+		_t264 = _r45_831.data
 	} else {
 		_t264 = error(from_js_string(`cannot use pub keyword before ${bait__token__Token_str(bait__parser__Parser_peek(p)).str}`))
 	}
@@ -5970,11 +5971,11 @@ function bait__parser__Parser_pub_stmt(p) {
 
 function bait__parser__Parser_script_mode_or_error(p) {
 	if (string_eq(p.pkg_name, from_js_string("main"))) {
-		let _r44_1013 = bait__parser__Parser_script_mode_main(p)
-		if (_r44_1013.is_error) {
-			return _r44_1013
+		let _r45_1013 = bait__parser__Parser_script_mode_main(p)
+		if (_r45_1013.is_error) {
+			return _r45_1013
 		}
-		return new Result({ data: _r44_1013.data })
+		return new Result({ data: _r45_1013.data })
 	}
 	return error(from_js_string(`bad toplevel token: kind = ${bait__token__Token_str(p.tok).str}, val = ${p.val.str}`))
 }
@@ -5985,11 +5986,11 @@ function bait__parser__Parser_script_mode_main(p) {
 	}
 	let stmts = new bait_Array({ data: [], length: 0 })
 	while (!eq(p.tok, bait__token__Token.eof)) {
-		let _r44_1305 = bait__parser__Parser_stmt(p)
-		if (_r44_1305.is_error) {
-			return _r44_1305
+		let _r45_1305 = bait__parser__Parser_stmt(p)
+		if (_r45_1305.is_error) {
+			return _r45_1305
 		}
-		Array_push(stmts, _r44_1305.data)
+		Array_push(stmts, _r45_1305.data)
 	}
 	let node = new bait__ast__FunDecl({ name: from_js_string("main"), return_type: bait__ast__VOID_TYPE })
 	node.stmts = stmts
@@ -5999,65 +6000,65 @@ function bait__parser__Parser_script_mode_main(p) {
 function bait__parser__Parser_stmt(p) {
 	let _t267 = undefined
 	if (eq(p.tok, bait__token__Token.lcur)) {
-			let _r44_1508 = bait__parser__Parser_block_stmt(p)
-		if (_r44_1508.is_error) {
-			return _r44_1508
+			let _r45_1508 = bait__parser__Parser_block_stmt(p)
+		if (_r45_1508.is_error) {
+			return _r45_1508
 		}
-		_t267 = _r44_1508.data
+		_t267 = _r45_1508.data
 	} else if (eq(p.tok, bait__token__Token.name)) {
-			let _r44_1540 = bait__parser__Parser_stmt_with_name(p)
-		if (_r44_1540.is_error) {
-			return _r44_1540
+			let _r45_1540 = bait__parser__Parser_stmt_with_name(p)
+		if (_r45_1540.is_error) {
+			return _r45_1540
 		}
-		_t267 = _r44_1540.data
+		_t267 = _r45_1540.data
 	} else if (eq(p.tok, bait__token__Token.key_assert)) {
-			let _r44_1575 = bait__parser__Parser_assert_stmt(p)
-		if (_r44_1575.is_error) {
-			return _r44_1575
+			let _r45_1575 = bait__parser__Parser_assert_stmt(p)
+		if (_r45_1575.is_error) {
+			return _r45_1575
 		}
-		_t267 = _r44_1575.data
+		_t267 = _r45_1575.data
 	} else if (eq(p.tok, bait__token__Token.key_break) || eq(p.tok, bait__token__Token.key_continue)) {
-			let _r44_1630 = bait__parser__Parser_loop_control_stmt(p)
-		if (_r44_1630.is_error) {
-			return _r44_1630
+			let _r45_1630 = bait__parser__Parser_loop_control_stmt(p)
+		if (_r45_1630.is_error) {
+			return _r45_1630
 		}
-		_t267 = _r44_1630.data
+		_t267 = _r45_1630.data
 	} else if (eq(p.tok, bait__token__Token.key_for)) {
-			let _r44_1661 = bait__parser__Parser_for_loop(p, from_js_string(""))
-		if (_r44_1661.is_error) {
-			return _r44_1661
+			let _r45_1661 = bait__parser__Parser_for_loop(p, from_js_string(""))
+		if (_r45_1661.is_error) {
+			return _r45_1661
 		}
-		_t267 = _r44_1661.data
+		_t267 = _r45_1661.data
 	} else if (eq(p.tok, bait__token__Token.key_if)) {
-			let _r44_1694 = bait__parser__Parser_if_match(p, false)
-		if (_r44_1694.is_error) {
-			return _r44_1694
+			let _r45_1694 = bait__parser__Parser_if_match(p, false)
+		if (_r45_1694.is_error) {
+			return _r45_1694
 		}
-		_t267 = _r44_1694.data
+		_t267 = _r45_1694.data
 	} else if (eq(p.tok, bait__token__Token.key_match)) {
-			let _r44_1738 = bait__parser__Parser_match_as_if_expr(p, false)
-		if (_r44_1738.is_error) {
-			return _r44_1738
+			let _r45_1738 = bait__parser__Parser_match_as_if_expr(p, false)
+		if (_r45_1738.is_error) {
+			return _r45_1738
 		}
-		_t267 = _r44_1738.data
+		_t267 = _r45_1738.data
 	} else if (eq(p.tok, bait__token__Token.key_mut)) {
-			let _r44_1770 = bait__parser__Parser_assign_stmt(p)
-		if (_r44_1770.is_error) {
-			return _r44_1770
+			let _r45_1770 = bait__parser__Parser_assign_stmt(p)
+		if (_r45_1770.is_error) {
+			return _r45_1770
 		}
-		_t267 = _r44_1770.data
+		_t267 = _r45_1770.data
 	} else if (eq(p.tok, bait__token__Token.key_return)) {
-			let _r44_1805 = bait__parser__Parser_return_stmt(p)
-		if (_r44_1805.is_error) {
-			return _r44_1805
+			let _r45_1805 = bait__parser__Parser_return_stmt(p)
+		if (_r45_1805.is_error) {
+			return _r45_1805
 		}
-		_t267 = _r44_1805.data
+		_t267 = _r45_1805.data
 	} else {
-			let _r44_1830 = bait__parser__Parser_expr_stmt(p)
-		if (_r44_1830.is_error) {
-			return _r44_1830
+			let _r45_1830 = bait__parser__Parser_expr_stmt(p)
+		if (_r45_1830.is_error) {
+			return _r45_1830
 		}
-		_t267 = _r44_1830.data
+		_t267 = _r45_1830.data
 	}
 	return new Result({ data: _t267 })
 }
@@ -6067,23 +6068,23 @@ function bait__parser__Parser_stmt_with_name(p) {
 		const label = p.val
 		bait__parser__Parser_next(p)
 		bait__parser__Parser_next(p)
-		let _r44_1993 = bait__parser__Parser_for_loop(p, label)
-		if (_r44_1993.is_error) {
-			return _r44_1993
+		let _r45_1993 = bait__parser__Parser_for_loop(p, label)
+		if (_r45_1993.is_error) {
+			return _r45_1993
 		}
-		return new Result({ data: _r44_1993.data })
+		return new Result({ data: _r45_1993.data })
 	}
-	let _r44_2035 = bait__parser__Parser_expr(p, bait__token__Precedence.lowest)
-	if (_r44_2035.is_error) {
-		return _r44_2035
+	let _r45_2035 = bait__parser__Parser_expr(p, bait__token__Precedence.lowest)
+	if (_r45_2035.is_error) {
+		return _r45_2035
 	}
-	const left = _r44_2035.data
+	const left = _r45_2035.data
 	if (bait__token__Token_is_assign(p.tok)) {
-		let _r44_2096 = bait__parser__Parser_partial_assign_stmt(p, left)
-		if (_r44_2096.is_error) {
-			return _r44_2096
+		let _r45_2096 = bait__parser__Parser_partial_assign_stmt(p, left)
+		if (_r45_2096.is_error) {
+			return _r45_2096
 		}
-		return new Result({ data: _r44_2096.data })
+		return new Result({ data: _r45_2096.data })
 	}
 	return new Result({ data: new bait__ast__ExprStmt({ expr: left }) })
 }
@@ -6091,45 +6092,45 @@ function bait__parser__Parser_stmt_with_name(p) {
 function bait__parser__Parser_assert_stmt(p) {
 	bait__parser__Parser_next(p)
 	const pos = p.pos
-	let _r44_2257 = bait__parser__Parser_expr(p, bait__token__Precedence.lowest)
-	if (_r44_2257.is_error) {
-		return _r44_2257
+	let _r45_2257 = bait__parser__Parser_expr(p, bait__token__Precedence.lowest)
+	if (_r45_2257.is_error) {
+		return _r45_2257
 	}
-	const expr = _r44_2257.data
+	const expr = _r45_2257.data
 	return new Result({ data: new bait__ast__AssertStmt({ expr: expr, pos: pos }) })
 }
 
 function bait__parser__Parser_assign_stmt(p) {
-	let _r44_2390 = bait__parser__Parser_expr(p, bait__token__Precedence.lowest)
-	if (_r44_2390.is_error) {
-		return _r44_2390
+	let _r45_2390 = bait__parser__Parser_expr(p, bait__token__Precedence.lowest)
+	if (_r45_2390.is_error) {
+		return _r45_2390
 	}
-	const left = _r44_2390.data
-	let _r44_2421 = bait__parser__Parser_partial_assign_stmt(p, left)
-	if (_r44_2421.is_error) {
-		return _r44_2421
+	const left = _r45_2390.data
+	let _r45_2421 = bait__parser__Parser_partial_assign_stmt(p, left)
+	if (_r45_2421.is_error) {
+		return _r45_2421
 	}
-	return new Result({ data: _r44_2421.data })
+	return new Result({ data: _r45_2421.data })
 }
 
 function bait__parser__Parser_partial_assign_stmt(p, left) {
 	let op = p.tok
 	bait__parser__Parser_next(p)
-	let _r44_2561 = bait__parser__Parser_expr(p, bait__token__Precedence.lowest)
-	if (_r44_2561.is_error) {
-		return _r44_2561
+	let _r45_2561 = bait__parser__Parser_expr(p, bait__token__Precedence.lowest)
+	if (_r45_2561.is_error) {
+		return _r45_2561
 	}
-	let right = _r44_2561.data
+	let right = _r45_2561.data
 	return new Result({ data: new bait__ast__AssignStmt({ op: op, left: left, right: right, pos: (left).pos }) })
 }
 
 function bait__parser__Parser_block_stmt(p) {
 	const pos = p.pos
-	let _r44_2755 = bait__parser__Parser_parse_block(p)
-	if (_r44_2755.is_error) {
-		return _r44_2755
+	let _r45_2755 = bait__parser__Parser_parse_block(p)
+	if (_r45_2755.is_error) {
+		return _r45_2755
 	}
-	const stmts = _r44_2755.data
+	const stmts = _r45_2755.data
 	return new Result({ data: new bait__ast__Block({ stmts: stmts, pos: pos }) })
 }
 
@@ -6137,36 +6138,36 @@ function bait__parser__Parser_const_decl(p) {
 	const pos = p.pos
 	const is_pub = bait__parser__Parser_check_pub(p)
 	bait__parser__Parser_next(p)
-	let _r44_2954 = bait__parser__Parser_parse_ffi_pkg(p)
-	if (_r44_2954.is_error) {
-		return _r44_2954
+	let _r45_2954 = bait__parser__Parser_parse_ffi_pkg(p)
+	if (_r45_2954.is_error) {
+		return _r45_2954
 	}
-	const ffi = _r44_2954.data
-	let _r44_2977 = bait__parser__Parser_check_name(p)
-	if (_r44_2977.is_error) {
-		return _r44_2977
+	const ffi = _r45_2954.data
+	let _r45_2977 = bait__parser__Parser_check_name(p)
+	if (_r45_2977.is_error) {
+		return _r45_2977
 	}
-	const name = _r44_2977.data
-	let _r44_3003 = bait__parser__Parser_check(p, bait__token__Token.decl_assign)
-	if (_r44_3003.is_error) {
-		return _r44_3003
+	const name = _r45_2977.data
+	let _r45_3003 = bait__parser__Parser_check(p, bait__token__Token.decl_assign)
+	if (_r45_3003.is_error) {
+		return _r45_3003
 	}
-_r44_3003.data
+_r45_3003.data
 	if (!eq(ffi.lang, bait__ast__Language.bait)) {
-		let _r44_3061 = bait__parser__Parser_parse_type(p)
-		if (_r44_3061.is_error) {
-			return _r44_3061
+		let _r45_3061 = bait__parser__Parser_parse_type(p)
+		if (_r45_3061.is_error) {
+			return _r45_3061
 		}
-		const typ = _r44_3061.data
+		const typ = _r45_3061.data
 		const ffi_scope = bait__context__SemanticContext_obtain_root_scope(p.sema_ctx, ffi.pkg)
 		bait__context__Scope_register(ffi_scope, name, new bait__context__ScopeObject({ kind: bait__context__ObjectKind.constant, pkg: ffi.pkg, typ: typ, is_pub: true }))
 		return new Result({ data: new bait__ast__ConstDecl({ name: name, typ: typ, pos: pos, lang: ffi.lang }) })
 	}
-	let _r44_3445 = bait__parser__Parser_expr(p, bait__token__Precedence.lowest)
-	if (_r44_3445.is_error) {
-		return _r44_3445
+	let _r45_3445 = bait__parser__Parser_expr(p, bait__token__Precedence.lowest)
+	if (_r45_3445.is_error) {
+		return _r45_3445
 	}
-	const expr = _r44_3445.data
+	const expr = _r45_3445.data
 	bait__context__Scope_register_unique(p.pkg_scope, name, new bait__context__ScopeObject({ kind: bait__context__ObjectKind.constant, pkg: p.pkg_name, is_pub: is_pub, expr: expr, typ: bait__ast__VOID_TYPE }))
 	return new Result({ data: new bait__ast__ConstDecl({ name: name, expr: expr, pos: pos, lang: ffi.lang }) })
 }
@@ -6179,11 +6180,11 @@ function bait__parser__Parser_loop_control_stmt(p) {
 	if (eq(p.tok, bait__token__Token.semicolon)) {
 		_t271 = from_js_string("")
 	} else {
-			let _r44_3848 = bait__parser__Parser_check_name(p)
-		if (_r44_3848.is_error) {
-			return _r44_3848
+			let _r45_3848 = bait__parser__Parser_check_name(p)
+		if (_r45_3848.is_error) {
+			return _r45_3848
 		}
-		_t271 = _r44_3848.data
+		_t271 = _r45_3848.data
 	}
 	const label = _t271
 	bait__parser__Parser_skip(p, bait__token__Token.semicolon)
@@ -6191,11 +6192,11 @@ function bait__parser__Parser_loop_control_stmt(p) {
 }
 
 function bait__parser__Parser_expr_stmt(p) {
-	let _r44_4026 = bait__parser__Parser_expr(p, bait__token__Precedence.lowest)
-	if (_r44_4026.is_error) {
-		return _r44_4026
+	let _r45_4026 = bait__parser__Parser_expr(p, bait__token__Precedence.lowest)
+	if (_r45_4026.is_error) {
+		return _r45_4026
 	}
-	const expr = _r44_4026.data
+	const expr = _r45_4026.data
 	return new Result({ data: new bait__ast__ExprStmt({ expr: expr }) })
 }
 
@@ -6203,16 +6204,16 @@ function bait__parser__Parser_enum_decl(p) {
 	const pos = p.pos
 	const is_pub = bait__parser__Parser_check_pub(p)
 	bait__parser__Parser_next(p)
-	let _r44_4186 = bait__parser__Parser_parse_lang(p)
-	if (_r44_4186.is_error) {
-		return _r44_4186
+	let _r45_4186 = bait__parser__Parser_parse_lang(p)
+	if (_r45_4186.is_error) {
+		return _r45_4186
 	}
-	const lang = _r44_4186.data
-	let _r44_4216 = bait__parser__Parser_check_name(p)
-	if (_r44_4216.is_error) {
-		return _r44_4216
+	const lang = _r45_4186.data
+	let _r45_4216 = bait__parser__Parser_check_name(p)
+	if (_r45_4216.is_error) {
+		return _r45_4216
 	}
-	let name = _r44_4216.data
+	let name = _r45_4216.data
 	let _t272 = undefined
 	if (eq(lang, bait__ast__Language.bait)) {
 		_t272 = bait__parser__Parser_prepend_pkg(p, name)
@@ -6220,37 +6221,37 @@ function bait__parser__Parser_enum_decl(p) {
 		_t272 = bait__ast__Language_prepend_to(lang, name)
 	}
 	name = _t272
-	let _r44_4313 = bait__parser__Parser_check(p, bait__token__Token.lcur)
-	if (_r44_4313.is_error) {
-		return _r44_4313
+	let _r45_4313 = bait__parser__Parser_check(p, bait__token__Token.lcur)
+	if (_r45_4313.is_error) {
+		return _r45_4313
 	}
-_r44_4313.data
+_r45_4313.data
 	let variants = new bait_Array({ data: [], length: 0 })
 	let fields = new bait_Array({ data: [], length: 0 })
 	while (!eq(p.tok, bait__token__Token.rcur)) {
 		const fpos = p.pos
-		let _r44_4436 = bait__parser__Parser_check_name(p)
-		if (_r44_4436.is_error) {
-			return _r44_4436
+		let _r45_4436 = bait__parser__Parser_check_name(p)
+		if (_r45_4436.is_error) {
+			return _r45_4436
 		}
-		const fname = _r44_4436.data
+		const fname = _r45_4436.data
 		let expr = new bait__ast__InvalidExpr({})
 		if (eq(p.tok, bait__token__Token.decl_assign)) {
 			bait__parser__Parser_next(p)
-			let _r44_4547 = bait__parser__Parser_expr(p, bait__token__Precedence.lowest)
-			if (_r44_4547.is_error) {
-				return _r44_4547
+			let _r45_4547 = bait__parser__Parser_expr(p, bait__token__Precedence.lowest)
+			if (_r45_4547.is_error) {
+				return _r45_4547
 			}
-			expr = _r44_4547.data
+			expr = _r45_4547.data
 		}
 		Array_push(variants, fname)
 		Array_push(fields, new bait__ast__EnumField({ name: fname, expr: expr, pos: fpos }))
 	}
-	let _r44_4675 = bait__parser__Parser_check(p, bait__token__Token.rcur)
-	if (_r44_4675.is_error) {
-		return _r44_4675
+	let _r45_4675 = bait__parser__Parser_check(p, bait__token__Token.rcur)
+	if (_r45_4675.is_error) {
+		return _r45_4675
 	}
-_r44_4675.data
+_r45_4675.data
 	const typ = bait__ast__Table_register_sym(p.table, new bait__ast__TypeSymbol({ mix_name: name, is_pub: is_pub, pkg: p.pkg_name, kind: bait__ast__TypeKind.enum_, info: new bait__ast__EnumInfo({ vals: variants }) }))
 	bait__context__Scope_register_unique(p.pkg_scope, name, new bait__context__ScopeObject({ kind: bait__context__ObjectKind.type_, typ: typ }))
 	return new Result({ data: new bait__ast__EnumDecl({ lang: lang, name: name, fields: fields, pos: pos }) })
@@ -6259,26 +6260,26 @@ _r44_4675.data
 function bait__parser__Parser_static_decl(p) {
 	const pos = p.pos
 	const is_pub = bait__parser__Parser_check_pub(p)
-	let _r44_5129 = bait__parser__Parser_check(p, bait__token__Token.key_static)
-	if (_r44_5129.is_error) {
-		return _r44_5129
+	let _r45_5129 = bait__parser__Parser_check(p, bait__token__Token.key_static)
+	if (_r45_5129.is_error) {
+		return _r45_5129
 	}
-_r44_5129.data
-	let _r44_5151 = bait__parser__Parser_check_name(p)
-	if (_r44_5151.is_error) {
-		return _r44_5151
+_r45_5129.data
+	let _r45_5151 = bait__parser__Parser_check_name(p)
+	if (_r45_5151.is_error) {
+		return _r45_5151
 	}
-	const name = _r44_5151.data
-	let _r44_5178 = bait__parser__Parser_check(p, bait__token__Token.decl_assign)
-	if (_r44_5178.is_error) {
-		return _r44_5178
+	const name = _r45_5151.data
+	let _r45_5178 = bait__parser__Parser_check(p, bait__token__Token.decl_assign)
+	if (_r45_5178.is_error) {
+		return _r45_5178
 	}
-_r44_5178.data
-	let _r44_5202 = bait__parser__Parser_expr(p, bait__token__Precedence.lowest)
-	if (_r44_5202.is_error) {
-		return _r44_5202
+_r45_5178.data
+	let _r45_5202 = bait__parser__Parser_expr(p, bait__token__Precedence.lowest)
+	if (_r45_5202.is_error) {
+		return _r45_5202
 	}
-	const expr = _r44_5202.data
+	const expr = _r45_5202.data
 	bait__context__Scope_register_unique(p.pkg_scope, name, new bait__context__ScopeObject({ kind: bait__context__ObjectKind.static_, pkg: p.pkg_name, is_pub: is_pub, is_mut: true, expr: expr, typ: bait__ast__VOID_TYPE }))
 	return new Result({ data: new bait__ast__StaticDecl({ name: name, expr: expr, pos: pos }) })
 }
@@ -6286,39 +6287,39 @@ _r44_5178.data
 function bait__parser__Parser_interface_decl(p) {
 	const pos = p.pos
 	const is_pub = bait__parser__Parser_check_pub(p)
-	let _r44_5564 = bait__parser__Parser_check(p, bait__token__Token.key_interface)
-	if (_r44_5564.is_error) {
-		return _r44_5564
+	let _r45_5564 = bait__parser__Parser_check(p, bait__token__Token.key_interface)
+	if (_r45_5564.is_error) {
+		return _r45_5564
 	}
-_r44_5564.data
-	let _r44_5588 = bait__parser__Parser_parse_lang(p)
-	if (_r44_5588.is_error) {
-		return _r44_5588
+_r45_5564.data
+	let _r45_5588 = bait__parser__Parser_parse_lang(p)
+	if (_r45_5588.is_error) {
+		return _r45_5588
 	}
-	const lang = _r44_5588.data
-	let _r44_5629 = bait__parser__Parser_check_name(p)
-	if (_r44_5629.is_error) {
-		return _r44_5629
+	const lang = _r45_5588.data
+	let _r45_5629 = bait__parser__Parser_check_name(p)
+	if (_r45_5629.is_error) {
+		return _r45_5629
 	}
-	let name = bait__ast__Language_prepend_to(lang, _r44_5629.data)
+	let name = bait__ast__Language_prepend_to(lang, _r45_5629.data)
 	if (!eq(lang, bait__ast__Language.bait) && eq(p.tok, bait__token__Token.dot)) {
 		name = string_add(name, from_js_string("."))
 		bait__parser__Parser_next(p)
-		let _r44_5721 = bait__parser__Parser_check_name(p)
-		if (_r44_5721.is_error) {
-			return _r44_5721
+		let _r45_5721 = bait__parser__Parser_check_name(p)
+		if (_r45_5721.is_error) {
+			return _r45_5721
 		}
-		name = string_add(name, _r44_5721.data)
+		name = string_add(name, _r45_5721.data)
 	}
 	let tsym = new bait__ast__TypeSymbol({ kind: bait__ast__TypeKind.interface_, mix_name: name, is_pub: is_pub, pkg: p.pkg_name })
 	const typ = bait__ast__Table_register_sym(p.table, tsym)
 	let methods = new bait_Array({ data: [], length: 0 })
 	let fields = new bait_Array({ data: [], length: 0 })
-	let _r44_6055 = bait__parser__Parser_check(p, bait__token__Token.lcur)
-	if (_r44_6055.is_error) {
-		return _r44_6055
+	let _r45_6055 = bait__parser__Parser_check(p, bait__token__Token.lcur)
+	if (_r45_6055.is_error) {
+		return _r45_6055
 	}
-_r44_6055.data
+_r45_6055.data
 	while (!eq(p.tok, bait__token__Token.rcur)) {
 		const f_is_pub = eq(p.tok, bait__token__Token.key_pub)
 		if (f_is_pub) {
@@ -6335,26 +6336,26 @@ _r44_6055.data
 			}
 			bait__parser__Parser_next(p)
 		}
-		let _r44_6380 = bait__parser__Parser_check_name(p)
-		if (_r44_6380.is_error) {
-			return _r44_6380
+		let _r45_6380 = bait__parser__Parser_check_name(p)
+		if (_r45_6380.is_error) {
+			return _r45_6380
 		}
-		const fname = _r44_6380.data
+		const fname = _r45_6380.data
 		if (eq(p.tok, bait__token__Token.lpar)) {
-			let _r44_6448 = bait__parser__Parser_interface_method(p, fname, typ)
-			if (_r44_6448.is_error) {
-				return _r44_6448
+			let _r45_6448 = bait__parser__Parser_interface_method(p, fname, typ)
+			if (_r45_6448.is_error) {
+				return _r45_6448
 			}
-			const m = _r44_6448.data
+			const m = _r45_6448.data
 			Array_push(methods, m)
 			Array_push(tsym.methods, m)
 			continue
 		}
-		let _r44_6579 = bait__parser__Parser_parse_type(p)
-		if (_r44_6579.is_error) {
-			return _r44_6579
+		let _r45_6579 = bait__parser__Parser_parse_type(p)
+		if (_r45_6579.is_error) {
+			return _r45_6579
 		}
-		Array_push(fields, new bait__ast__StructField({ name: fname, typ: _r44_6579.data, is_mut: f_is_mut || f_is_global, is_pub: f_is_pub || f_is_global, is_global: f_is_global }))
+		Array_push(fields, new bait__ast__StructField({ name: fname, typ: _r45_6579.data, is_mut: f_is_mut || f_is_global, is_pub: f_is_pub || f_is_global, is_global: f_is_global }))
 	}
 	bait__parser__Parser_next(p)
 	tsym.info = new bait__ast__StructInfo({ fields: fields })
@@ -6362,48 +6363,48 @@ _r44_6055.data
 }
 
 function bait__parser__Parser_interface_method(p, name, rec_type) {
-	let _r44_7024 = bait__parser__Parser_check(p, bait__token__Token.lpar)
-	if (_r44_7024.is_error) {
-		return _r44_7024
+	let _r45_7024 = bait__parser__Parser_check(p, bait__token__Token.lpar)
+	if (_r45_7024.is_error) {
+		return _r45_7024
 	}
-_r44_7024.data
+_r45_7024.data
 	let params = new bait_Array({ data: [new bait__ast__Param({ name: from_js_string("_"), typ: rec_type })], length: 1 })
-	let _r44_7115 = bait__parser__Parser_fun_params(p)
-	if (_r44_7115.is_error) {
-		return _r44_7115
+	let _r45_7115 = bait__parser__Parser_fun_params(p)
+	if (_r45_7115.is_error) {
+		return _r45_7115
 	}
-	Array_push_many(params, _r44_7115.data)
+	Array_push_many(params, _r45_7115.data)
 	const par_line = p.pos.line
-	let _r44_7161 = bait__parser__Parser_check(p, bait__token__Token.rpar)
-	if (_r44_7161.is_error) {
-		return _r44_7161
+	let _r45_7161 = bait__parser__Parser_check(p, bait__token__Token.rpar)
+	if (_r45_7161.is_error) {
+		return _r45_7161
 	}
-_r44_7161.data
+_r45_7161.data
 	let return_type = bait__ast__VOID_TYPE
 	if (eq(p.pos.line, par_line)) {
-		let _r44_7254 = bait__parser__Parser_parse_type(p)
-		if (_r44_7254.is_error) {
-			return _r44_7254
+		let _r45_7254 = bait__parser__Parser_parse_type(p)
+		if (_r45_7254.is_error) {
+			return _r45_7254
 		}
-		return_type = _r44_7254.data
+		return_type = _r45_7254.data
 	}
 	return new Result({ data: new bait__ast__FunDecl({ lang: bait__ast__Language.js, name: name, params: params, return_type: return_type, is_pub: true, is_method: true }) })
 }
 
 function bait__parser__Parser_return_stmt(p) {
 	const pos = p.pos
-	let _r44_7481 = bait__parser__Parser_check(p, bait__token__Token.key_return)
-	if (_r44_7481.is_error) {
-		return _r44_7481
+	let _r45_7481 = bait__parser__Parser_check(p, bait__token__Token.key_return)
+	if (_r45_7481.is_error) {
+		return _r45_7481
 	}
-_r44_7481.data
+_r45_7481.data
 	let expr = new bait__ast__Void({})
 	if (!eq(p.tok, bait__token__Token.semicolon)) {
-		let _r44_7567 = bait__parser__Parser_expr(p, bait__token__Precedence.lowest)
-		if (_r44_7567.is_error) {
-			return _r44_7567
+		let _r45_7567 = bait__parser__Parser_expr(p, bait__token__Precedence.lowest)
+		if (_r45_7567.is_error) {
+			return _r45_7567
 		}
-		expr = _r44_7567.data
+		expr = _r45_7567.data
 	}
 	bait__parser__Parser_skip(p, bait__token__Token.semicolon)
 	return new Result({ data: new bait__ast__ReturnStmt({ expr: expr, pos: pos }) })
@@ -6413,33 +6414,33 @@ function bait__parser__Parser_type_decl(p) {
 	const pos = p.pos
 	const is_pub = bait__parser__Parser_check_pub(p)
 	bait__parser__Parser_next(p)
-	let _r44_7770 = bait__parser__Parser_parse_lang(p)
-	if (_r44_7770.is_error) {
-		return _r44_7770
+	let _r45_7770 = bait__parser__Parser_parse_lang(p)
+	if (_r45_7770.is_error) {
+		return _r45_7770
 	}
-	const lang = _r44_7770.data
-	let _r44_7798 = bait__parser__Parser_check_name(p)
-	if (_r44_7798.is_error) {
-		return _r44_7798
+	const lang = _r45_7770.data
+	let _r45_7798 = bait__parser__Parser_check_name(p)
+	if (_r45_7798.is_error) {
+		return _r45_7798
 	}
-	let name = _r44_7798.data
+	let name = _r45_7798.data
 	if (eq(lang, bait__ast__Language.bait)) {
 		name = bait__parser__Parser_prepend_pkg(p, name)
 	} else {
 		name = bait__ast__Language_prepend_to(lang, name)
 	}
-	let _r44_7925 = bait__parser__Parser_check(p, bait__token__Token.decl_assign)
-	if (_r44_7925.is_error) {
-		return _r44_7925
+	let _r45_7925 = bait__parser__Parser_check(p, bait__token__Token.decl_assign)
+	if (_r45_7925.is_error) {
+		return _r45_7925
 	}
-_r44_7925.data
+_r45_7925.data
 	const is_fun_type = eq(p.tok, bait__token__Token.key_fun)
 	let variants = new bait_Array({ data: [], length: 0 })
-	let _r44_8006 = bait__parser__Parser_parse_type(p)
-	if (_r44_8006.is_error) {
-		return _r44_8006
+	let _r45_8006 = bait__parser__Parser_parse_type(p)
+	if (_r45_8006.is_error) {
+		return _r45_8006
 	}
-	Array_push(variants, _r44_8006.data)
+	Array_push(variants, _r45_8006.data)
 	if (is_fun_type) {
 		const sym = bait__ast__Table_get_sym(p.table, Array_get(variants, 0))
 		const typ = bait__ast__Table_register_sym(p.table, new bait__ast__TypeSymbol({ kind: bait__ast__TypeKind.fun_, mix_name: name, is_pub: is_pub, pkg: p.pkg_name, info: sym.info }))
@@ -6453,11 +6454,11 @@ _r44_7925.data
 	}
 	while (eq(p.tok, bait__token__Token.pipe)) {
 		bait__parser__Parser_next(p)
-		let _r44_8855 = bait__parser__Parser_parse_type(p)
-		if (_r44_8855.is_error) {
-			return _r44_8855
+		let _r45_8855 = bait__parser__Parser_parse_type(p)
+		if (_r45_8855.is_error) {
+			return _r45_8855
 		}
-		Array_push(variants, _r44_8855.data)
+		Array_push(variants, _r45_8855.data)
 	}
 	const typ = bait__ast__Table_register_sym(p.table, new bait__ast__TypeSymbol({ kind: bait__ast__TypeKind.sum_type, mix_name: name, is_pub: is_pub, pkg: p.pkg_name, info: new bait__ast__SumTypeInfo({ variants: variants }) }))
 	bait__context__Scope_register_unique(p.pkg_scope, name, new bait__context__ScopeObject({ kind: bait__context__ObjectKind.type_, typ: typ }))
@@ -6513,25 +6514,25 @@ function bait__parser__Parser_init(p, text, path, expected_pkg) {
 }
 
 function bait__parser__Parser_parse(p) {
-	let _r45_1563 = bait__parser__Parser_parse_result(p)
-	if (_r45_1563.is_error) {
-		const err = _r45_1563.msg
-		_r45_1563.data = bait__parser__Parser_file_error(p, err)
+	let _r46_1563 = bait__parser__Parser_parse_result(p)
+	if (_r46_1563.is_error) {
+		const err = _r46_1563.msg
+		_r46_1563.data = bait__parser__Parser_file_error(p, err)
 	}
-	return _r45_1563.data
+	return _r46_1563.data
 }
 
 function bait__parser__Parser_parse_result(p) {
-	let _r45_1640 = bait__parser__Parser_parse_attributes(p)
-	if (_r45_1640.is_error) {
-		return _r45_1640
+	let _r46_1640 = bait__parser__Parser_parse_attributes(p)
+	if (_r46_1640.is_error) {
+		return _r46_1640
 	}
-_r45_1640.data
-	let _r45_1719 = bait__parser__Parser_package_decl(p)
-	if (_r45_1719.is_error) {
-		return _r45_1719
+_r46_1640.data
+	let _r46_1719 = bait__parser__Parser_package_decl(p)
+	if (_r46_1719.is_error) {
+		return _r46_1719
 	}
-	p.pkg_name = _r45_1719.data
+	p.pkg_name = _r46_1719.data
 	if (eq(p.pkg_name.length, 0)) {
 		return new Result({ data: new bait__ast__File({ infos: p.infos }) })
 	}
@@ -6539,23 +6540,23 @@ _r45_1640.data
 		return new Result({ data: new bait__ast__File({ pkg_name: p.pkg_name, path: p.path }) })
 	}
 	p.pkg_scope = bait__context__SemanticContext_obtain_pkg_scope(p.sema_ctx, p.pkg_name)
-	let _r45_2082 = bait__parser__Parser_import_stmts(p)
-	if (_r45_2082.is_error) {
-		return _r45_2082
+	let _r46_2082 = bait__parser__Parser_import_stmts(p)
+	if (_r46_2082.is_error) {
+		return _r46_2082
 	}
-	const imports = _r45_2082.data
+	const imports = _r46_2082.data
 	let stmts = new bait_Array({ data: [], length: 0 })
 	while (!eq(p.tok, bait__token__Token.eof)) {
-		let _r45_2155 = bait__parser__Parser_parse_attributes(p)
-		if (_r45_2155.is_error) {
-			return _r45_2155
+		let _r46_2155 = bait__parser__Parser_parse_attributes(p)
+		if (_r46_2155.is_error) {
+			return _r46_2155
 		}
-_r45_2155.data
-		let _r45_2180 = bait__parser__Parser_toplevel_stmt(p)
-		if (_r45_2180.is_error) {
-			return _r45_2180
+_r46_2155.data
+		let _r46_2180 = bait__parser__Parser_toplevel_stmt(p)
+		if (_r46_2180.is_error) {
+			return _r46_2180
 		}
-		Array_push(stmts, _r45_2180.data)
+		Array_push(stmts, _r46_2180.data)
 	}
 	return new Result({ data: new bait__ast__File({ path: p.path, lang: bait__ast__path_to_lang(p.path), pkg_name: p.pkg_name, imports: imports, stmts: stmts, infos: p.infos, warnings: p.warnings }) })
 }
@@ -6565,11 +6566,11 @@ function bait__parser__Parser_package_decl(p) {
 		return new Result({ data: from_js_string("main") })
 	}
 	bait__parser__Parser_next(p)
-	let _r45_2542 = bait__parser__Parser_check_name(p)
-	if (_r45_2542.is_error) {
-		return _r45_2542
+	let _r46_2542 = bait__parser__Parser_check_name(p)
+	if (_r46_2542.is_error) {
+		return _r46_2542
 	}
-	const name = _r45_2542.data
+	const name = _r46_2542.data
 	if (eq(p.pkg_name.length, 0)) {
 		return new Result({ data: name })
 	}
@@ -6593,16 +6594,16 @@ function bait__parser__Parser_parse_attributes(p) {
 		if (eq(p.tok, bait__token__Token.lpar)) {
 			bait__parser__Parser_next(p)
 			value = p.val
-			let _r45_3173 = bait__parser__Parser_check(p, bait__token__Token.string)
-			if (_r45_3173.is_error) {
-				return _r45_3173
+			let _r46_3173 = bait__parser__Parser_check(p, bait__token__Token.string)
+			if (_r46_3173.is_error) {
+				return _r46_3173
 			}
-_r45_3173.data
-			let _r45_3191 = bait__parser__Parser_check(p, bait__token__Token.rpar)
-			if (_r45_3191.is_error) {
-				return _r45_3191
+_r46_3173.data
+			let _r46_3191 = bait__parser__Parser_check(p, bait__token__Token.rpar)
+			if (_r46_3191.is_error) {
+				return _r46_3191
 			}
-_r45_3191.data
+_r46_3191.data
 		}
 		Array_push(p.attributes, new bait__ast__Attribute({ name: name, value: value, pos: pos }))
 	}
@@ -6610,24 +6611,24 @@ _r45_3191.data
 }
 
 function bait__parser__Parser_parse_block(p) {
-	let _r45_3352 = bait__parser__Parser_check(p, bait__token__Token.lcur)
-	if (_r45_3352.is_error) {
-		return _r45_3352
+	let _r46_3352 = bait__parser__Parser_check(p, bait__token__Token.lcur)
+	if (_r46_3352.is_error) {
+		return _r46_3352
 	}
-_r45_3352.data
+_r46_3352.data
 	let stmts = new bait_Array({ data: [], length: 0 })
 	while (!eq(p.tok, bait__token__Token.rcur) && !eq(p.tok, bait__token__Token.eof)) {
-		let _r45_3436 = bait__parser__Parser_stmt(p)
-		if (_r45_3436.is_error) {
-			return _r45_3436
+		let _r46_3436 = bait__parser__Parser_stmt(p)
+		if (_r46_3436.is_error) {
+			return _r46_3436
 		}
-		Array_push(stmts, _r45_3436.data)
+		Array_push(stmts, _r46_3436.data)
 	}
-	let _r45_3464 = bait__parser__Parser_check(p, bait__token__Token.rcur)
-	if (_r45_3464.is_error) {
-		return _r45_3464
+	let _r46_3464 = bait__parser__Parser_check(p, bait__token__Token.rcur)
+	if (_r46_3464.is_error) {
+		return _r46_3464
 	}
-_r45_3464.data
+_r46_3464.data
 	return new Result({ data: stmts })
 }
 
@@ -6647,11 +6648,11 @@ function bait__parser__Parser_check(p, expected) {
 
 function bait__parser__Parser_check_name(p) {
 	const val = p.val
-	let _r45_3786 = bait__parser__Parser_check(p, bait__token__Token.name)
-	if (_r45_3786.is_error) {
-		return _r45_3786
+	let _r46_3786 = bait__parser__Parser_check(p, bait__token__Token.name)
+	if (_r46_3786.is_error) {
+		return _r46_3786
 	}
-_r45_3786.data
+_r46_3786.data
 	return new Result({ data: val })
 }
 
@@ -6669,11 +6670,11 @@ function bait__parser__Parser_parse_lang(p) {
 	}
 	const lang = bait__ast__prefix_to_lang(p.val)
 	bait__parser__Parser_next(p)
-	let _r45_4057 = bait__parser__Parser_check(p, bait__token__Token.dot)
-	if (_r45_4057.is_error) {
-		return _r45_4057
+	let _r46_4057 = bait__parser__Parser_check(p, bait__token__Token.dot)
+	if (_r46_4057.is_error) {
+		return _r46_4057
 	}
-_r45_4057.data
+_r46_4057.data
 	return new Result({ data: lang })
 }
 
@@ -6686,18 +6687,18 @@ function bait__parser__Parser_parse_ffi_pkg(p) {
 		return new Result({ data: new bait__parser__FFIRes({ lang: bait__ast__Language.bait }) })
 	}
 	let r = new bait__parser__FFIRes({})
-	let _r45_4304 = bait__parser__Parser_parse_lang(p)
-	if (_r45_4304.is_error) {
-		return _r45_4304
+	let _r46_4304 = bait__parser__Parser_parse_lang(p)
+	if (_r46_4304.is_error) {
+		return _r46_4304
 	}
-	r.lang = _r45_4304.data
+	r.lang = _r46_4304.data
 	r.pkg = bait__ast__Language_str(r.lang)
 	if (eq(r.lang, bait__ast__Language.js) && eq(bait__parser__Parser_peek(p), bait__token__Token.dot)) {
-		let _r45_4462 = bait__parser__Parser_check_name(p)
-		if (_r45_4462.is_error) {
-			return _r45_4462
+		let _r46_4462 = bait__parser__Parser_check_name(p)
+		if (_r46_4462.is_error) {
+			return _r46_4462
 		}
-		r.pkg = string_add(r.pkg, string_add(from_js_string("."), _r45_4462.data))
+		r.pkg = string_add(r.pkg, string_add(from_js_string("."), _r46_4462.data))
 		bait__parser__Parser_next(p)
 	}
 	return new Result({ data: r })
@@ -7331,13 +7332,13 @@ function bait__checker__Checker_fun_instance(c, node) {
 function bait__checker__Checker_fun_params(c, params) {
 	for (let _t381 = 0; _t381 < params.length; _t381++) {
 		const p = Array_get(params, _t381)
-		let _r52_2349 = bait__context__Scope_expect_unknown(c.scope, p.name)
-		if (_r52_2349.is_error) {
-			const err = _r52_2349.msg
+		let _r53_2349 = bait__context__Scope_expect_unknown(c.scope, p.name)
+		if (_r53_2349.is_error) {
+			const err = _r53_2349.msg
 			bait__checker__Checker_error(c, err, p.pos)
 			continue
 		}
-_r52_2349.data
+_r53_2349.data
 		const sym = bait__ast__Table_get_sym(c.table, p.typ)
 		if (!bait__checker__Checker_does_type_exist(c, sym, p.pos)) {
 			continue
@@ -7399,12 +7400,12 @@ function bait__checker__Checker_fun_call(c, node) {
 		return node.return_type
 	}
 	if (string_eq(node.name, from_js_string("println")) || string_eq(node.name, from_js_string("eprintln")) || string_eq(node.name, from_js_string("print")) || string_eq(node.name, from_js_string("eprint"))) {
-		let _r52_4403 = bait__checker__Checker_non_void_expr(c, Array_get(node.args, 0).expr)
-		if (_r52_4403.is_error) {
-			const err = _r52_4403.msg
-			_r52_4403.data = bait__ast__ERROR_TYPE
+		let _r53_4403 = bait__checker__Checker_non_void_expr(c, Array_get(node.args, 0).expr)
+		if (_r53_4403.is_error) {
+			const err = _r53_4403.msg
+			_r53_4403.data = bait__ast__ERROR_TYPE
 		}
-		Array_get(node.args, 0).typ = _r52_4403.data
+		Array_get(node.args, 0).typ = _r53_4403.data
 		return bait__ast__VOID_TYPE
 	}
 	bait__checker__Checker_call_args(c, node, 0, obj.generic_names, obj.params)
@@ -8426,12 +8427,12 @@ function bait__checker__Checker_const_decl(c, node) {
 	if (!eq(node.lang, bait__ast__Language.bait)) {
 		return 
 	}
-	let _r58_1621 = bait__checker__Checker_non_void_expr(c, node.expr)
-	if (_r58_1621.is_error) {
-		const err = _r58_1621.msg
+	let _r59_1621 = bait__checker__Checker_non_void_expr(c, node.expr)
+	if (_r59_1621.is_error) {
+		const err = _r59_1621.msg
 		return 
 	}
-	node.typ = _r58_1621.data
+	node.typ = _r59_1621.data
 	bait__context__Scope_update_type(Map_get_set(c.sema_ctx.scopes, c.pkg, null), node.name, node.typ)
 }
 
@@ -8560,12 +8561,12 @@ function bait__checker__Checker_for_in_loop(c, node) {
 }
 
 function bait__checker__Checker_static_decl(c, node) {
-	let _r58_5162 = bait__checker__Checker_non_void_expr(c, node.expr)
-	if (_r58_5162.is_error) {
-		const err = _r58_5162.msg
+	let _r59_5162 = bait__checker__Checker_non_void_expr(c, node.expr)
+	if (_r59_5162.is_error) {
+		const err = _r59_5162.msg
 		return 
 	}
-	node.typ = _r58_5162.data
+	node.typ = _r59_5162.data
 	bait__context__Scope_update_type(Map_get_set(c.sema_ctx.scopes, c.pkg, null), node.name, node.typ)
 }
 
@@ -8670,13 +8671,13 @@ function bait__checker__Checker_decl_assign(c, node) {
 		return 
 	}
 	const left = node.left
-	let _r60_660 = bait__context__Scope_expect_unknown(c.scope, left.name)
-	if (_r60_660.is_error) {
-		const err = _r60_660.msg
+	let _r61_660 = bait__context__Scope_expect_unknown(c.scope, left.name)
+	if (_r61_660.is_error) {
+		const err = _r61_660.msg
 		bait__checker__Checker_error(c, err, node.pos)
 		return 
 	}
-_r60_660.data
+_r61_660.data
 	if (i32(left.name.length > 1) && eq(string_get(left.name, 0), u8("_"))) {
 		bait__checker__Checker_error(c, from_js_string(`variable \`${left.name.str}\` cannot start with \`_\``), node.pos)
 		return 
@@ -8687,12 +8688,12 @@ _r60_660.data
 }
 
 function bait__checker__Checker_decl_right_side(c, node) {
-	let _r60_1131 = bait__checker__Checker_non_void_expr(c, node.right)
-	if (_r60_1131.is_error) {
-		const err = _r60_1131.msg
+	let _r61_1131 = bait__checker__Checker_non_void_expr(c, node.right)
+	if (_r61_1131.is_error) {
+		const err = _r61_1131.msg
 		return bait__ast__ERROR_TYPE
 	}
-	const typ = _r60_1131.data
+	const typ = _r61_1131.data
 	node.left_type = typ
 	node.right_type = typ
 	return typ
@@ -11651,23 +11652,23 @@ function bait__builder__Builder_bait_files_in_dir(b, dir) {
 
 function bait__builder__Builder_get_builtin_files(b) {
 	const builtin_path = bait__builder__Builder_resolve_import(b, from_js_string(""), from_js_string("builtin"))
-	let _r18_1059 = bait__builder__Builder_bait_files_in_dir(b, builtin_path)
-	if (_r18_1059.is_error) {
-		const err = _r18_1059.msg
-		_r18_1059.data = panic(err)
+	let _r19_1059 = bait__builder__Builder_bait_files_in_dir(b, builtin_path)
+	if (_r19_1059.is_error) {
+		const err = _r19_1059.msg
+		_r19_1059.data = panic(err)
 	}
-	return _r18_1059.data
+	return _r19_1059.data
 }
 
 function bait__builder__Builder_collect_user_files(b, path) {
 	if (string_ends_with(path, from_js_string(".bt"))) {
 		return new Result({ data: new bait_Array({ data: [path], length: 1 }) })
 	}
-	let _r18_1257 = bait__builder__Builder_bait_files_in_dir(b, path)
-	if (_r18_1257.is_error) {
-		return _r18_1257
+	let _r19_1257 = bait__builder__Builder_bait_files_in_dir(b, path)
+	if (_r19_1257.is_error) {
+		return _r19_1257
 	}
-	return new Result({ data: _r18_1257.data })
+	return new Result({ data: _r19_1257.data })
 }
 
 function bait__builder__Builder_parse_file(b, path, pkg) {
@@ -11680,13 +11681,13 @@ function bait__builder__compile(prefs) {
 	let sema_ctx = new bait__context__SemanticContext({})
 	let b = new bait__builder__Builder({ prefs: prefs, parser: bait__parser__new(bait__ast__new_table(), sema_ctx, prefs) })
 	let paths = bait__builder__Builder_get_builtin_files(b)
-	let _r18_1766 = bait__builder__Builder_collect_user_files(b, prefs.command)
-	if (_r18_1766.is_error) {
-		const err = _r18_1766.msg
+	let _r19_1766 = bait__builder__Builder_collect_user_files(b, prefs.command)
+	if (_r19_1766.is_error) {
+		const err = _r19_1766.msg
 		bait__errors__generic_error(err)
 		return 1
 	}
-	Array_push_many(paths, _r18_1766.data)
+	Array_push_many(paths, _r19_1766.data)
 	bait__util__timers__start(from_js_string("PARSE"))
 	let ast_files = new bait_Array({ data: [], length: 0 })
 	for (let _t834 = 0; _t834 < paths.length; _t834++) {
@@ -11710,13 +11711,13 @@ function bait__builder__compile(prefs) {
 				bait__errors__generic_error(from_js_string(`package ${imp.name.str} not found`))
 				continue
 			}
-			let _r18_2786 = bait__builder__Builder_bait_files_in_dir(b, import_dir)
-			if (_r18_2786.is_error) {
-				const err = _r18_2786.msg
+			let _r19_2786 = bait__builder__Builder_bait_files_in_dir(b, import_dir)
+			if (_r19_2786.is_error) {
+				const err = _r19_2786.msg
 				bait__errors__generic_error(from_js_string(`package \`${imp.name.str}\` contains no .bt files`))
 				continue
 			}
-			const imp_paths = _r18_2786.data
+			const imp_paths = _r19_2786.data
 			let nr_newly_parsed = 0
 			for (let _t837 = 0; _t837 < imp_paths.length; _t837++) {
 				const p = Array_get(imp_paths, _t837)
@@ -11943,7 +11944,7 @@ function bait__builder__ensure_dir_exists(dir) {
 
 
 const bait__util__VERSION = from_js_string("0.0.8")
-const bait__util__FULL_VERSION = from_js_string(`${bait__util__VERSION.str} ${from_js_string("484e13c").str}`)
+const bait__util__FULL_VERSION = from_js_string(`${bait__util__VERSION.str} ${from_js_string("e04e04f").str}`)
 
 const bait__util__tools__TOOLS = new bait_Array({ data: [from_js_string("ast"), from_js_string("init"), from_js_string("self"), from_js_string("up"), from_js_string("symlink"), from_js_string("doctor"), from_js_string("help"), from_js_string("test-all"), from_js_string("build-examples"), from_js_string("build-tools"), from_js_string("check-md")], length: 11 })
 function bait__util__tools__is_tool(name) {
