@@ -11463,7 +11463,7 @@ function bait__gen__c__Gen_generate_str_fun(g, typ) {
 		}
 	}
 	strings__Builder_write_u8(&b, \']\');
-	return strings__Builder_str(b);
+	return strings__Builder_str(&b);
 }\n\n`))
 		return 
 	}
@@ -11493,7 +11493,7 @@ function bait__gen__c__Gen_generate_str_fun(g, typ) {
 	strings__Builder_write(&b, val);
 	strings__Builder_write(&b, from_c_string("${bait__gen__c__LB.str}"));\n`))
 		}
-		g.auto_funs_out = string_add(g.auto_funs_out, from_js_string("\tstrings__Builder_write(&b, space);\n	strings__Builder_write_u8(&b, \'}\');\n	return strings__Builder_str(b);\n}\n\n"))
+		g.auto_funs_out = string_add(g.auto_funs_out, from_js_string("\tstrings__Builder_write(&b, space);\n	strings__Builder_write_u8(&b, \'}\');\n	return strings__Builder_str(&b);\n}\n\n"))
 		return 
 	}
 	bait__errors__generic_error(from_js_string(`cannot convert ${sym.mix_name.str} to string`))
@@ -12438,7 +12438,7 @@ function bait__builder__run_tests(prefs) {
 
 
 const bait__util__VERSION = from_js_string("0.0.9")
-const bait__util__FULL_VERSION = from_js_string(`${bait__util__VERSION.str} ${from_js_string("d96520e").str}`)
+const bait__util__FULL_VERSION = from_js_string(`${bait__util__VERSION.str} ${from_js_string("c580a75").str}`)
 
 const bait__util__tools__TOOLS = new bait_Array({ data: [from_js_string("ast"), from_js_string("init"), from_js_string("self"), from_js_string("up"), from_js_string("symlink"), from_js_string("doctor"), from_js_string("help"), from_js_string("test-all"), from_js_string("build-examples"), from_js_string("build-tools"), from_js_string("check-md")], length: 11 })
 function bait__util__tools__is_tool(name) {
