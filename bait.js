@@ -1202,7 +1202,7 @@ function string_all_after(s, search) {
 	if (eq(idx, -1)) {
 		return s
 	}
-	return string_substr(s, i32(idx + 1), s.length)
+	return string_substr(s, i32(idx + search.length), s.length)
 }
 
 function string_all_after_last(s, search) {
@@ -1210,7 +1210,7 @@ function string_all_after_last(s, search) {
 	if (eq(idx, -1)) {
 		return s
 	}
-	return string_substr(s, i32(idx + 1), s.length)
+	return string_substr(s, i32(idx + search.length), s.length)
 }
 
 function string_split(s, delim) {
@@ -9569,8 +9569,10 @@ function bait__gen__js__Gen_main_call(g) {
 }
 
 function bait__gen__js__Gen_write_default_value(g, typ) {
-	if (eq(typ, bait__ast__I8_TYPE) || eq(typ, bait__ast__I16_TYPE) || eq(typ, bait__ast__I32_TYPE) || eq(typ, bait__ast__I64_TYPE) || eq(typ, bait__ast__U8_TYPE) || eq(typ, bait__ast__U16_TYPE) || eq(typ, bait__ast__U32_TYPE) || eq(typ, bait__ast__U64_TYPE)) {
+	if (eq(typ, bait__ast__I8_TYPE) || eq(typ, bait__ast__I16_TYPE) || eq(typ, bait__ast__I32_TYPE) || eq(typ, bait__ast__U8_TYPE) || eq(typ, bait__ast__U16_TYPE) || eq(typ, bait__ast__U32_TYPE)) {
 		bait__gen__js__Gen_write(g, from_js_string("0"))
+	} else if (eq(typ, bait__ast__I64_TYPE) || eq(typ, bait__ast__U64_TYPE)) {
+		bait__gen__js__Gen_write(g, from_js_string("0n"))
 	} else if (eq(typ, bait__ast__F32_TYPE) || eq(typ, bait__ast__F64_TYPE)) {
 		bait__gen__js__Gen_write(g, from_js_string("0.0"))
 	} else if (eq(typ, bait__ast__BOOL_TYPE)) {
@@ -12106,7 +12108,7 @@ function bait__transformer__Transformer_gen_test_main(t) {
 }
 
 
-function time__Time({ year = 0, month = 0, day = 0, hour = 0, minute = 0, second = 0, millisecond = 0, unix = 0 }) {
+function time__Time({ year = 0, month = 0, day = 0, hour = 0, minute = 0, second = 0, millisecond = 0, unix = 0n }) {
 	this.year = year
 	this.month = month
 	this.day = day
@@ -12136,7 +12138,7 @@ function time__Time_minus(a, b) {
 }
 
 
-function time__Stopwatch({ start = 0, end = 0, elapsed = 0 }) {
+function time__Stopwatch({ start = 0n, end = 0n, elapsed = 0n }) {
 	this.start = start
 	this.end = end
 	this.elapsed = elapsed
@@ -12562,7 +12564,7 @@ function bait__builder__run_tests(prefs) {
 
 
 const bait__util__VERSION = from_js_string("0.0.9")
-const bait__util__FULL_VERSION = from_js_string(`${bait__util__VERSION.str} ${from_js_string("f5b52f0").str}`)
+const bait__util__FULL_VERSION = from_js_string(`${bait__util__VERSION.str} ${from_js_string("8c56933").str}`)
 
 const bait__util__tools__TOOLS = new bait_Array({ data: [from_js_string("ast"), from_js_string("init"), from_js_string("self"), from_js_string("up"), from_js_string("symlink"), from_js_string("doctor"), from_js_string("help"), from_js_string("test-all"), from_js_string("build-examples"), from_js_string("build-tools"), from_js_string("check-md")], length: 11 })
 function bait__util__tools__is_tool(name) {
